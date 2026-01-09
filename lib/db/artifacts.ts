@@ -37,6 +37,7 @@ export const ArtifactService = {
         // (Actual pointer update usually logic driven, for now we just insert)
 
         // Automatically update the current_version counter on the parent artifact
+        // @ts-ignore
         await supabase.rpc('increment_artifact_version', { artifact_id: version.artifact_id })
 
         return data

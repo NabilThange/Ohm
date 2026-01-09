@@ -1,0 +1,1443 @@
+<ComponentPreview id="Clipboard" />
+
+## Anatomy
+
+To set up the Clipboard correctly, you'll need to understand its anatomy and how we name its parts.
+
+> Each part includes a `data-part` attribute to help identify them in the DOM.
+
+<Anatomy id="clipboard" />
+
+## Examples
+
+Learn how to use the `Clipboard` component in your project. Let's take a look at the most basic example:
+
+**Example: basic**
+
+#### React
+
+```tsx
+import { Clipboard } from '@ark-ui/react/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-react'
+
+export const Basic = () => {
+  return (
+    <Clipboard.Root value="https://ark-ui.com">
+      <Clipboard.Label>Copy this link</Clipboard.Label>
+      <Clipboard.Control>
+        <Clipboard.Input />
+        <Clipboard.Trigger>
+          <Clipboard.Indicator copied={<CheckIcon />}>
+            <ClipboardCopyIcon />
+          </Clipboard.Indicator>
+        </Clipboard.Trigger>
+      </Clipboard.Control>
+    </Clipboard.Root>
+  )
+}
+
+```
+
+#### Solid
+
+```tsx
+import { Clipboard } from '@ark-ui/solid/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-solid'
+
+export const Basic = () => {
+  return (
+    <Clipboard.Root value="https://ark-ui.com">
+      <Clipboard.Label>Copy this link</Clipboard.Label>
+      <Clipboard.Control>
+        <Clipboard.Input />
+        <Clipboard.Trigger>
+          <Clipboard.Indicator copied={<CheckIcon />}>
+            <ClipboardCopyIcon />
+          </Clipboard.Indicator>
+        </Clipboard.Trigger>
+      </Clipboard.Control>
+    </Clipboard.Root>
+  )
+}
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { Clipboard } from '@ark-ui/vue/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-vue-next'
+</script>
+
+<template>
+  <Clipboard.Root default-value="https://ark-ui.com">
+    <Clipboard.Label>Copy this link</Clipboard.Label>
+    <Clipboard.Control>
+      <Clipboard.Input />
+      <Clipboard.Trigger>
+        <Clipboard.Indicator>
+          <ClipboardCopyIcon />
+          <template #copied>
+            <CheckIcon />
+          </template>
+        </Clipboard.Indicator>
+      </Clipboard.Trigger>
+    </Clipboard.Control>
+  </Clipboard.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { Clipboard } from '@ark-ui/svelte/clipboard'
+  import { CheckIcon, ClipboardCopyIcon } from 'lucide-svelte'
+</script>
+
+<Clipboard.Root value="https://ark-ui.com">
+  <Clipboard.Label>Copy this link</Clipboard.Label>
+  <Clipboard.Control>
+    <Clipboard.Input />
+    <Clipboard.Trigger>
+      <Clipboard.Indicator>
+        {#snippet copied()}
+          <CheckIcon />
+        {/snippet}
+        <ClipboardCopyIcon />
+      </Clipboard.Indicator>
+    </Clipboard.Trigger>
+  </Clipboard.Control>
+</Clipboard.Root>
+
+```
+
+### Using Context
+
+Access the clipboard state and methods using `Clipboard.Context`. This provides access to properties like `copied`,
+`value`, and `setValue`
+
+> Alternatively, you can use the `useClipboardContext` hook to access the clipboard context.
+
+**Example: context**
+
+#### React
+
+```tsx
+import { Clipboard } from '@ark-ui/react/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-react'
+
+export const Context = () => {
+  return (
+    <Clipboard.Root value="https://ark-ui.com">
+      <Clipboard.Label>Copy this link</Clipboard.Label>
+      <Clipboard.Control>
+        <Clipboard.Trigger>
+          <Clipboard.Context>
+            {(clipboard) => (
+              <div>
+                {clipboard.copied ? <CheckIcon /> : <ClipboardCopyIcon />}
+                <span>{clipboard.copied ? 'Copied!' : 'Copy'}</span>
+                <small>Value: {clipboard.value}</small>
+              </div>
+            )}
+          </Clipboard.Context>
+        </Clipboard.Trigger>
+      </Clipboard.Control>
+    </Clipboard.Root>
+  )
+}
+
+```
+
+#### Solid
+
+```tsx
+import { Clipboard } from '@ark-ui/solid/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-solid'
+import { Show } from 'solid-js'
+
+export const Context = () => {
+  return (
+    <Clipboard.Root value="https://ark-ui.com">
+      <Clipboard.Label>Copy this link</Clipboard.Label>
+      <Clipboard.Control>
+        <Clipboard.Trigger>
+          <Clipboard.Context>
+            {(clipboard) => (
+              <div>
+                <Show when={clipboard().copied} fallback={<ClipboardCopyIcon />}>
+                  <CheckIcon />
+                </Show>
+                <span>
+                  <Show when={clipboard().copied} fallback="Copy">
+                    Copied!
+                  </Show>
+                </span>
+                <small>Value: {clipboard().value}</small>
+              </div>
+            )}
+          </Clipboard.Context>
+        </Clipboard.Trigger>
+      </Clipboard.Control>
+    </Clipboard.Root>
+  )
+}
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { Clipboard } from '@ark-ui/vue/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-vue-next'
+</script>
+
+<template>
+  <Clipboard.Root default-value="https://ark-ui.com">
+    <Clipboard.Label>Copy this link</Clipboard.Label>
+    <Clipboard.Control>
+      <Clipboard.Trigger>
+        <Clipboard.Context v-slot="clipboard">
+          <div>
+            <CheckIcon v-if="clipboard.copied" />
+            <ClipboardCopyIcon v-else />
+            <span>
+              {{ clipboard.copied ? 'Copied!' : 'Copy' }}
+            </span>
+            <small>Value: {{ clipboard.value }}</small>
+          </div>
+        </Clipboard.Context>
+      </Clipboard.Trigger>
+    </Clipboard.Control>
+  </Clipboard.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { CheckIcon, ClipboardCopyIcon } from 'lucide-svelte'
+  import { Clipboard } from '@ark-ui/svelte/clipboard'
+</script>
+
+<Clipboard.Root value="https://ark-ui.com">
+  <Clipboard.Label>Copy this link</Clipboard.Label>
+  <Clipboard.Control>
+    <Clipboard.Trigger>
+      <Clipboard.Context>
+        {#snippet render(clipboard)}
+          <div>
+            {#if clipboard().copied}
+              <CheckIcon />
+            {:else}
+              <ClipboardCopyIcon />
+            {/if}
+            <span>
+              {#if clipboard().copied}
+                Copied!
+              {:else}
+                Copy
+              {/if}
+            </span>
+            <small>Value: {clipboard().value}</small>
+          </div>
+        {/snippet}
+      </Clipboard.Context>
+    </Clipboard.Trigger>
+  </Clipboard.Control>
+</Clipboard.Root>
+
+```
+
+### Copy Status
+
+Use the `onStatusChange` prop to listen for copy operations. It exposes a `copied` property that you can use to display
+a success message.
+
+**Example: copy-status**
+
+#### React
+
+```tsx
+import { Clipboard } from '@ark-ui/react/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-react'
+import { useState } from 'react'
+
+export const CopyStatus = () => {
+  const [copyCount, setCopyCount] = useState(0)
+
+  return (
+    <Clipboard.Root
+      value="https://ark-ui.com"
+      onStatusChange={(details) => {
+        if (details.copied) {
+          setCopyCount((prev) => prev + 1)
+        }
+      }}
+    >
+      <Clipboard.Trigger>
+        <Clipboard.Indicator copied={<CheckIcon />}>
+          <ClipboardCopyIcon />
+        </Clipboard.Indicator>
+        Copy
+      </Clipboard.Trigger>
+      <p>Copied {copyCount} times</p>
+    </Clipboard.Root>
+  )
+}
+
+```
+
+#### Solid
+
+```tsx
+import { Clipboard } from '@ark-ui/solid/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-solid'
+import { Show, createSignal } from 'solid-js'
+
+export const CopyStatus = () => {
+  const [copyCount, setCopyCount] = createSignal(0)
+
+  return (
+    <Clipboard.Root
+      value="https://ark-ui.com"
+      onStatusChange={(details) => {
+        if (details.copied) {
+          setCopyCount((prev) => prev + 1)
+        }
+      }}
+    >
+      <Clipboard.Trigger>
+        <Clipboard.Indicator>
+          <Show when={false} fallback={<ClipboardCopyIcon />}>
+            <CheckIcon />
+          </Show>
+        </Clipboard.Indicator>
+        Copy
+      </Clipboard.Trigger>
+      <p>Copied {copyCount()} times</p>
+    </Clipboard.Root>
+  )
+}
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { Clipboard } from '@ark-ui/vue/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-vue-next'
+import { ref } from 'vue'
+
+const copyCount = ref(0)
+</script>
+
+<template>
+  <Clipboard.Root
+    default-value="https://ark-ui.com"
+    @status-change="
+      (details) => {
+        if (details.copied) {
+          copyCount += 1
+        }
+      }
+    "
+  >
+    <Clipboard.Trigger>
+      <Clipboard.Indicator>
+        <ClipboardCopyIcon />
+        <template #copied>
+          <CheckIcon />
+        </template>
+      </Clipboard.Indicator>
+      Copy
+    </Clipboard.Trigger>
+    <p>Copied {{ copyCount }} times</p>
+  </Clipboard.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { CheckIcon, ClipboardCopyIcon } from 'lucide-svelte'
+  import { Clipboard } from '@ark-ui/svelte/clipboard'
+
+  let copyCount = $state(0)
+</script>
+
+<Clipboard.Root
+  value="https://ark-ui.com"
+  onStatusChange={(details) => {
+    if (details.copied) {
+      copyCount += 1
+    }
+  }}
+>
+  <Clipboard.Trigger>
+    <Clipboard.Indicator>
+      <ClipboardCopyIcon />
+      {#snippet copied()}
+        <CheckIcon />
+      {/snippet}
+    </Clipboard.Indicator>
+    Copy
+  </Clipboard.Trigger>
+  <p>Copied {copyCount} times</p>
+</Clipboard.Root>
+
+```
+
+### Controlled
+
+Control the clipboard value externally by managing the state yourself and using `onValueChange` to handle updates.
+
+**Example: controlled**
+
+#### React
+
+```tsx
+import { Clipboard } from '@ark-ui/react/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-react'
+import { useState } from 'react'
+
+export const Controlled = () => {
+  const [url, setUrl] = useState('https://ark-ui.com')
+
+  const handleUrlChange = () => {
+    setUrl('https://chakra-ui.com')
+  }
+
+  return (
+    <Clipboard.Root value={url} onValueChange={({ value }) => setUrl(value)}>
+      <Clipboard.Label>Copy this link</Clipboard.Label>
+      <Clipboard.Control>
+        <Clipboard.Input />
+        <Clipboard.Trigger>
+          <Clipboard.Indicator copied={<CheckIcon />}>
+            <ClipboardCopyIcon />
+          </Clipboard.Indicator>
+        </Clipboard.Trigger>
+      </Clipboard.Control>
+
+      <button onClick={handleUrlChange}>Change Url</button>
+    </Clipboard.Root>
+  )
+}
+
+```
+
+#### Solid
+
+```tsx
+import { Clipboard } from '@ark-ui/solid/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-solid'
+import { Show, createSignal } from 'solid-js'
+
+export const Controlled = () => {
+  const [url, setUrl] = createSignal('https://ark-ui.com')
+
+  const handleUrlChange = () => {
+    setUrl('https://chakra-ui.com')
+  }
+
+  return (
+    <Clipboard.Root value={url()} onValueChange={({ value }) => setUrl(value)}>
+      <Clipboard.Label>Copy this link</Clipboard.Label>
+      <Clipboard.Control>
+        <Clipboard.Input />
+        <Clipboard.Trigger>
+          <Clipboard.Indicator>
+            <Show when={false} fallback={<ClipboardCopyIcon />}>
+              <CheckIcon />
+            </Show>
+          </Clipboard.Indicator>
+        </Clipboard.Trigger>
+      </Clipboard.Control>
+
+      <button onClick={handleUrlChange}>Change Url</button>
+    </Clipboard.Root>
+  )
+}
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { Clipboard } from '@ark-ui/vue/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-vue-next'
+import { ref } from 'vue'
+
+const url = ref('https://ark-ui.com')
+const setUrl = () => {
+  url.value = 'https://chakra-ui.com'
+}
+</script>
+
+<template>
+  <Clipboard.Root v-model="url">
+    <Clipboard.Label>Copy this link</Clipboard.Label>
+    <Clipboard.Control>
+      <Clipboard.Input />
+      <Clipboard.Trigger>
+        <Clipboard.Indicator>
+          <ClipboardCopyIcon />
+          <template #copied>
+            <CheckIcon />
+          </template>
+        </Clipboard.Indicator>
+      </Clipboard.Trigger>
+    </Clipboard.Control>
+
+    <button @click="setUrl">Change Url</button>
+  </Clipboard.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { CheckIcon, ClipboardCopyIcon } from 'lucide-svelte'
+  import { Clipboard } from '@ark-ui/svelte/clipboard'
+
+  let url = $state('https://ark-ui.com')
+
+  const handleUrlChange = () => {
+    url = 'https://chakra-ui.com'
+  }
+</script>
+
+<Clipboard.Root bind:value={url}>
+  <Clipboard.Label>Copy this link</Clipboard.Label>
+  <Clipboard.Control>
+    <Clipboard.Input />
+    <Clipboard.Trigger>
+      <Clipboard.Indicator>
+        <ClipboardCopyIcon />
+        {#snippet copied()}
+          <CheckIcon />
+        {/snippet}
+      </Clipboard.Indicator>
+    </Clipboard.Trigger>
+  </Clipboard.Control>
+
+  <button onclick={handleUrlChange}>Change Url</button>
+</Clipboard.Root>
+
+```
+
+### Root Provider
+
+Use the `useClipboard` hook to create the clipboard store and pass it to the `Clipboard.RootProvider` component. This
+allows you to have maximum control over the clipboard programmatically.
+
+> If you're using the `Clipboard.RootProvider` component, you don't need to use the `Clipboard.Root` component.
+
+**Example: root-provider**
+
+#### React
+
+```tsx
+import { Clipboard, useClipboard } from '@ark-ui/react/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-react'
+
+export const RootProvider = () => {
+  const clipboard = useClipboard({ value: 'https://ark-ui.com' })
+
+  return (
+    <>
+      <button onClick={() => clipboard.copy()}>Copy</button>
+
+      <Clipboard.RootProvider value={clipboard}>
+        <Clipboard.Label>Copy this link</Clipboard.Label>
+        <Clipboard.Control>
+          <Clipboard.Input />
+          <Clipboard.Trigger>
+            <Clipboard.Indicator copied={<CheckIcon />}>
+              <ClipboardCopyIcon />
+            </Clipboard.Indicator>
+          </Clipboard.Trigger>
+        </Clipboard.Control>
+      </Clipboard.RootProvider>
+    </>
+  )
+}
+
+```
+
+#### Solid
+
+```tsx
+import { Clipboard, useClipboard } from '@ark-ui/solid/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-solid'
+
+export const RootProvider = () => {
+  const clipboard = useClipboard({ value: 'https://ark-ui.com' })
+
+  return (
+    <>
+      <button onClick={() => clipboard().copy()}>Copy</button>
+
+      <Clipboard.RootProvider value={clipboard}>
+        <Clipboard.Label>Copy this link</Clipboard.Label>
+        <Clipboard.Control>
+          <Clipboard.Input />
+          <Clipboard.Trigger>
+            <Clipboard.Indicator copied={<CheckIcon />}>
+              <ClipboardCopyIcon />
+            </Clipboard.Indicator>
+          </Clipboard.Trigger>
+        </Clipboard.Control>
+      </Clipboard.RootProvider>
+    </>
+  )
+}
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { Clipboard, useClipboard } from '@ark-ui/vue/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-vue-next'
+
+const clipboard = useClipboard({ value: 'https.//ark-ui.com' })
+</script>
+
+<template>
+  <button @click="clipboard.copy()">Copy</button>
+
+  <Clipboard.RootProvider :value="clipboard">
+    <Clipboard.Label>Copy this link</Clipboard.Label>
+    <Clipboard.Control>
+      <Clipboard.Input />
+      <Clipboard.Trigger>
+        <Clipboard.Indicator>
+          <ClipboardCopyIcon />
+          <template #copied>
+            <CheckIcon />
+          </template>
+        </Clipboard.Indicator>
+      </Clipboard.Trigger>
+    </Clipboard.Control>
+  </Clipboard.RootProvider>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { Clipboard, useClipboard } from '@ark-ui/svelte/clipboard'
+  import { CheckIcon, ClipboardCopyIcon } from 'lucide-svelte'
+
+  const clipboard = useClipboard(() => ({ value: 'https://ark-ui.com' }))
+</script>
+
+<Clipboard.RootProvider value={clipboard}>
+  <Clipboard.Label>Copy this link</Clipboard.Label>
+  <Clipboard.Control>
+    <Clipboard.Input />
+    <Clipboard.Trigger>
+      <Clipboard.Indicator>
+        {#snippet copied()}
+          <CheckIcon />
+        {/snippet}
+        <ClipboardCopyIcon />
+      </Clipboard.Indicator>
+    </Clipboard.Trigger>
+  </Clipboard.Control>
+</Clipboard.RootProvider>
+
+```
+
+### Custom Timeout
+
+Configure the copy status timeout duration using the `timeout` prop. Default is 3000ms (3 seconds).
+
+**Example: custom-timeout**
+
+#### React
+
+```tsx
+import { Clipboard } from '@ark-ui/react/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-react'
+
+export const CustomTimeout = () => {
+  return (
+    <Clipboard.Root value="https://ark-ui.com" timeout={5000}>
+      <Clipboard.Label>Copy this link (5 second timeout)</Clipboard.Label>
+      <Clipboard.Control>
+        <Clipboard.Input />
+        <Clipboard.Trigger>
+          <Clipboard.Indicator copied={<CheckIcon />}>
+            <ClipboardCopyIcon />
+          </Clipboard.Indicator>
+        </Clipboard.Trigger>
+      </Clipboard.Control>
+    </Clipboard.Root>
+  )
+}
+
+```
+
+#### Solid
+
+```tsx
+import { Clipboard } from '@ark-ui/solid/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-solid'
+import { Show } from 'solid-js'
+
+export const CustomTimeout = () => {
+  return (
+    <Clipboard.Root value="https://ark-ui.com" timeout={5000}>
+      <Clipboard.Label>Copy this link (5 second timeout)</Clipboard.Label>
+      <Clipboard.Control>
+        <Clipboard.Input />
+        <Clipboard.Trigger>
+          <Clipboard.Indicator>
+            <Show when={false} fallback={<ClipboardCopyIcon />}>
+              <CheckIcon />
+            </Show>
+          </Clipboard.Indicator>
+        </Clipboard.Trigger>
+      </Clipboard.Control>
+    </Clipboard.Root>
+  )
+}
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { Clipboard } from '@ark-ui/vue/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-vue-next'
+</script>
+
+<template>
+  <Clipboard.Root default-value="https://ark-ui.com" :timeout="5000">
+    <Clipboard.Label>Copy this link (5 second timeout)</Clipboard.Label>
+    <Clipboard.Control>
+      <Clipboard.Input />
+      <Clipboard.Trigger>
+        <Clipboard.Indicator>
+          <ClipboardCopyIcon />
+          <template #copied>
+            <CheckIcon />
+          </template>
+        </Clipboard.Indicator>
+      </Clipboard.Trigger>
+    </Clipboard.Control>
+  </Clipboard.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { CheckIcon, ClipboardCopyIcon } from 'lucide-svelte'
+  import { Clipboard } from '@ark-ui/svelte/clipboard'
+</script>
+
+<Clipboard.Root value="https://ark-ui.com" timeout={5000}>
+  <Clipboard.Label>Copy this link (5 second timeout)</Clipboard.Label>
+  <Clipboard.Control>
+    <Clipboard.Input />
+    <Clipboard.Trigger>
+      <Clipboard.Indicator>
+        <ClipboardCopyIcon />
+        {#snippet copied()}
+          <CheckIcon />
+        {/snippet}
+      </Clipboard.Indicator>
+    </Clipboard.Trigger>
+  </Clipboard.Control>
+</Clipboard.Root>
+
+```
+
+### Programmatic Copy
+
+Trigger copy operations programmatically using the context's `copy()` method.
+
+**Example: programmatic**
+
+#### React
+
+```tsx
+import { Clipboard } from '@ark-ui/react/clipboard'
+
+export const Programmatic = () => {
+  return (
+    <Clipboard.Root value="https://ark-ui.com">
+      <Clipboard.Context>
+        {(clipboard) => <button onClick={() => clipboard.copy()}>{clipboard.copied ? 'Copied!' : 'Copy URL'}</button>}
+      </Clipboard.Context>
+    </Clipboard.Root>
+  )
+}
+
+```
+
+#### Solid
+
+```tsx
+import { Clipboard } from '@ark-ui/solid/clipboard'
+
+export const Programmatic = () => {
+  return (
+    <Clipboard.Root value="https://ark-ui.com">
+      <Clipboard.Context>
+        {(clipboard) => (
+          <button onClick={() => clipboard().copy()}>{clipboard().copied ? 'Copied!' : 'Copy URL'}</button>
+        )}
+      </Clipboard.Context>
+    </Clipboard.Root>
+  )
+}
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { Clipboard } from '@ark-ui/vue/clipboard'
+</script>
+
+<template>
+  <Clipboard.Root default-value="https://ark-ui.com">
+    <Clipboard.Context v-slot="clipboard">
+      <button @click="clipboard.copy()">
+        {{ clipboard.copied ? 'Copied!' : 'Copy URL' }}
+      </button>
+    </Clipboard.Context>
+  </Clipboard.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { Clipboard } from '@ark-ui/svelte/clipboard'
+</script>
+
+<Clipboard.Root value="https://ark-ui.com">
+  <Clipboard.Context>
+    {#snippet render(clipboard)}
+      <button onclick={() => clipboard().copy()}>
+        {clipboard().copied ? 'Copied!' : 'Copy URL'}
+      </button>
+    {/snippet}
+  </Clipboard.Context>
+</Clipboard.Root>
+
+```
+
+### Value Text
+
+Use `Clipboard.ValueText` to display the current clipboard value.
+
+**Example: value-text**
+
+#### React
+
+```tsx
+import { Clipboard } from '@ark-ui/react/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-react'
+
+export const ValueText = () => {
+  return (
+    <Clipboard.Root value="https://ark-ui.com">
+      <Clipboard.ValueText />
+      <Clipboard.Trigger>
+        <Clipboard.Indicator copied={<CheckIcon />}>
+          <ClipboardCopyIcon />
+        </Clipboard.Indicator>
+        Copy
+      </Clipboard.Trigger>
+    </Clipboard.Root>
+  )
+}
+
+```
+
+#### Solid
+
+```tsx
+import { Clipboard } from '@ark-ui/solid/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-solid'
+import { Show } from 'solid-js'
+
+export const ValueText = () => {
+  return (
+    <Clipboard.Root value="https://ark-ui.com">
+      <Clipboard.ValueText />
+      <Clipboard.Trigger>
+        <Clipboard.Indicator>
+          <Show when={false} fallback={<ClipboardCopyIcon />}>
+            <CheckIcon />
+          </Show>
+        </Clipboard.Indicator>
+        Copy
+      </Clipboard.Trigger>
+    </Clipboard.Root>
+  )
+}
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { Clipboard } from '@ark-ui/vue/clipboard'
+import { CheckIcon, ClipboardCopyIcon } from 'lucide-vue-next'
+</script>
+
+<template>
+  <Clipboard.Root default-value="https://ark-ui.com">
+    <Clipboard.ValueText />
+    <Clipboard.Trigger>
+      <Clipboard.Indicator>
+        <ClipboardCopyIcon />
+        <template #copied>
+          <CheckIcon />
+        </template>
+      </Clipboard.Indicator>
+      Copy
+    </Clipboard.Trigger>
+  </Clipboard.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { CheckIcon, ClipboardCopyIcon } from 'lucide-svelte'
+  import { Clipboard } from '@ark-ui/svelte/clipboard'
+</script>
+
+<Clipboard.Root value="https://ark-ui.com">
+  <Clipboard.ValueText />
+  <Clipboard.Trigger>
+    <Clipboard.Indicator>
+      <ClipboardCopyIcon />
+      {#snippet copied()}
+        <CheckIcon />
+      {/snippet}
+    </Clipboard.Indicator>
+    Copy
+  </Clipboard.Trigger>
+</Clipboard.Root>
+
+```
+
+## API Reference
+
+### Props
+
+**Component API Reference**
+
+#### React
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `defaultValue` | `string` | No | The initial value to be copied to the clipboard when rendered.
+Use when you don't need to control the value of the clipboard. |
+| `id` | `string` | No | The unique identifier of the machine. |
+| `ids` | `Partial<{ root: string; input: string; label: string }>` | No | The ids of the elements in the clipboard. Useful for composition. |
+| `onStatusChange` | `(details: CopyStatusDetails) => void` | No | The function to be called when the value is copied to the clipboard |
+| `onValueChange` | `(details: ValueChangeDetails) => void` | No | The function to be called when the value changes |
+| `timeout` | `number` | No | The timeout for the copy operation |
+| `value` | `string` | No | The controlled value of the clipboard |
+
+
+**Root Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | root |
+| `[data-copied]` | Present when copied state is true |
+
+
+**Control Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Control Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | control |
+| `[data-copied]` | Present when copied state is true |
+
+
+**Indicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `copied` | `string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...>` | No |  |
+
+
+**Input Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Input Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | input |
+| `[data-copied]` | Present when copied state is true |
+| `[data-readonly]` | Present when read-only |
+
+
+**Label Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Label Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | label |
+| `[data-copied]` | Present when copied state is true |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `UseClipboardReturn` | Yes |  |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Trigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Trigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | trigger |
+| `[data-copied]` | Present when copied state is true |
+
+
+**ValueText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+#### Solid
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `defaultValue` | `string` | No | The initial value to be copied to the clipboard when rendered.
+Use when you don't need to control the value of the clipboard. |
+| `ids` | `Partial<{ root: string; input: string; label: string }>` | No | The ids of the elements in the clipboard. Useful for composition. |
+| `onStatusChange` | `(details: CopyStatusDetails) => void` | No | The function to be called when the value is copied to the clipboard |
+| `onValueChange` | `(details: ValueChangeDetails) => void` | No | The function to be called when the value changes |
+| `timeout` | `number` | No | The timeout for the copy operation |
+| `value` | `string` | No | The controlled value of the clipboard |
+
+
+**Root Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | root |
+| `[data-copied]` | Present when copied state is true |
+
+
+**Control Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Control Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | control |
+| `[data-copied]` | Present when copied state is true |
+
+
+**Indicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `copied` | `number | boolean | Node | ArrayElement | (string & {})` | No |  |
+
+
+**Input Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'input'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Input Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | input |
+| `[data-copied]` | Present when copied state is true |
+| `[data-readonly]` | Present when read-only |
+
+
+**Label Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'label'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Label Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | label |
+| `[data-copied]` | Present when copied state is true |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `UseClipboardReturn` | Yes |  |
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Trigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'button'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Trigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | trigger |
+| `[data-copied]` | Present when copied state is true |
+
+
+**ValueText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'span'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+#### Vue
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `defaultValue` | `string` | No | The initial value to be copied to the clipboard when rendered.
+Use when you don't need to control the value of the clipboard. |
+| `id` | `string` | No | The unique identifier of the machine. |
+| `ids` | `Partial<{ root: string; input: string; label: string }>` | No | The ids of the elements in the clipboard. Useful for composition. |
+| `modelValue` | `string` | No | The v-model value of the clipboard |
+| `timeout` | `number` | No | The timeout for the copy operation |
+
+
+**Root Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | root |
+| `[data-copied]` | Present when copied state is true |
+
+
+**Control Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Control Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | control |
+| `[data-copied]` | Present when copied state is true |
+
+
+**Indicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Input Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Input Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | input |
+| `[data-copied]` | Present when copied state is true |
+| `[data-readonly]` | Present when read-only |
+
+
+**Label Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Label Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | label |
+| `[data-copied]` | Present when copied state is true |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `ClipboardApi<PropTypes>` | Yes |  |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Trigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Trigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | trigger |
+| `[data-copied]` | Present when copied state is true |
+
+
+**ValueText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+#### Svelte
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `defaultValue` | `string` | No | The initial value to be copied to the clipboard when rendered.
+Use when you don't need to control the value of the clipboard. |
+| `id` | `string` | No | The unique identifier of the machine. |
+| `ids` | `Partial<{ root: string; input: string; label: string }>` | No | The ids of the elements in the clipboard. Useful for composition. |
+| `onStatusChange` | `(details: CopyStatusDetails) => void` | No | The function to be called when the value is copied to the clipboard |
+| `onValueChange` | `(details: ValueChangeDetails) => void` | No | The function to be called when the value changes |
+| `ref` | `Element` | No |  |
+| `timeout` | `number` | No | The timeout for the copy operation |
+| `value` | `string` | No | The controlled value of the clipboard |
+
+
+**Root Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | root |
+| `[data-copied]` | Present when copied state is true |
+
+
+**Context Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `render` | `Snippet<[UseClipboardContext]>` | No |  |
+
+
+**Control Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Control Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | control |
+| `[data-copied]` | Present when copied state is true |
+
+
+**Indicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `copied` | `Snippet<[]>` | No |  |
+| `ref` | `Element` | No |  |
+
+
+**Input Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'input'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Input Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | input |
+| `[data-copied]` | Present when copied state is true |
+| `[data-readonly]` | Present when read-only |
+
+
+**Label Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'label'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Label Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | label |
+| `[data-copied]` | Present when copied state is true |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `UseClipboardReturn` | Yes |  |
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Trigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'button'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Trigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | clipboard |
+| `[data-part]` | trigger |
+| `[data-copied]` | Present when copied state is true |
+
+
+**ValueText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'span'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+### Context
+
+These are the properties available when using `Clipboard.Context`, `useClipboardContext` hook or `useClipboard` hook.
+
+**API:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `copied` | `boolean` | Whether the value has been copied to the clipboard |
+| `value` | `string` | The value to be copied to the clipboard |
+| `setValue` | `(value: string) => void` | Set the value to be copied to the clipboard |
+| `copy` | `VoidFunction` | Copy the value to the clipboard |

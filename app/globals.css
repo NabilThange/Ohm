@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Light mode - minimal, clean */
+  --background: 250 250 250;
+  --foreground: 25 25 25;
+  --card: 255 255 255;
+  --card-foreground: 25 25 25;
+  --muted: 240 240 240;
+  --muted-foreground: 128 128 128;
+  --border: 230 230 230;
+  --input: 230 230 230;
+  --ring: 128 128 128;
+  --radius: 0.5rem;
+
+  /* Ohm brand colors */
+  --primary: 245 158 11;
+  --primary-foreground: 255 255 255;
+  --accent: 59 130 246;
+  --accent-foreground: 255 255 255;
+}
+
+.dark {
+  /* Dark mode - professional, VS Code-inspired */
+  --background: 10 10 10;
+  --foreground: 228 228 231;
+  --card: 24 24 27;
+  --card-foreground: 228 228 231;
+  --muted: 39 39 42;
+  --muted-foreground: 161 161 170;
+  --border: 39 39 42;
+  --input: 39 39 42;
+  --ring: 82 82 91;
+
+  /* Ohm brand colors - amber/blue accents */
+  --primary: 245 158 11;
+  --primary-foreground: 10 10 10;
+  --accent: 59 130 246;
+  --accent-foreground: 255 255 255;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted rounded-lg;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/30;
+  }
+}
+
+@layer utilities {
+
+  /* Glassmorphism effect */
+  .glass {
+    @apply backdrop-blur-xl bg-card/50 border border-border/50;
+  }
+
+  /* Ambient glow effects */
+  .glow-amber {
+    box-shadow: 0 0 40px rgba(245, 158, 11, 0.15);
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.15);
+  }
+
+  /* Text gradient */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+  }
+
+  /* Dashed borders for technical feel */
+  .border-dashed-tech {
+    border-style: dashed;
+    border-width: 1px;
+    @apply border-border;
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Animation keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.6s ease-out forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}

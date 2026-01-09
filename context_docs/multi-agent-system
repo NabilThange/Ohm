@@ -1,0 +1,91 @@
+### Should you use a Multi-Agent System?
+
+**YES, but with a "Hackathon Shortcut."**
+
+For a 48-hour deadline, do **not** build a complex orchestration system (like AutoGen or LangChain graphs) where agents talk to each other autonomously. That is a rabbit hole.
+
+Instead, use **"Sequential Agents"**. This means you simply change the **System Prompt** depending on which "Phase" the user is in. This gives you the *quality* of a multi-agent system (specialized experts) without the *complexity* of managing them.
+
+**Why this wins:**
+
+1. **Better Results:** A generic "AI Assistant" tries to be good at everything and fails. A "Senior C++ Embedded Developer" agent writes perfect code.
+2. **Impresses Judges:** In your video, you can explicitly show: *"Now handing off to the Hardware Engineer Agent..."* It makes your app look incredibly sophisticated.
+3. **Easy to Code:** It’s just a `switch` statement in your backend that selects a different string for the `system` message.
+
+---
+
+### The Perfect User Flow (for the Demo Video)
+
+This flow is designed to show off **distinct** AI behaviors.
+
+#### **Step 1: The Visionary (Architect Agent)**
+
+* **User Action:** Types "I want to build a smart backpack that signals when I turn left or right on my bike."
+* **Agent Persona:** "Senior Product Manager." Creative, enthusiastic, focuses on *features* not *wires*.
+* **System Prompt:**
+> "You are the **OHM Architect**. Your goal is to refine vague ideas into concrete product requirements. Do not talk about specific pins or code yet. Ask clarifying questions about power sources, environment, and budget. Output the final plan as a structured JSON summary when the user says 'Lock it'."
+
+
+* **Demo Moment:** The AI suggests: *"That's a great idea. Should we add an accelerometer to detect braking automatically?"* (Shows reasoning).
+
+#### **Step 2: The Engineer (BOM & Circuit Agent)**
+
+* **User Action:** Clicks "Generate Hardware."
+* **Agent Persona:** "Strict Electrical Engineer." Focused on voltage, compatibility, and safety.
+* **System Prompt:**
+> "You are the **OHM Hardware Engineer**. You receive a product summary JSON. Your job is to select exact components (e.g., 'Arduino Nano' instead of 'Microcontroller'). You must validate voltage logic (3.3V vs 5V). If a mismatch exists, you MUST add a Logic Level Converter to the BOM."
+
+
+* **Demo Moment:** The AI says: *"Warning: The ESP32 uses 3.3V logic, but your LED strip is 5V. I have added a Logic Level Shifter to prevent damage."* (Shows technical depth).
+
+#### **Step 3: The Coder (Embedded Developer Agent)**
+
+* **User Action:** Clicks "Write Code."
+* **Agent Persona:** "Senior C++ / Embedded Developer." Efficient, writes comments, handles edge cases.
+* **System Prompt:**
+> "You are the **OHM Firmware Developer**. Write production-ready C++ code for the specific hardware list provided. Include comments explaining *why* you chose specific GPIO pins. Do not use generic placeholders; use the actual pin numbers from the wiring plan."
+
+
+* **Demo Moment:** The screen fills with code that actually references "GPIO 14" (which matches your wiring diagram).
+
+#### **Step 4: The Inspector (Visual QA Agent)**
+
+* **User Action:** Uploads a photo of their messy wiring.
+* **Agent Persona:** "QA Inspector." (This uses **Azure Computer Vision**, distinct from the others).
+* **System Prompt (Vision):**
+> "Analyze this image of a breadboard. Identify if the red wire from the battery pack is connected to the '5V' rail or the 'GND' rail. Compare it to the expected wiring: Red should go to 5V. If it connects to GND, scream 'SHORT CIRCUIT DETECTED'."
+
+
+* **Demo Moment:** A big red alert box pops up on the screen.
+
+---
+
+### Implementation Cheat Sheet (for your developer)
+
+Tell your developer to implement a simple `AgentRouter` function.
+
+```typescript
+// Simple "Multi-Agent" Switch for Hackathon
+function getSystemPrompt(phase: string, context: any) {
+  switch(phase) {
+    case 'ARCHITECT':
+      return `You are a visionary Product Architect. Help the user refine their idea: ${context.userIdea}...`;
+    
+    case 'BOM_BUILDER':
+      return `You are a strict Electrical Engineer. Create a BOM for this plan. VALIDATE VOLTAGES. Plan: ${JSON.stringify(context.plan)}`;
+
+    case 'FIRMWARE':
+      return `You are an Embedded C++ Expert. Write code for this specific hardware: ${JSON.stringify(context.bom)}. Use these pins: ${JSON.stringify(context.wiring)}`;
+      
+    default:
+      return "You are a helpful assistant.";
+  }
+}
+
+```
+
+### Summary for Submission
+
+* **Flow:** Idea  Validation (Voltage Check)  Code  Visual Check.
+* **Multi-Agent:** **YES.** Use the approach above.
+* **Why it wins:** It proves you aren't just sending everything to a generic ChatGPT prompt. You are **orchestrating** a workflow, which is exactly what the "Hardware Lifecycle Orchestrator" name promises.

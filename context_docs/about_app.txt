@@ -1,0 +1,70 @@
+# OHM: The Hardware Lifecycle Orchestrator
+
+OHM is a visionary AI-powered platform designed to bridge the gap between a "Vague IoT Idea" and a "Working Physical Prototype". While standard AI IDEs focus solely on code, OHM manages the complex dependencies of the physical world: hardware parts, electrical wiring, and software logic.
+
+For the Microsoft Imagine Cup 2026, OHM is built on a high-impact Azure AI backend to empower students and founders to build life-changing hardware faster and with fewer errors.
+
+---
+
+### 1. The Main Idea (The "Why")
+
+The "Debug Wall" in IoT is high: users often don't know if a project failed because of a code bug, a loose wire, a blown sensor, or a power mismatch. OHM removes these barriers by acting as a Lead Systems Engineer that guides the user through a turn-based, "Mission-Based" progression.
+
+---
+
+### 2. Product Requirement Document (PRD) Highlights
+
+| Requirement | Description | Microsoft Tech Powering it |
+| --- | --- | --- |
+| Deep Ideation Engine | Uses turn-based chat to refine the project mission and social impact. | Azure OpenAI Service |
+| Ripple Effect Engine | Monitors dependencies; if a part changes, it flags voltage/pin conflicts. | Azure Functions |
+| Context Anchoring | Locks a "Project Blueprint" as a source of truth for all code and part generation. | Azure Cosmos DB |
+| Visual Troubleshooter | Analyzes photos of physical circuits to identify wiring errors. | Azure AI Vision |
+| Lifecycle Workflow | A 6-step mandatory sequence from Architecting to Troubleshooting. | Next.js 15 & Azure App Service |
+
+---
+
+### 3. MVP Features (The "Golden Path")
+
+ Interactive Chat with Suggestion Pills: A turn-based architecting phase that offers expert "Yes, And..." suggestions.
+ Locked Project Blueprint: A formal document generated after ideation that defines the mission and tech stack.
+ Dynamic Bill of Materials (BOM): Interactive "Part Cards" with a budget slider that triggers the Ripple Effect Engine.
+ Digital Twin Wiring Guide: Step-by-step schematics with embedded YouTube timestamps for physical tasks.
+ Modular "Success Unit" Code: Phase-based code deployment (e.g., test the sensor before writing the full app).
+
+---
+
+### 4. Detailed User Flow (The Step-by-Step)
+
+#### Step 1: The Architect (Ideation & Context)
+
+ Discovery: The AI (OHM) asks three questions at once: Goal, Context/Location, and Budget.
+ Refinement: OHM suggests high-impact additions (e.g., "Add Solar Power" or "Add Camera").
+ The Lock: Once the user is satisfied, they click [🔒 Lock & Create Plan]. This generates the "Source of Truth" in the Artifacts Panel.
+
+#### Step 2: The BOM Builder (Hardware Selection)
+
+ Synthesis: OHM selects parts based on the Locked Plan (e.g., ESP32 for solar efficiency).
+ The Ripple Effect: If the user replaces a part (e.g., changing to a cheaper 3.3V board), OHM highlights incompatible sensors in Red and suggests a Logic Level Shifter.
+
+#### Step 3: The Digital Twin (Physical Assembly)
+
+ Wiring: OHM displays a schematic in the Artifacts Panel.
+ Validation: OHM provides a "Pin Map" and safety warnings regarding voltage levels.
+
+#### Step 4: Modular Coding (Testing & Implementation)
+
+ Phase A (Calibration): OHM generates a tiny script to verify the sensor is "alive".
+ Phase B (Full Logic): Once the user confirms the hardware works, OHM generates the full C++/Arduino code.
+
+#### Step 5: The Visual Troubleshooter (Error Correction)
+
+ Detection: If the project fails, the user uploads a photo of their board.
+ Azure Vision: The platform scans the photo against the "Locked Plan" and identifies misplaced wires or short circuits.
+
+---
+
+### 5. How it Wins Microsoft Imagine Cup 2026
+
+OHM isn't just a "cool gadget"; it's a founder-focused platform. It satisfies the mandatory requirement of using at least two Microsoft AI services (Azure OpenAI for logic/code and Azure AI Vision for troubleshooting). By forcing users to define their "Social Impact" and "Market Viability" during the Architect phase, OHM ensures every project built on it is competition-ready.
+

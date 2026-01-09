@@ -1,0 +1,2540 @@
+<ComponentPreview id="FloatingPanel" />
+
+## Anatomy
+
+To set up the editable correctly, you'll need to understand its anatomy and how we name its parts.
+
+> Each part includes a `data-part` attribute to help identify them in the DOM.
+
+<Anatomy id="floating-panel" />
+
+## Examples
+
+Learn how to use the `FloatingPanel` component in your project. Let's take a look at the most basic example:
+
+**Example: basic**
+
+#### React
+
+```tsx
+import { FloatingPanel } from '@ark-ui/react/floating-panel'
+import { Portal } from '@ark-ui/react/portal'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-react'
+
+export const Basic = () => (
+  <FloatingPanel.Root>
+    <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+    <Portal>
+      <FloatingPanel.Positioner>
+        <FloatingPanel.Content>
+          <FloatingPanel.DragTrigger>
+            <FloatingPanel.Header>
+              <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+              <FloatingPanel.Control>
+                <FloatingPanel.StageTrigger stage="minimized">
+                  <Minus />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="maximized">
+                  <Maximize2 />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="default">
+                  <ArrowDownLeft />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.CloseTrigger>
+                  <XIcon />
+                </FloatingPanel.CloseTrigger>
+              </FloatingPanel.Control>
+            </FloatingPanel.Header>
+          </FloatingPanel.DragTrigger>
+          <FloatingPanel.Body>
+            <p>Some content</p>
+          </FloatingPanel.Body>
+
+          <FloatingPanel.ResizeTrigger axis="n" />
+          <FloatingPanel.ResizeTrigger axis="e" />
+          <FloatingPanel.ResizeTrigger axis="w" />
+          <FloatingPanel.ResizeTrigger axis="s" />
+          <FloatingPanel.ResizeTrigger axis="ne" />
+          <FloatingPanel.ResizeTrigger axis="se" />
+          <FloatingPanel.ResizeTrigger axis="sw" />
+          <FloatingPanel.ResizeTrigger axis="nw" />
+        </FloatingPanel.Content>
+      </FloatingPanel.Positioner>
+    </Portal>
+  </FloatingPanel.Root>
+)
+
+```
+
+#### Solid
+
+```tsx
+import { FloatingPanel } from '@ark-ui/solid/floating-panel'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-solid'
+import { Portal } from 'solid-js/web'
+
+export const Basic = () => (
+  <FloatingPanel.Root>
+    <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+    <Portal>
+      <FloatingPanel.Positioner>
+        <FloatingPanel.Content>
+          <FloatingPanel.DragTrigger>
+            <FloatingPanel.Header>
+              <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+              <FloatingPanel.Control>
+                <FloatingPanel.StageTrigger stage="minimized">
+                  <Minus />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="maximized">
+                  <Maximize2 />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="default">
+                  <ArrowDownLeft />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.CloseTrigger>
+                  <XIcon />
+                </FloatingPanel.CloseTrigger>
+              </FloatingPanel.Control>
+            </FloatingPanel.Header>
+          </FloatingPanel.DragTrigger>
+          <FloatingPanel.Body>
+            <p>Some content</p>
+          </FloatingPanel.Body>
+
+          <FloatingPanel.ResizeTrigger axis="n" />
+          <FloatingPanel.ResizeTrigger axis="e" />
+          <FloatingPanel.ResizeTrigger axis="w" />
+          <FloatingPanel.ResizeTrigger axis="s" />
+          <FloatingPanel.ResizeTrigger axis="ne" />
+          <FloatingPanel.ResizeTrigger axis="se" />
+          <FloatingPanel.ResizeTrigger axis="sw" />
+          <FloatingPanel.ResizeTrigger axis="nw" />
+        </FloatingPanel.Content>
+      </FloatingPanel.Positioner>
+    </Portal>
+  </FloatingPanel.Root>
+)
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { FloatingPanel } from '@ark-ui/vue/floating-panel'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-vue-next'
+</script>
+
+<template>
+  <FloatingPanel.Root>
+    <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+    <Teleport to="body">
+      <FloatingPanel.Positioner>
+        <FloatingPanel.Content>
+          <FloatingPanel.DragTrigger>
+            <FloatingPanel.Header>
+              <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+              <FloatingPanel.Control>
+                <FloatingPanel.StageTrigger stage="minimized">
+                  <Minus />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="maximized">
+                  <Maximize2 />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="default">
+                  <ArrowDownLeft />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.CloseTrigger>
+                  <XIcon />
+                </FloatingPanel.CloseTrigger>
+              </FloatingPanel.Control>
+            </FloatingPanel.Header>
+          </FloatingPanel.DragTrigger>
+          <FloatingPanel.Body>
+            <p>Some content</p>
+          </FloatingPanel.Body>
+
+          <FloatingPanel.ResizeTrigger axis="n" />
+          <FloatingPanel.ResizeTrigger axis="e" />
+          <FloatingPanel.ResizeTrigger axis="w" />
+          <FloatingPanel.ResizeTrigger axis="s" />
+          <FloatingPanel.ResizeTrigger axis="ne" />
+          <FloatingPanel.ResizeTrigger axis="se" />
+          <FloatingPanel.ResizeTrigger axis="sw" />
+          <FloatingPanel.ResizeTrigger axis="nw" />
+        </FloatingPanel.Content>
+      </FloatingPanel.Positioner>
+    </Teleport>
+  </FloatingPanel.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { FloatingPanel } from '@ark-ui/svelte/floating-panel'
+  import { Portal } from '@ark-ui/svelte/portal'
+</script>
+
+<FloatingPanel.Root>
+  <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+  <Portal>
+    <FloatingPanel.Positioner>
+      <FloatingPanel.Content>
+        <FloatingPanel.DragTrigger>
+          <FloatingPanel.Header>
+            <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+            <FloatingPanel.Control>
+              <FloatingPanel.StageTrigger stage="minimized">
+                <span>−</span>
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.StageTrigger stage="maximized">
+                <span>□</span>
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.StageTrigger stage="default">
+                <span>↗</span>
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.CloseTrigger>
+                <span>×</span>
+              </FloatingPanel.CloseTrigger>
+            </FloatingPanel.Control>
+          </FloatingPanel.Header>
+        </FloatingPanel.DragTrigger>
+        <FloatingPanel.Body>
+          <p>Some content</p>
+        </FloatingPanel.Body>
+
+        <FloatingPanel.ResizeTrigger axis="n" />
+        <FloatingPanel.ResizeTrigger axis="e" />
+        <FloatingPanel.ResizeTrigger axis="w" />
+        <FloatingPanel.ResizeTrigger axis="s" />
+        <FloatingPanel.ResizeTrigger axis="ne" />
+        <FloatingPanel.ResizeTrigger axis="se" />
+        <FloatingPanel.ResizeTrigger axis="sw" />
+        <FloatingPanel.ResizeTrigger axis="nw" />
+      </FloatingPanel.Content>
+    </FloatingPanel.Positioner>
+  </Portal>
+</FloatingPanel.Root>
+
+```
+
+### Controlling the size
+
+To control the size of the floating panel programmatically, you can pass the `size` `onResize` prop to the machine.
+
+**Example: controlled-size**
+
+#### React
+
+```tsx
+import { FloatingPanel } from '@ark-ui/react/floating-panel'
+import { Portal } from '@ark-ui/react/portal'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-react'
+import { useState } from 'react'
+
+export const ControlledSize = () => {
+  const [size, setSize] = useState({ width: 400, height: 300 })
+
+  return (
+    <FloatingPanel.Root size={size} onSizeChange={(e) => setSize(e.size)}>
+      <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+      <Portal>
+        <FloatingPanel.Positioner>
+          <FloatingPanel.Content>
+            <FloatingPanel.DragTrigger>
+              <FloatingPanel.Header>
+                <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+                <FloatingPanel.Control>
+                  <FloatingPanel.StageTrigger stage="minimized">
+                    <Minus />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.StageTrigger stage="maximized">
+                    <Maximize2 />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.StageTrigger stage="default">
+                    <ArrowDownLeft />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.CloseTrigger>
+                    <XIcon />
+                  </FloatingPanel.CloseTrigger>
+                </FloatingPanel.Control>
+              </FloatingPanel.Header>
+            </FloatingPanel.DragTrigger>
+            <FloatingPanel.Body>
+              <p>Some content</p>
+            </FloatingPanel.Body>
+
+            <FloatingPanel.ResizeTrigger axis="n" />
+            <FloatingPanel.ResizeTrigger axis="e" />
+            <FloatingPanel.ResizeTrigger axis="w" />
+            <FloatingPanel.ResizeTrigger axis="s" />
+            <FloatingPanel.ResizeTrigger axis="ne" />
+            <FloatingPanel.ResizeTrigger axis="se" />
+            <FloatingPanel.ResizeTrigger axis="sw" />
+            <FloatingPanel.ResizeTrigger axis="nw" />
+          </FloatingPanel.Content>
+        </FloatingPanel.Positioner>
+      </Portal>
+    </FloatingPanel.Root>
+  )
+}
+
+```
+
+#### Solid
+
+```tsx
+import { FloatingPanel } from '@ark-ui/solid/floating-panel'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-solid'
+import { createSignal } from 'solid-js'
+import { Portal } from 'solid-js/web'
+
+export const ControlledSize = () => {
+  const [size, setSize] = createSignal({ width: 400, height: 300 })
+
+  return (
+    <FloatingPanel.Root size={size()} onSizeChange={(e) => setSize(e.size)}>
+      <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+      <Portal>
+        <FloatingPanel.Positioner>
+          <FloatingPanel.Content>
+            <FloatingPanel.DragTrigger>
+              <FloatingPanel.Header>
+                <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+                <FloatingPanel.Control>
+                  <FloatingPanel.StageTrigger stage="minimized">
+                    <Minus />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.StageTrigger stage="maximized">
+                    <Maximize2 />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.StageTrigger stage="default">
+                    <ArrowDownLeft />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.CloseTrigger>
+                    <XIcon />
+                  </FloatingPanel.CloseTrigger>
+                </FloatingPanel.Control>
+              </FloatingPanel.Header>
+            </FloatingPanel.DragTrigger>
+            <FloatingPanel.Body>
+              <p>Some content</p>
+            </FloatingPanel.Body>
+
+            <FloatingPanel.ResizeTrigger axis="n" />
+            <FloatingPanel.ResizeTrigger axis="e" />
+            <FloatingPanel.ResizeTrigger axis="w" />
+            <FloatingPanel.ResizeTrigger axis="s" />
+            <FloatingPanel.ResizeTrigger axis="ne" />
+            <FloatingPanel.ResizeTrigger axis="se" />
+            <FloatingPanel.ResizeTrigger axis="sw" />
+            <FloatingPanel.ResizeTrigger axis="nw" />
+          </FloatingPanel.Content>
+        </FloatingPanel.Positioner>
+      </Portal>
+    </FloatingPanel.Root>
+  )
+}
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { FloatingPanel } from '@ark-ui/vue/floating-panel'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-vue-next'
+import { ref } from 'vue'
+
+const size = ref({ width: 400, height: 300 })
+</script>
+
+<template>
+  <FloatingPanel.Root v-model:size="size">
+    <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+    <Teleport to="body">
+      <FloatingPanel.Positioner>
+        <FloatingPanel.Content>
+          <FloatingPanel.DragTrigger>
+            <FloatingPanel.Header>
+              <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+              <FloatingPanel.Control>
+                <FloatingPanel.StageTrigger stage="minimized">
+                  <Minus />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="maximized">
+                  <Maximize2 />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="default">
+                  <ArrowDownLeft />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.CloseTrigger>
+                  <XIcon />
+                </FloatingPanel.CloseTrigger>
+              </FloatingPanel.Control>
+            </FloatingPanel.Header>
+          </FloatingPanel.DragTrigger>
+          <FloatingPanel.Body>
+            <p>Some content</p>
+          </FloatingPanel.Body>
+
+          <FloatingPanel.ResizeTrigger axis="n" />
+          <FloatingPanel.ResizeTrigger axis="e" />
+          <FloatingPanel.ResizeTrigger axis="w" />
+          <FloatingPanel.ResizeTrigger axis="s" />
+          <FloatingPanel.ResizeTrigger axis="ne" />
+          <FloatingPanel.ResizeTrigger axis="se" />
+          <FloatingPanel.ResizeTrigger axis="sw" />
+          <FloatingPanel.ResizeTrigger axis="nw" />
+        </FloatingPanel.Content>
+      </FloatingPanel.Positioner>
+    </Teleport>
+  </FloatingPanel.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { FloatingPanel } from '@ark-ui/svelte/floating-panel'
+  import { Portal } from '@ark-ui/svelte/portal'
+  import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-svelte'
+
+  let size = $state({ width: 400, height: 300 })
+</script>
+
+<FloatingPanel.Root bind:size>
+  <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+  <Portal>
+    <FloatingPanel.Positioner>
+      <FloatingPanel.Content>
+        <FloatingPanel.DragTrigger>
+          <FloatingPanel.Header>
+            <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+            <FloatingPanel.Control>
+              <FloatingPanel.StageTrigger stage="minimized">
+                <Minus />
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.StageTrigger stage="maximized">
+                <Maximize2 />
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.StageTrigger stage="default">
+                <ArrowDownLeft />
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.CloseTrigger>
+                <XIcon />
+              </FloatingPanel.CloseTrigger>
+            </FloatingPanel.Control>
+          </FloatingPanel.Header>
+        </FloatingPanel.DragTrigger>
+        <FloatingPanel.Body>
+          <p>Some content</p>
+        </FloatingPanel.Body>
+
+        <FloatingPanel.ResizeTrigger axis="n" />
+        <FloatingPanel.ResizeTrigger axis="e" />
+        <FloatingPanel.ResizeTrigger axis="w" />
+        <FloatingPanel.ResizeTrigger axis="s" />
+        <FloatingPanel.ResizeTrigger axis="ne" />
+        <FloatingPanel.ResizeTrigger axis="se" />
+        <FloatingPanel.ResizeTrigger axis="sw" />
+        <FloatingPanel.ResizeTrigger axis="nw" />
+      </FloatingPanel.Content>
+    </FloatingPanel.Positioner>
+  </Portal>
+</FloatingPanel.Root>
+
+```
+
+### Controlling the position
+
+To control the position of the floating panel programmatically, you can pass the `position` and `onPositionChange` prop
+to the machine.
+
+**Example: controlled-position**
+
+#### React
+
+```tsx
+import { FloatingPanel } from '@ark-ui/react/floating-panel'
+import { Portal } from '@ark-ui/react/portal'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-react'
+import { useState } from 'react'
+
+export const ControlledPosition = () => {
+  const [position, setPosition] = useState({ x: 200, y: 200 })
+
+  return (
+    <FloatingPanel.Root position={position} onPositionChange={(e) => setPosition(e.position)}>
+      <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+      <Portal>
+        <FloatingPanel.Positioner>
+          <FloatingPanel.Content>
+            <FloatingPanel.DragTrigger>
+              <FloatingPanel.Header>
+                <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+                <FloatingPanel.Control>
+                  <FloatingPanel.StageTrigger stage="minimized">
+                    <Minus />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.StageTrigger stage="maximized">
+                    <Maximize2 />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.StageTrigger stage="default">
+                    <ArrowDownLeft />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.CloseTrigger>
+                    <XIcon />
+                  </FloatingPanel.CloseTrigger>
+                </FloatingPanel.Control>
+              </FloatingPanel.Header>
+            </FloatingPanel.DragTrigger>
+            <FloatingPanel.Body>
+              <p>Some content</p>
+            </FloatingPanel.Body>
+
+            <FloatingPanel.ResizeTrigger axis="n" />
+            <FloatingPanel.ResizeTrigger axis="e" />
+            <FloatingPanel.ResizeTrigger axis="w" />
+            <FloatingPanel.ResizeTrigger axis="s" />
+            <FloatingPanel.ResizeTrigger axis="ne" />
+            <FloatingPanel.ResizeTrigger axis="se" />
+            <FloatingPanel.ResizeTrigger axis="sw" />
+            <FloatingPanel.ResizeTrigger axis="nw" />
+          </FloatingPanel.Content>
+        </FloatingPanel.Positioner>
+      </Portal>
+    </FloatingPanel.Root>
+  )
+}
+
+```
+
+#### Solid
+
+```tsx
+import { FloatingPanel } from '@ark-ui/solid/floating-panel'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-solid'
+import { createSignal } from 'solid-js'
+import { Portal } from 'solid-js/web'
+
+export const ControlledPosition = () => {
+  const [position, setPosition] = createSignal({ x: 200, y: 200 })
+
+  return (
+    <FloatingPanel.Root position={position()} onPositionChange={(e) => setPosition(e.position)}>
+      <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+      <Portal>
+        <FloatingPanel.Positioner>
+          <FloatingPanel.Content>
+            <FloatingPanel.DragTrigger>
+              <FloatingPanel.Header>
+                <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+                <FloatingPanel.Control>
+                  <FloatingPanel.StageTrigger stage="minimized">
+                    <Minus />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.StageTrigger stage="maximized">
+                    <Maximize2 />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.StageTrigger stage="default">
+                    <ArrowDownLeft />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.CloseTrigger>
+                    <XIcon />
+                  </FloatingPanel.CloseTrigger>
+                </FloatingPanel.Control>
+              </FloatingPanel.Header>
+            </FloatingPanel.DragTrigger>
+            <FloatingPanel.Body>
+              <p>Some content</p>
+            </FloatingPanel.Body>
+
+            <FloatingPanel.ResizeTrigger axis="n" />
+            <FloatingPanel.ResizeTrigger axis="e" />
+            <FloatingPanel.ResizeTrigger axis="w" />
+            <FloatingPanel.ResizeTrigger axis="s" />
+            <FloatingPanel.ResizeTrigger axis="ne" />
+            <FloatingPanel.ResizeTrigger axis="se" />
+            <FloatingPanel.ResizeTrigger axis="sw" />
+            <FloatingPanel.ResizeTrigger axis="nw" />
+          </FloatingPanel.Content>
+        </FloatingPanel.Positioner>
+      </Portal>
+    </FloatingPanel.Root>
+  )
+}
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { FloatingPanel } from '@ark-ui/vue/floating-panel'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-vue-next'
+import { ref } from 'vue'
+
+const position = ref({ x: 200, y: 200 })
+</script>
+
+<template>
+  <FloatingPanel.Root v-model:position="position">
+    <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+    <Teleport to="body">
+      <FloatingPanel.Positioner>
+        <FloatingPanel.Content>
+          <FloatingPanel.DragTrigger>
+            <FloatingPanel.Header>
+              <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+              <FloatingPanel.Control>
+                <FloatingPanel.StageTrigger stage="minimized">
+                  <Minus />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="maximized">
+                  <Maximize2 />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="default">
+                  <ArrowDownLeft />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.CloseTrigger>
+                  <XIcon />
+                </FloatingPanel.CloseTrigger>
+              </FloatingPanel.Control>
+            </FloatingPanel.Header>
+          </FloatingPanel.DragTrigger>
+          <FloatingPanel.Body>
+            <p>Some content</p>
+          </FloatingPanel.Body>
+
+          <FloatingPanel.ResizeTrigger axis="n" />
+          <FloatingPanel.ResizeTrigger axis="e" />
+          <FloatingPanel.ResizeTrigger axis="w" />
+          <FloatingPanel.ResizeTrigger axis="s" />
+          <FloatingPanel.ResizeTrigger axis="ne" />
+          <FloatingPanel.ResizeTrigger axis="se" />
+          <FloatingPanel.ResizeTrigger axis="sw" />
+          <FloatingPanel.ResizeTrigger axis="nw" />
+        </FloatingPanel.Content>
+      </FloatingPanel.Positioner>
+    </Teleport>
+  </FloatingPanel.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { FloatingPanel } from '@ark-ui/svelte/floating-panel'
+  import { Portal } from '@ark-ui/svelte/portal'
+
+  let position = $state({ x: 200, y: 200 })
+</script>
+
+<FloatingPanel.Root bind:position>
+  <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+  <Portal>
+    <FloatingPanel.Positioner>
+      <FloatingPanel.Content>
+        <FloatingPanel.DragTrigger>
+          <FloatingPanel.Header>
+            <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+            <FloatingPanel.Control>
+              <FloatingPanel.StageTrigger stage="minimized">
+                <span>−</span>
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.StageTrigger stage="maximized">
+                <span>□</span>
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.StageTrigger stage="default">
+                <span>↗</span>
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.CloseTrigger>
+                <span>×</span>
+              </FloatingPanel.CloseTrigger>
+            </FloatingPanel.Control>
+          </FloatingPanel.Header>
+        </FloatingPanel.DragTrigger>
+        <FloatingPanel.Body>
+          <p>Some content</p>
+          <p>Position: x={position.x}, y={position.y}</p>
+        </FloatingPanel.Body>
+
+        <FloatingPanel.ResizeTrigger axis="n" />
+        <FloatingPanel.ResizeTrigger axis="e" />
+        <FloatingPanel.ResizeTrigger axis="w" />
+        <FloatingPanel.ResizeTrigger axis="s" />
+        <FloatingPanel.ResizeTrigger axis="ne" />
+        <FloatingPanel.ResizeTrigger axis="se" />
+        <FloatingPanel.ResizeTrigger axis="sw" />
+        <FloatingPanel.ResizeTrigger axis="nw" />
+      </FloatingPanel.Content>
+    </FloatingPanel.Positioner>
+  </Portal>
+</FloatingPanel.Root>
+
+```
+
+### Anchor position
+
+Use the `getAnchorPosition` function to compute the initial position of the floating panel. This function is called when
+the panel is opened and receives the `triggerRect` and `boundaryRect`.
+
+**Example: anchor-position**
+
+#### React
+
+```tsx
+import { FloatingPanel } from '@ark-ui/react/floating-panel'
+import { Portal } from '@ark-ui/react/portal'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-react'
+
+export const AnchorPosition = () => (
+  <FloatingPanel.Root
+    getAnchorPosition={({ triggerRect }) => {
+      if (!triggerRect) return { x: 0, y: 0 }
+      return {
+        x: triggerRect.x + triggerRect.width / 2,
+        y: triggerRect.y + triggerRect.height / 2,
+      }
+    }}
+  >
+    <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+    <Portal>
+      <FloatingPanel.Positioner>
+        <FloatingPanel.Content>
+          <FloatingPanel.DragTrigger>
+            <FloatingPanel.Header>
+              <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+              <FloatingPanel.Control>
+                <FloatingPanel.StageTrigger stage="minimized">
+                  <Minus />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="maximized">
+                  <Maximize2 />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="default">
+                  <ArrowDownLeft />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.CloseTrigger>
+                  <XIcon />
+                </FloatingPanel.CloseTrigger>
+              </FloatingPanel.Control>
+            </FloatingPanel.Header>
+          </FloatingPanel.DragTrigger>
+          <FloatingPanel.Body>
+            <p>Some content</p>
+          </FloatingPanel.Body>
+
+          <FloatingPanel.ResizeTrigger axis="n" />
+          <FloatingPanel.ResizeTrigger axis="e" />
+          <FloatingPanel.ResizeTrigger axis="w" />
+          <FloatingPanel.ResizeTrigger axis="s" />
+          <FloatingPanel.ResizeTrigger axis="ne" />
+          <FloatingPanel.ResizeTrigger axis="se" />
+          <FloatingPanel.ResizeTrigger axis="sw" />
+          <FloatingPanel.ResizeTrigger axis="nw" />
+        </FloatingPanel.Content>
+      </FloatingPanel.Positioner>
+    </Portal>
+  </FloatingPanel.Root>
+)
+
+```
+
+#### Solid
+
+```tsx
+import { FloatingPanel } from '@ark-ui/solid/floating-panel'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-solid'
+import { Portal } from 'solid-js/web'
+
+export const AnchorPosition = () => (
+  <FloatingPanel.Root
+    getAnchorPosition={({ triggerRect }) => {
+      if (!triggerRect) return { x: 0, y: 0 }
+      return {
+        x: triggerRect.x + triggerRect.width / 2,
+        y: triggerRect.y + triggerRect.height / 2,
+      }
+    }}
+  >
+    <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+    <Portal>
+      <FloatingPanel.Positioner>
+        <FloatingPanel.Content>
+          <FloatingPanel.DragTrigger>
+            <FloatingPanel.Header>
+              <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+              <FloatingPanel.Control>
+                <FloatingPanel.StageTrigger stage="minimized">
+                  <Minus />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="maximized">
+                  <Maximize2 />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="default">
+                  <ArrowDownLeft />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.CloseTrigger>
+                  <XIcon />
+                </FloatingPanel.CloseTrigger>
+              </FloatingPanel.Control>
+            </FloatingPanel.Header>
+          </FloatingPanel.DragTrigger>
+          <FloatingPanel.Body>
+            <p>Some content</p>
+          </FloatingPanel.Body>
+
+          <FloatingPanel.ResizeTrigger axis="n" />
+          <FloatingPanel.ResizeTrigger axis="e" />
+          <FloatingPanel.ResizeTrigger axis="w" />
+          <FloatingPanel.ResizeTrigger axis="s" />
+          <FloatingPanel.ResizeTrigger axis="ne" />
+          <FloatingPanel.ResizeTrigger axis="se" />
+          <FloatingPanel.ResizeTrigger axis="sw" />
+          <FloatingPanel.ResizeTrigger axis="nw" />
+        </FloatingPanel.Content>
+      </FloatingPanel.Positioner>
+    </Portal>
+  </FloatingPanel.Root>
+)
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { FloatingPanel } from '@ark-ui/vue/floating-panel'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-vue-next'
+
+interface Rect {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+interface AnchorPositionDetails {
+  triggerRect: Rect | null
+  boundaryRect: Rect | null
+}
+
+const getAnchorPosition = ({ triggerRect }: AnchorPositionDetails) => {
+  if (!triggerRect) return { x: 0, y: 0 }
+  return {
+    x: triggerRect.x + triggerRect.width / 2,
+    y: triggerRect.y + triggerRect.height / 2,
+  }
+}
+</script>
+
+<template>
+  <FloatingPanel.Root :get-anchor-position="getAnchorPosition">
+    <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+    <Teleport to="body">
+      <FloatingPanel.Positioner>
+        <FloatingPanel.Content>
+          <FloatingPanel.DragTrigger>
+            <FloatingPanel.Header>
+              <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+              <FloatingPanel.Control>
+                <FloatingPanel.StageTrigger stage="minimized">
+                  <Minus />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="maximized">
+                  <Maximize2 />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="default">
+                  <ArrowDownLeft />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.CloseTrigger>
+                  <XIcon />
+                </FloatingPanel.CloseTrigger>
+              </FloatingPanel.Control>
+            </FloatingPanel.Header>
+          </FloatingPanel.DragTrigger>
+          <FloatingPanel.Body>
+            <p>Some content</p>
+          </FloatingPanel.Body>
+
+          <FloatingPanel.ResizeTrigger axis="n" />
+          <FloatingPanel.ResizeTrigger axis="e" />
+          <FloatingPanel.ResizeTrigger axis="w" />
+          <FloatingPanel.ResizeTrigger axis="s" />
+          <FloatingPanel.ResizeTrigger axis="ne" />
+          <FloatingPanel.ResizeTrigger axis="se" />
+          <FloatingPanel.ResizeTrigger axis="sw" />
+          <FloatingPanel.ResizeTrigger axis="nw" />
+        </FloatingPanel.Content>
+      </FloatingPanel.Positioner>
+    </Teleport>
+  </FloatingPanel.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { FloatingPanel } from '@ark-ui/svelte/floating-panel'
+  import { Portal } from '@ark-ui/svelte/portal'
+</script>
+
+<FloatingPanel.Root
+  getAnchorPosition={({ triggerRect }) => {
+    if (!triggerRect) return { x: 0, y: 0 }
+    return {
+      x: triggerRect.x + triggerRect.width / 2,
+      y: triggerRect.y + triggerRect.height / 2,
+    }
+  }}
+>
+  <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+  <Portal>
+    <FloatingPanel.Positioner>
+      <FloatingPanel.Content>
+        <FloatingPanel.DragTrigger>
+          <FloatingPanel.Header>
+            <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+            <FloatingPanel.Control>
+              <FloatingPanel.StageTrigger stage="minimized">
+                <span>−</span>
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.StageTrigger stage="maximized">
+                <span>□</span>
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.StageTrigger stage="default">
+                <span>↗</span>
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.CloseTrigger>
+                <span>×</span>
+              </FloatingPanel.CloseTrigger>
+            </FloatingPanel.Control>
+          </FloatingPanel.Header>
+        </FloatingPanel.DragTrigger>
+        <FloatingPanel.Body>
+          <p>Some content</p>
+          <p>Anchored to trigger center</p>
+        </FloatingPanel.Body>
+
+        <FloatingPanel.ResizeTrigger axis="n" />
+        <FloatingPanel.ResizeTrigger axis="e" />
+        <FloatingPanel.ResizeTrigger axis="w" />
+        <FloatingPanel.ResizeTrigger axis="s" />
+        <FloatingPanel.ResizeTrigger axis="ne" />
+        <FloatingPanel.ResizeTrigger axis="se" />
+        <FloatingPanel.ResizeTrigger axis="sw" />
+        <FloatingPanel.ResizeTrigger axis="nw" />
+      </FloatingPanel.Content>
+    </FloatingPanel.Positioner>
+  </Portal>
+</FloatingPanel.Root>
+
+```
+
+### Controlling the open state
+
+To control the open state of the floating panel programmatically, you can pass the `open` and `onOpenChange` prop to the
+machine.
+
+**Example: controlled-open**
+
+#### React
+
+```tsx
+import { FloatingPanel } from '@ark-ui/react/floating-panel'
+import { Portal } from '@ark-ui/react/portal'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-react'
+import { useState } from 'react'
+
+export const ControlledOpen = () => {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <FloatingPanel.Root open={open} onOpenChange={(e) => setOpen(e.open)}>
+      <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+      <Portal>
+        <FloatingPanel.Positioner>
+          <FloatingPanel.Content>
+            <FloatingPanel.DragTrigger>
+              <FloatingPanel.Header>
+                <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+                <FloatingPanel.Control>
+                  <FloatingPanel.StageTrigger stage="minimized">
+                    <Minus />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.StageTrigger stage="maximized">
+                    <Maximize2 />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.StageTrigger stage="default">
+                    <ArrowDownLeft />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.CloseTrigger>
+                    <XIcon />
+                  </FloatingPanel.CloseTrigger>
+                </FloatingPanel.Control>
+              </FloatingPanel.Header>
+            </FloatingPanel.DragTrigger>
+            <FloatingPanel.Body>
+              <p>Some content</p>
+            </FloatingPanel.Body>
+
+            <FloatingPanel.ResizeTrigger axis="n" />
+            <FloatingPanel.ResizeTrigger axis="e" />
+            <FloatingPanel.ResizeTrigger axis="w" />
+            <FloatingPanel.ResizeTrigger axis="s" />
+            <FloatingPanel.ResizeTrigger axis="ne" />
+            <FloatingPanel.ResizeTrigger axis="se" />
+            <FloatingPanel.ResizeTrigger axis="sw" />
+            <FloatingPanel.ResizeTrigger axis="nw" />
+          </FloatingPanel.Content>
+        </FloatingPanel.Positioner>
+      </Portal>
+    </FloatingPanel.Root>
+  )
+}
+
+```
+
+#### Solid
+
+```tsx
+import { FloatingPanel } from '@ark-ui/solid/floating-panel'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-solid'
+import { createSignal } from 'solid-js'
+import { Portal } from 'solid-js/web'
+
+export const ControlledOpen = () => {
+  const [open, setOpen] = createSignal(false)
+
+  return (
+    <FloatingPanel.Root open={open()} onOpenChange={(e) => setOpen(e.open)}>
+      <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+      <Portal>
+        <FloatingPanel.Positioner>
+          <FloatingPanel.Content>
+            <FloatingPanel.DragTrigger>
+              <FloatingPanel.Header>
+                <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+                <FloatingPanel.Control>
+                  <FloatingPanel.StageTrigger stage="minimized">
+                    <Minus />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.StageTrigger stage="maximized">
+                    <Maximize2 />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.StageTrigger stage="default">
+                    <ArrowDownLeft />
+                  </FloatingPanel.StageTrigger>
+                  <FloatingPanel.CloseTrigger>
+                    <XIcon />
+                  </FloatingPanel.CloseTrigger>
+                </FloatingPanel.Control>
+              </FloatingPanel.Header>
+            </FloatingPanel.DragTrigger>
+            <FloatingPanel.Body>
+              <p>Some content</p>
+            </FloatingPanel.Body>
+
+            <FloatingPanel.ResizeTrigger axis="n" />
+            <FloatingPanel.ResizeTrigger axis="e" />
+            <FloatingPanel.ResizeTrigger axis="w" />
+            <FloatingPanel.ResizeTrigger axis="s" />
+            <FloatingPanel.ResizeTrigger axis="ne" />
+            <FloatingPanel.ResizeTrigger axis="se" />
+            <FloatingPanel.ResizeTrigger axis="sw" />
+            <FloatingPanel.ResizeTrigger axis="nw" />
+          </FloatingPanel.Content>
+        </FloatingPanel.Positioner>
+      </Portal>
+    </FloatingPanel.Root>
+  )
+}
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { FloatingPanel } from '@ark-ui/vue/floating-panel'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-vue-next'
+import { ref } from 'vue'
+
+const open = ref(false)
+</script>
+
+<template>
+  <FloatingPanel.Root v-model:open="open">
+    <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+    <Teleport to="body">
+      <FloatingPanel.Positioner>
+        <FloatingPanel.Content>
+          <FloatingPanel.DragTrigger>
+            <FloatingPanel.Header>
+              <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+              <FloatingPanel.Control>
+                <FloatingPanel.StageTrigger stage="minimized">
+                  <Minus />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="maximized">
+                  <Maximize2 />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="default">
+                  <ArrowDownLeft />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.CloseTrigger>
+                  <XIcon />
+                </FloatingPanel.CloseTrigger>
+              </FloatingPanel.Control>
+            </FloatingPanel.Header>
+          </FloatingPanel.DragTrigger>
+          <FloatingPanel.Body>
+            <p>Some content</p>
+          </FloatingPanel.Body>
+
+          <FloatingPanel.ResizeTrigger axis="n" />
+          <FloatingPanel.ResizeTrigger axis="e" />
+          <FloatingPanel.ResizeTrigger axis="w" />
+          <FloatingPanel.ResizeTrigger axis="s" />
+          <FloatingPanel.ResizeTrigger axis="ne" />
+          <FloatingPanel.ResizeTrigger axis="se" />
+          <FloatingPanel.ResizeTrigger axis="sw" />
+          <FloatingPanel.ResizeTrigger axis="nw" />
+        </FloatingPanel.Content>
+      </FloatingPanel.Positioner>
+    </Teleport>
+  </FloatingPanel.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { FloatingPanel } from '@ark-ui/svelte/floating-panel'
+  import { Portal } from '@ark-ui/svelte/portal'
+
+  let open = $state(false)
+</script>
+
+<FloatingPanel.Root bind:open>
+  <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+  <Portal>
+    <FloatingPanel.Positioner>
+      <FloatingPanel.Content>
+        <FloatingPanel.DragTrigger>
+          <FloatingPanel.Header>
+            <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+            <FloatingPanel.Control>
+              <FloatingPanel.StageTrigger stage="minimized">
+                <span>−</span>
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.StageTrigger stage="maximized">
+                <span>□</span>
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.StageTrigger stage="default">
+                <span>↗</span>
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.CloseTrigger>
+                <span>×</span>
+              </FloatingPanel.CloseTrigger>
+            </FloatingPanel.Control>
+          </FloatingPanel.Header>
+        </FloatingPanel.DragTrigger>
+        <FloatingPanel.Body>
+          <p>Some content</p>
+          <p>Panel is {open ? 'open' : 'closed'}</p>
+        </FloatingPanel.Body>
+
+        <FloatingPanel.ResizeTrigger axis="n" />
+        <FloatingPanel.ResizeTrigger axis="e" />
+        <FloatingPanel.ResizeTrigger axis="w" />
+        <FloatingPanel.ResizeTrigger axis="s" />
+        <FloatingPanel.ResizeTrigger axis="ne" />
+        <FloatingPanel.ResizeTrigger axis="se" />
+        <FloatingPanel.ResizeTrigger axis="sw" />
+        <FloatingPanel.ResizeTrigger axis="nw" />
+      </FloatingPanel.Content>
+    </FloatingPanel.Positioner>
+  </Portal>
+</FloatingPanel.Root>
+
+```
+
+### Lazy mounting
+
+To lazy mount the floating panel, you can pass the `lazyMount` prop to the machine.
+
+**Example: lazy-mount**
+
+#### React
+
+```tsx
+import { FloatingPanel } from '@ark-ui/react/floating-panel'
+import { Portal } from '@ark-ui/react/portal'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-react'
+
+export const LazyMount = () => (
+  <FloatingPanel.Root lazyMount onExitComplete={() => console.log('onExitComplete invoked')}>
+    <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+    <Portal>
+      <FloatingPanel.Positioner>
+        <FloatingPanel.Content>
+          <FloatingPanel.DragTrigger>
+            <FloatingPanel.Header>
+              <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+              <FloatingPanel.Control>
+                <FloatingPanel.StageTrigger stage="minimized">
+                  <Minus />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="maximized">
+                  <Maximize2 />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="default">
+                  <ArrowDownLeft />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.CloseTrigger>
+                  <XIcon />
+                </FloatingPanel.CloseTrigger>
+              </FloatingPanel.Control>
+            </FloatingPanel.Header>
+          </FloatingPanel.DragTrigger>
+          <FloatingPanel.Body>
+            <p>Some content</p>
+          </FloatingPanel.Body>
+
+          <FloatingPanel.ResizeTrigger axis="n" />
+          <FloatingPanel.ResizeTrigger axis="e" />
+          <FloatingPanel.ResizeTrigger axis="w" />
+          <FloatingPanel.ResizeTrigger axis="s" />
+          <FloatingPanel.ResizeTrigger axis="ne" />
+          <FloatingPanel.ResizeTrigger axis="se" />
+          <FloatingPanel.ResizeTrigger axis="sw" />
+          <FloatingPanel.ResizeTrigger axis="nw" />
+        </FloatingPanel.Content>
+      </FloatingPanel.Positioner>
+    </Portal>
+  </FloatingPanel.Root>
+)
+
+```
+
+#### Solid
+
+```tsx
+import { FloatingPanel } from '@ark-ui/solid/floating-panel'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-solid'
+import { Portal } from 'solid-js/web'
+
+export const LazyMount = () => (
+  <FloatingPanel.Root lazyMount onExitComplete={() => console.log('onExitComplete invoked')}>
+    <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+    <Portal>
+      <FloatingPanel.Positioner>
+        <FloatingPanel.Content>
+          <FloatingPanel.DragTrigger>
+            <FloatingPanel.Header>
+              <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+              <FloatingPanel.Control>
+                <FloatingPanel.StageTrigger stage="minimized">
+                  <Minus />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="maximized">
+                  <Maximize2 />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="default">
+                  <ArrowDownLeft />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.CloseTrigger>
+                  <XIcon />
+                </FloatingPanel.CloseTrigger>
+              </FloatingPanel.Control>
+            </FloatingPanel.Header>
+          </FloatingPanel.DragTrigger>
+          <FloatingPanel.Body>
+            <p>Some content</p>
+          </FloatingPanel.Body>
+
+          <FloatingPanel.ResizeTrigger axis="n" />
+          <FloatingPanel.ResizeTrigger axis="e" />
+          <FloatingPanel.ResizeTrigger axis="w" />
+          <FloatingPanel.ResizeTrigger axis="s" />
+          <FloatingPanel.ResizeTrigger axis="ne" />
+          <FloatingPanel.ResizeTrigger axis="se" />
+          <FloatingPanel.ResizeTrigger axis="sw" />
+          <FloatingPanel.ResizeTrigger axis="nw" />
+        </FloatingPanel.Content>
+      </FloatingPanel.Positioner>
+    </Portal>
+  </FloatingPanel.Root>
+)
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { FloatingPanel } from '@ark-ui/vue/floating-panel'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-vue-next'
+</script>
+
+<template>
+  <FloatingPanel.Root lazy-mount @exit-complete="() => console.log('onExitComplete invoked')">
+    <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+    <Teleport to="body">
+      <FloatingPanel.Positioner>
+        <FloatingPanel.Content>
+          <FloatingPanel.DragTrigger>
+            <FloatingPanel.Header>
+              <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+              <FloatingPanel.Control>
+                <FloatingPanel.StageTrigger stage="minimized">
+                  <Minus />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="maximized">
+                  <Maximize2 />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="default">
+                  <ArrowDownLeft />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.CloseTrigger>
+                  <XIcon />
+                </FloatingPanel.CloseTrigger>
+              </FloatingPanel.Control>
+            </FloatingPanel.Header>
+          </FloatingPanel.DragTrigger>
+          <FloatingPanel.Body>
+            <p>Some content</p>
+          </FloatingPanel.Body>
+
+          <FloatingPanel.ResizeTrigger axis="n" />
+          <FloatingPanel.ResizeTrigger axis="e" />
+          <FloatingPanel.ResizeTrigger axis="w" />
+          <FloatingPanel.ResizeTrigger axis="s" />
+          <FloatingPanel.ResizeTrigger axis="ne" />
+          <FloatingPanel.ResizeTrigger axis="se" />
+          <FloatingPanel.ResizeTrigger axis="sw" />
+          <FloatingPanel.ResizeTrigger axis="nw" />
+        </FloatingPanel.Content>
+      </FloatingPanel.Positioner>
+    </Teleport>
+  </FloatingPanel.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { FloatingPanel } from '@ark-ui/svelte/floating-panel'
+  import { Portal } from '@ark-ui/svelte/portal'
+  import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-svelte'
+</script>
+
+<FloatingPanel.Root lazyMount onExitComplete={() => console.log('onExitComplete invoked')}>
+  <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+  <Portal>
+    <FloatingPanel.Positioner>
+      <FloatingPanel.Content>
+        <FloatingPanel.DragTrigger>
+          <FloatingPanel.Header>
+            <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+            <FloatingPanel.Control>
+              <FloatingPanel.StageTrigger stage="minimized">
+                <Minus />
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.StageTrigger stage="maximized">
+                <Maximize2 />
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.StageTrigger stage="default">
+                <ArrowDownLeft />
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.CloseTrigger>
+                <XIcon />
+              </FloatingPanel.CloseTrigger>
+            </FloatingPanel.Control>
+          </FloatingPanel.Header>
+        </FloatingPanel.DragTrigger>
+        <FloatingPanel.Body>
+          <p>Some content</p>
+        </FloatingPanel.Body>
+
+        <FloatingPanel.ResizeTrigger axis="n" />
+        <FloatingPanel.ResizeTrigger axis="e" />
+        <FloatingPanel.ResizeTrigger axis="w" />
+        <FloatingPanel.ResizeTrigger axis="s" />
+        <FloatingPanel.ResizeTrigger axis="ne" />
+        <FloatingPanel.ResizeTrigger axis="se" />
+        <FloatingPanel.ResizeTrigger axis="sw" />
+        <FloatingPanel.ResizeTrigger axis="nw" />
+      </FloatingPanel.Content>
+    </FloatingPanel.Positioner>
+  </Portal>
+</FloatingPanel.Root>
+
+```
+
+### Context
+
+To access the context of the floating panel, you can use the `useFloatingPanelContext` hook or the
+`FloatingPanel.Context` component.
+
+**Example: render-fn**
+
+#### React
+
+```tsx
+import { FloatingPanel } from '@ark-ui/react/floating-panel'
+import { Portal } from '@ark-ui/react/portal'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-react'
+
+export const RenderFn = () => (
+  <FloatingPanel.Root>
+    <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+    <FloatingPanel.Context>
+      {(floatingPanel) => <p>floatingPanel. is {floatingPanel.open ? 'open' : 'closed'}</p>}
+    </FloatingPanel.Context>
+    <Portal>
+      <FloatingPanel.Positioner>
+        <FloatingPanel.Content>
+          <FloatingPanel.DragTrigger>
+            <FloatingPanel.Header>
+              <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+              <FloatingPanel.Control>
+                <FloatingPanel.StageTrigger stage="minimized">
+                  <Minus />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="maximized">
+                  <Maximize2 />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="default">
+                  <ArrowDownLeft />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.CloseTrigger>
+                  <XIcon />
+                </FloatingPanel.CloseTrigger>
+              </FloatingPanel.Control>
+            </FloatingPanel.Header>
+          </FloatingPanel.DragTrigger>
+          <FloatingPanel.Body>
+            <p>Some content</p>
+          </FloatingPanel.Body>
+
+          <FloatingPanel.ResizeTrigger axis="n" />
+          <FloatingPanel.ResizeTrigger axis="e" />
+          <FloatingPanel.ResizeTrigger axis="w" />
+          <FloatingPanel.ResizeTrigger axis="s" />
+          <FloatingPanel.ResizeTrigger axis="ne" />
+          <FloatingPanel.ResizeTrigger axis="se" />
+          <FloatingPanel.ResizeTrigger axis="sw" />
+          <FloatingPanel.ResizeTrigger axis="nw" />
+        </FloatingPanel.Content>
+      </FloatingPanel.Positioner>
+    </Portal>
+  </FloatingPanel.Root>
+)
+
+```
+
+#### Solid
+
+```tsx
+import { FloatingPanel } from '@ark-ui/solid/floating-panel'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-solid'
+import { Portal } from 'solid-js/web'
+
+export const RenderFn = () => (
+  <FloatingPanel.Root>
+    <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+    <FloatingPanel.Context>
+      {(floatingPanel) => <p>floatingPanel is {floatingPanel().open ? 'open' : 'closed'}</p>}
+    </FloatingPanel.Context>
+    <Portal>
+      <FloatingPanel.Positioner>
+        <FloatingPanel.Content>
+          <FloatingPanel.DragTrigger>
+            <FloatingPanel.Header>
+              <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+              <FloatingPanel.Control>
+                <FloatingPanel.StageTrigger stage="minimized">
+                  <Minus />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="maximized">
+                  <Maximize2 />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="default">
+                  <ArrowDownLeft />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.CloseTrigger>
+                  <XIcon />
+                </FloatingPanel.CloseTrigger>
+              </FloatingPanel.Control>
+            </FloatingPanel.Header>
+          </FloatingPanel.DragTrigger>
+          <FloatingPanel.Body>
+            <p>Some content</p>
+          </FloatingPanel.Body>
+
+          <FloatingPanel.ResizeTrigger axis="n" />
+          <FloatingPanel.ResizeTrigger axis="e" />
+          <FloatingPanel.ResizeTrigger axis="w" />
+          <FloatingPanel.ResizeTrigger axis="s" />
+          <FloatingPanel.ResizeTrigger axis="ne" />
+          <FloatingPanel.ResizeTrigger axis="se" />
+          <FloatingPanel.ResizeTrigger axis="sw" />
+          <FloatingPanel.ResizeTrigger axis="nw" />
+        </FloatingPanel.Content>
+      </FloatingPanel.Positioner>
+    </Portal>
+  </FloatingPanel.Root>
+)
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { FloatingPanel } from '@ark-ui/vue/floating-panel'
+import { ArrowDownLeft, Maximize2, Minus, XIcon } from 'lucide-vue-next'
+</script>
+
+<template>
+  <FloatingPanel.Root>
+    <FloatingPanel.Context v-slot="floatingPanel">
+      <p>floatingPanel is {{ floatingPanel.open ? 'open' : 'closed' }}</p>
+    </FloatingPanel.Context>
+
+    <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+    <Teleport to="body">
+      <FloatingPanel.Positioner>
+        <FloatingPanel.Content>
+          <FloatingPanel.DragTrigger>
+            <FloatingPanel.Header>
+              <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+              <FloatingPanel.Control>
+                <FloatingPanel.StageTrigger stage="minimized">
+                  <Minus />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="maximized">
+                  <Maximize2 />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.StageTrigger stage="default">
+                  <ArrowDownLeft />
+                </FloatingPanel.StageTrigger>
+                <FloatingPanel.CloseTrigger>
+                  <XIcon />
+                </FloatingPanel.CloseTrigger>
+              </FloatingPanel.Control>
+            </FloatingPanel.Header>
+          </FloatingPanel.DragTrigger>
+          <FloatingPanel.Body>
+            <p>Some content</p>
+          </FloatingPanel.Body>
+
+          <FloatingPanel.ResizeTrigger axis="n" />
+          <FloatingPanel.ResizeTrigger axis="e" />
+          <FloatingPanel.ResizeTrigger axis="w" />
+          <FloatingPanel.ResizeTrigger axis="s" />
+          <FloatingPanel.ResizeTrigger axis="ne" />
+          <FloatingPanel.ResizeTrigger axis="se" />
+          <FloatingPanel.ResizeTrigger axis="sw" />
+          <FloatingPanel.ResizeTrigger axis="nw" />
+        </FloatingPanel.Content>
+      </FloatingPanel.Positioner>
+    </Teleport>
+  </FloatingPanel.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { FloatingPanel } from '@ark-ui/svelte/floating-panel'
+  import { Portal } from '@ark-ui/svelte/portal'
+</script>
+
+<FloatingPanel.Root>
+  <FloatingPanel.Trigger>Toggle Panel</FloatingPanel.Trigger>
+  <FloatingPanel.Context>
+    {#snippet render(floatingPanel)}
+      <p>Panel is {floatingPanel().open ? 'open' : 'closed'}</p>
+    {/snippet}
+  </FloatingPanel.Context>
+  <Portal>
+    <FloatingPanel.Positioner>
+      <FloatingPanel.Content>
+        <FloatingPanel.DragTrigger>
+          <FloatingPanel.Header>
+            <FloatingPanel.Title>Floating Panel</FloatingPanel.Title>
+            <FloatingPanel.Control>
+              <FloatingPanel.StageTrigger stage="minimized">
+                <span>−</span>
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.StageTrigger stage="maximized">
+                <span>□</span>
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.StageTrigger stage="default">
+                <span>↗</span>
+              </FloatingPanel.StageTrigger>
+              <FloatingPanel.CloseTrigger>
+                <span>×</span>
+              </FloatingPanel.CloseTrigger>
+            </FloatingPanel.Control>
+          </FloatingPanel.Header>
+        </FloatingPanel.DragTrigger>
+        <FloatingPanel.Body>
+          <p>Some content</p>
+        </FloatingPanel.Body>
+
+        <FloatingPanel.ResizeTrigger axis="n" />
+        <FloatingPanel.ResizeTrigger axis="e" />
+        <FloatingPanel.ResizeTrigger axis="w" />
+        <FloatingPanel.ResizeTrigger axis="s" />
+        <FloatingPanel.ResizeTrigger axis="ne" />
+        <FloatingPanel.ResizeTrigger axis="se" />
+        <FloatingPanel.ResizeTrigger axis="sw" />
+        <FloatingPanel.ResizeTrigger axis="nw" />
+      </FloatingPanel.Content>
+    </FloatingPanel.Positioner>
+  </Portal>
+</FloatingPanel.Root>
+
+```
+
+## API Reference
+
+### Props
+
+**Component API Reference**
+
+#### React
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `allowOverflow` | `boolean` | No | Whether the panel should be strictly contained within the boundary when dragging |
+| `closeOnEscape` | `boolean` | No | Whether the panel should close when the escape key is pressed |
+| `defaultOpen` | `boolean` | No | The initial open state of the panel when rendered.
+Use when you don't need to control the open state of the panel. |
+| `defaultPosition` | `Point` | No | The initial position of the panel when rendered.
+Use when you don't need to control the position of the panel. |
+| `defaultSize` | `Size` | No | The default size of the panel |
+| `dir` | `'ltr' | 'rtl'` | No | The document's text/writing direction. |
+| `disabled` | `boolean` | No | Whether the panel is disabled |
+| `draggable` | `boolean` | No | Whether the panel is draggable |
+| `getAnchorPosition` | `(details: AnchorPositionDetails) => Point` | No | Function that returns the initial position of the panel when it is opened.
+If provided, will be used instead of the default position. |
+| `getBoundaryEl` | `() => HTMLElement | null` | No | The boundary of the panel. Useful for recalculating the boundary rect when
+the it is resized. |
+| `gridSize` | `number` | No | The snap grid for the panel |
+| `id` | `string` | No | The unique identifier of the machine. |
+| `ids` | `Partial<{ trigger: string; positioner: string; content: string; title: string; header: string }>` | No | The ids of the elements in the floating panel. Useful for composition. |
+| `immediate` | `boolean` | No | Whether to synchronize the present change immediately or defer it to the next frame |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `lockAspectRatio` | `boolean` | No | Whether the panel is locked to its aspect ratio |
+| `maxSize` | `Size` | No | The maximum size of the panel |
+| `minSize` | `Size` | No | The minimum size of the panel |
+| `onExitComplete` | `VoidFunction` | No | Function called when the animation ends in the closed state |
+| `onOpenChange` | `(details: OpenChangeDetails) => void` | No | Function called when the panel is opened or closed |
+| `onPositionChange` | `(details: PositionChangeDetails) => void` | No | Function called when the position of the panel changes via dragging |
+| `onPositionChangeEnd` | `(details: PositionChangeDetails) => void` | No | Function called when the position of the panel changes via dragging ends |
+| `onSizeChange` | `(details: SizeChangeDetails) => void` | No | Function called when the size of the panel changes via resizing |
+| `onSizeChangeEnd` | `(details: SizeChangeDetails) => void` | No | Function called when the size of the panel changes via resizing ends |
+| `onStageChange` | `(details: StageChangeDetails) => void` | No | Function called when the stage of the panel changes |
+| `open` | `boolean` | No | The controlled open state of the panel |
+| `persistRect` | `boolean` | No | Whether the panel size and position should be preserved when it is closed |
+| `position` | `Point` | No | The controlled position of the panel |
+| `present` | `boolean` | No | Whether the node is present (controlled by the user) |
+| `resizable` | `boolean` | No | Whether the panel is resizable |
+| `size` | `Size` | No | The size of the panel |
+| `skipAnimationOnMount` | `boolean` | No | Whether to allow the initial presence animation. |
+| `strategy` | `'absolute' | 'fixed'` | No | The strategy to use for positioning |
+| `translations` | `IntlTranslations` | No | The translations for the floating panel. |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**Body Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Body Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | body |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**CloseTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Content Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Content Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | content |
+| `[data-state]` | "open" | "closed" |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-topmost]` | Present when topmost |
+| `[data-behind]` | Present when not topmost |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**Control Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Control Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | control |
+| `[data-disabled]` | Present when disabled |
+| `[data-stage]` | The stage of the control |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**DragTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**DragTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | drag-trigger |
+| `[data-disabled]` | Present when disabled |
+
+
+**Header Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Header Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | header |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-topmost]` | Present when topmost |
+| `[data-behind]` | Present when not topmost |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**Positioner Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ResizeTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `axis` | `ResizeTriggerAxis` | Yes | The axis of the resize handle |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ResizeTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | resize-trigger |
+| `[data-disabled]` | Present when disabled |
+| `[data-axis]` | The axis to resize |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `UseFloatingPanelReturn` | Yes |  |
+| `immediate` | `boolean` | No | Whether to synchronize the present change immediately or defer it to the next frame |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `onExitComplete` | `VoidFunction` | No | Function called when the animation ends in the closed state |
+| `skipAnimationOnMount` | `boolean` | No | Whether to allow the initial presence animation. |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**StageTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `stage` | `Stage` | Yes | The stage of the panel |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Title Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Trigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Trigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | trigger |
+| `[data-state]` | "open" | "closed" |
+| `[data-dragging]` | Present when in the dragging state |
+
+
+#### Solid
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `allowOverflow` | `boolean` | No | Whether the panel should be strictly contained within the boundary when dragging |
+| `closeOnEscape` | `boolean` | No | Whether the panel should close when the escape key is pressed |
+| `defaultOpen` | `boolean` | No | The initial open state of the panel when rendered.
+Use when you don't need to control the open state of the panel. |
+| `defaultPosition` | `Point` | No | The initial position of the panel when rendered.
+Use when you don't need to control the position of the panel. |
+| `defaultSize` | `Size` | No | The default size of the panel |
+| `dir` | `'ltr' | 'rtl'` | No | The document's text/writing direction. |
+| `disabled` | `boolean` | No | Whether the panel is disabled |
+| `draggable` | `boolean` | No | Whether the panel is draggable |
+| `getAnchorPosition` | `(details: AnchorPositionDetails) => Point` | No | Function that returns the initial position of the panel when it is opened.
+If provided, will be used instead of the default position. |
+| `getBoundaryEl` | `() => HTMLElement | null` | No | The boundary of the panel. Useful for recalculating the boundary rect when
+the it is resized. |
+| `gridSize` | `number` | No | The snap grid for the panel |
+| `id` | `string` | No | The unique identifier of the machine. |
+| `ids` | `Partial<{ trigger: string; positioner: string; content: string; title: string; header: string }>` | No | The ids of the elements in the floating panel. Useful for composition. |
+| `immediate` | `boolean` | No | Whether to synchronize the present change immediately or defer it to the next frame |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `lockAspectRatio` | `boolean` | No | Whether the panel is locked to its aspect ratio |
+| `maxSize` | `Size` | No | The maximum size of the panel |
+| `minSize` | `Size` | No | The minimum size of the panel |
+| `onExitComplete` | `VoidFunction` | No | Function called when the animation ends in the closed state |
+| `onOpenChange` | `(details: OpenChangeDetails) => void` | No | Function called when the panel is opened or closed |
+| `onPositionChange` | `(details: PositionChangeDetails) => void` | No | Function called when the position of the panel changes via dragging |
+| `onPositionChangeEnd` | `(details: PositionChangeDetails) => void` | No | Function called when the position of the panel changes via dragging ends |
+| `onSizeChange` | `(details: SizeChangeDetails) => void` | No | Function called when the size of the panel changes via resizing |
+| `onSizeChangeEnd` | `(details: SizeChangeDetails) => void` | No | Function called when the size of the panel changes via resizing ends |
+| `onStageChange` | `(details: StageChangeDetails) => void` | No | Function called when the stage of the panel changes |
+| `open` | `boolean` | No | The controlled open state of the panel |
+| `persistRect` | `boolean` | No | Whether the panel size and position should be preserved when it is closed |
+| `position` | `Point` | No | The controlled position of the panel |
+| `present` | `boolean` | No | Whether the node is present (controlled by the user) |
+| `resizable` | `boolean` | No | Whether the panel is resizable |
+| `size` | `Size` | No | The size of the panel |
+| `skipAnimationOnMount` | `boolean` | No | Whether to allow the initial presence animation. |
+| `strategy` | `'absolute' | 'fixed'` | No | The strategy to use for positioning |
+| `translations` | `IntlTranslations` | No | The translations for the floating panel. |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**Body Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Body Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | body |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**CloseTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'button'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Content Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Content Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | content |
+| `[data-state]` | "open" | "closed" |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-topmost]` | Present when topmost |
+| `[data-behind]` | Present when not topmost |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**Control Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Control Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | control |
+| `[data-disabled]` | Present when disabled |
+| `[data-stage]` | The stage of the control |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**DragTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**DragTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | drag-trigger |
+| `[data-disabled]` | Present when disabled |
+
+
+**Header Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Header Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | header |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-topmost]` | Present when topmost |
+| `[data-behind]` | Present when not topmost |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**Positioner Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ResizeTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `axis` | `ResizeTriggerAxis` | Yes | The axis of the resize handle |
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ResizeTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | resize-trigger |
+| `[data-disabled]` | Present when disabled |
+| `[data-axis]` | The axis to resize |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `UseFloatingPanelReturn` | Yes |  |
+| `immediate` | `boolean` | No | Whether to synchronize the present change immediately or defer it to the next frame |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `onExitComplete` | `VoidFunction` | No | Function called when the animation ends in the closed state |
+| `skipAnimationOnMount` | `boolean` | No | Whether to allow the initial presence animation. |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**StageTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `stage` | `Stage` | Yes | The stage of the panel |
+| `asChild` | `(props: ParentProps<'button'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Title Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'h2'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Trigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'button'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Trigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | trigger |
+| `[data-state]` | "open" | "closed" |
+| `[data-dragging]` | Present when in the dragging state |
+
+
+#### Vue
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `allowOverflow` | `boolean` | No | Whether the panel should be strictly contained within the boundary when dragging |
+| `closeOnEscape` | `boolean` | No | Whether the panel should close when the escape key is pressed |
+| `defaultOpen` | `boolean` | No | The initial open state of the panel when rendered.
+Use when you don't need to control the open state of the panel. |
+| `defaultPosition` | `Point` | No | The initial position of the panel when rendered.
+Use when you don't need to control the position of the panel. |
+| `defaultSize` | `Size` | No | The default size of the panel |
+| `dir` | `'ltr' | 'rtl'` | No | The document's text/writing direction. |
+| `disabled` | `boolean` | No | Whether the panel is disabled |
+| `draggable` | `boolean` | No | Whether the panel is draggable |
+| `getAnchorPosition` | `(details: AnchorPositionDetails) => Point` | No | Function that returns the initial position of the panel when it is opened.
+If provided, will be used instead of the default position. |
+| `getBoundaryEl` | `() => HTMLElement | null` | No | The boundary of the panel. Useful for recalculating the boundary rect when
+the it is resized. |
+| `gridSize` | `number` | No | The snap grid for the panel |
+| `id` | `string` | No | The unique identifier of the machine. |
+| `ids` | `Partial<{ trigger: string; positioner: string; content: string; title: string; header: string }>` | No | The ids of the elements in the floating panel. Useful for composition. |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `lockAspectRatio` | `boolean` | No | Whether the panel is locked to its aspect ratio |
+| `maxSize` | `Size` | No | The maximum size of the panel |
+| `minSize` | `Size` | No | The minimum size of the panel |
+| `open` | `boolean` | No | The controlled open state of the panel |
+| `persistRect` | `boolean` | No | Whether the panel size and position should be preserved when it is closed |
+| `position` | `Point` | No | The controlled position of the panel |
+| `resizable` | `boolean` | No | Whether the panel is resizable |
+| `size` | `Size` | No | The size of the panel |
+| `strategy` | `'absolute' | 'fixed'` | No | The strategy to use for positioning |
+| `translations` | `IntlTranslations` | No | The translations for the floating panel. |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**Body Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Body Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | body |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**CloseTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Content Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Content Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | content |
+| `[data-state]` | "open" | "closed" |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-topmost]` | Present when topmost |
+| `[data-behind]` | Present when not topmost |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**Control Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Control Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | control |
+| `[data-disabled]` | Present when disabled |
+| `[data-stage]` | The stage of the control |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**DragTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**DragTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | drag-trigger |
+| `[data-disabled]` | Present when disabled |
+
+
+**Header Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Header Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | header |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-topmost]` | Present when topmost |
+| `[data-behind]` | Present when not topmost |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**Positioner Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ResizeTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `axis` | `ResizeTriggerAxis` | Yes | The axis of the resize handle |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ResizeTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | resize-trigger |
+| `[data-disabled]` | Present when disabled |
+| `[data-axis]` | The axis to resize |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `FloatingPanelApi<PropTypes>` | Yes |  |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**StageTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `stage` | `Stage` | Yes | The stage of the panel |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Title Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Trigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Trigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | trigger |
+| `[data-state]` | "open" | "closed" |
+| `[data-dragging]` | Present when in the dragging state |
+
+
+#### Svelte
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `allowOverflow` | `boolean` | No | Whether the panel should be strictly contained within the boundary when dragging |
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `closeOnEscape` | `boolean` | No | Whether the panel should close when the escape key is pressed |
+| `defaultOpen` | `boolean` | No | The initial open state of the panel when rendered.
+Use when you don't need to control the open state of the panel. |
+| `defaultPosition` | `Point` | No | The initial position of the panel when rendered.
+Use when you don't need to control the position of the panel. |
+| `defaultSize` | `Size` | No | The default size of the panel |
+| `dir` | `'ltr' | 'rtl'` | No | The document's text/writing direction. |
+| `disabled` | `boolean` | No | Whether the panel is disabled |
+| `draggable` | `boolean` | No | Whether the panel is draggable |
+| `getAnchorPosition` | `(details: AnchorPositionDetails) => Point` | No | Function that returns the initial position of the panel when it is opened.
+If provided, will be used instead of the default position. |
+| `getBoundaryEl` | `() => HTMLElement | null` | No | The boundary of the panel. Useful for recalculating the boundary rect when
+the it is resized. |
+| `gridSize` | `number` | No | The snap grid for the panel |
+| `id` | `string` | No | The unique identifier of the machine. |
+| `ids` | `Partial<{ trigger: string; positioner: string; content: string; title: string; header: string }>` | No | The ids of the elements in the floating panel. Useful for composition. |
+| `immediate` | `boolean` | No | Whether to synchronize the present change immediately or defer it to the next frame |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `lockAspectRatio` | `boolean` | No | Whether the panel is locked to its aspect ratio |
+| `maxSize` | `Size` | No | The maximum size of the panel |
+| `minSize` | `Size` | No | The minimum size of the panel |
+| `onExitComplete` | `VoidFunction` | No | Function called when the animation ends in the closed state |
+| `onOpenChange` | `(details: OpenChangeDetails) => void` | No | Function called when the panel is opened or closed |
+| `onPositionChange` | `(details: PositionChangeDetails) => void` | No | Function called when the position of the panel changes via dragging |
+| `onPositionChangeEnd` | `(details: PositionChangeDetails) => void` | No | Function called when the position of the panel changes via dragging ends |
+| `onSizeChange` | `(details: SizeChangeDetails) => void` | No | Function called when the size of the panel changes via resizing |
+| `onSizeChangeEnd` | `(details: SizeChangeDetails) => void` | No | Function called when the size of the panel changes via resizing ends |
+| `onStageChange` | `(details: StageChangeDetails) => void` | No | Function called when the stage of the panel changes |
+| `open` | `boolean` | No | The controlled open state of the panel |
+| `persistRect` | `boolean` | No | Whether the panel size and position should be preserved when it is closed |
+| `position` | `Point` | No | The controlled position of the panel |
+| `present` | `boolean` | No | Whether the node is present (controlled by the user) |
+| `resizable` | `boolean` | No | Whether the panel is resizable |
+| `size` | `Size` | No | The size of the panel |
+| `skipAnimationOnMount` | `boolean` | No | Whether to allow the initial presence animation. |
+| `strategy` | `'absolute' | 'fixed'` | No | The strategy to use for positioning |
+| `translations` | `IntlTranslations` | No | The translations for the floating panel. |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**Body Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Body Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | body |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**CloseTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'button'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Content Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Content Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | content |
+| `[data-state]` | "open" | "closed" |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-topmost]` | Present when topmost |
+| `[data-behind]` | Present when not topmost |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**Context Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `render` | `Snippet<[UseFloatingPanelContext]>` | Yes |  |
+
+
+**Control Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Control Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | control |
+| `[data-disabled]` | Present when disabled |
+| `[data-stage]` | The stage of the control |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**DragTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**DragTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | drag-trigger |
+| `[data-disabled]` | Present when disabled |
+
+
+**Header Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Header Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | header |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-topmost]` | Present when topmost |
+| `[data-behind]` | Present when not topmost |
+| `[data-minimized]` | Present when minimized |
+| `[data-maximized]` | Present when maximized |
+| `[data-staged]` | Present when not in default stage |
+
+
+**Positioner Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**ResizeTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `axis` | `ResizeTriggerAxis` | Yes | The axis of the resize handle |
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**ResizeTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | resize-trigger |
+| `[data-disabled]` | Present when disabled |
+| `[data-axis]` | The axis to resize |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `UseFloatingPanelReturn` | Yes |  |
+| `immediate` | `boolean` | No | Whether to synchronize the present change immediately or defer it to the next frame |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `onExitComplete` | `VoidFunction` | No | Function called when the animation ends in the closed state |
+| `present` | `boolean` | No | Whether the node is present (controlled by the user) |
+| `skipAnimationOnMount` | `boolean` | No | Whether to allow the initial presence animation. |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**StageTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `stage` | `Stage` | Yes | The stage of the panel |
+| `asChild` | `Snippet<[PropsFn<'button'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Title Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'h2'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Trigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'button'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Trigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | floating-panel |
+| `[data-part]` | trigger |
+| `[data-state]` | "open" | "closed" |
+| `[data-dragging]` | Present when in the dragging state |
+
+
+### Context
+
+These are the properties available when using `FloatingPanel.Context`, `useFloatingPanelContext` hook or
+`useFloatingPanel` hook.
+
+**API:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `open` | `boolean` | Whether the panel is open |
+| `setOpen` | `(open: boolean) => void` | Function to open or close the panel |
+| `dragging` | `boolean` | Whether the panel is being dragged |
+| `resizing` | `boolean` | Whether the panel is being resized |
+| `position` | `Point` | The position of the panel |
+| `setPosition` | `(position: Point) => void` | Function to set the position of the panel |
+| `size` | `Size` | The size of the panel |
+| `setSize` | `(size: Size) => void` | Function to set the size of the panel |
+| `minimize` | `VoidFunction` | Function to minimize the panel |
+| `maximize` | `VoidFunction` | Function to maximize the panel |
+| `restore` | `VoidFunction` | Function to restore the panel before it was minimized or maximized |
+| `resizable` | `boolean` | Whether the panel is resizable |
+| `draggable` | `boolean` | Whether the panel is draggable |

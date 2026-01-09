@@ -1,0 +1,4539 @@
+<ComponentPreview id="TreeView" />
+
+## Anatomy
+
+To set up the tree view component correctly, you'll need to understand its anatomy and how we name its parts.
+
+> Each part includes a `data-part` attribute to help identify them in the DOM.
+
+<Anatomy id="tree-view" />
+
+## Examples
+
+Learn how to use the `TreeView` component in your project. Let's take a look at the most basic example:
+
+**Example: basic**
+
+#### React
+
+```tsx
+import { TreeView, createTreeCollection } from '@ark-ui/react/tree-view'
+import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-react'
+
+export const Basic = () => {
+  return (
+    <TreeView.Root collection={collection}>
+      <TreeView.Label>Tree</TreeView.Label>
+      <TreeView.Tree>
+        {collection.rootNode.children?.map((node, index) => (
+          <TreeNode key={node.id} node={node} indexPath={[index]} />
+        ))}
+      </TreeView.Tree>
+    </TreeView.Root>
+  )
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  return (
+    <TreeView.NodeProvider key={node.id} node={node} indexPath={indexPath}>
+      {node.children ? (
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>
+              <FolderIcon /> {node.name}
+            </TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            {node.children.map((child, index) => (
+              <TreeNode key={child.id} node={child} indexPath={[...indexPath, index]} />
+            ))}
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      ) : (
+        <TreeView.Item>
+          <TreeView.ItemIndicator>
+            <SquareCheckBigIcon />
+          </TreeView.ItemIndicator>
+          <TreeView.ItemText>
+            <FileIcon />
+            {node.name}
+          </TreeView.ItemText>
+        </TreeView.Item>
+      )}
+    </TreeView.NodeProvider>
+  )
+}
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[] | undefined
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+```
+
+#### Solid
+
+```tsx
+import { TreeView, createTreeCollection } from '@ark-ui/solid/tree-view'
+import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-solid'
+import { For, Show } from 'solid-js'
+
+export const Basic = () => {
+  return (
+    <TreeView.Root collection={collection}>
+      <TreeView.Label>Tree</TreeView.Label>
+      <TreeView.Tree>
+        <For each={collection.rootNode.children}>{(node, index) => <TreeNode node={node} indexPath={[index()]} />}</For>
+      </TreeView.Tree>
+    </TreeView.Root>
+  )
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  return (
+    <TreeView.NodeProvider node={node} indexPath={indexPath}>
+      <Show
+        when={node.children}
+        fallback={
+          <TreeView.Item>
+            <TreeView.ItemIndicator>
+              <SquareCheckBigIcon />
+            </TreeView.ItemIndicator>
+            <TreeView.ItemText>
+              <FileIcon />
+              {node.name}
+            </TreeView.ItemText>
+          </TreeView.Item>
+        }
+      >
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>
+              <FolderIcon /> {node.name}
+            </TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            <For each={node.children}>
+              {(child, index) => <TreeNode node={child} indexPath={[...indexPath, index()]} />}
+            </For>
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      </Show>
+    </TreeView.NodeProvider>
+  )
+}
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { TreeView, createTreeCollection } from '@ark-ui/vue/tree-view'
+import TreeNode from './tree-node.vue'
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+</script>
+
+<template>
+  <TreeView.Root :collection="collection">
+    <TreeView.Label>Tree</TreeView.Label>
+    <TreeView.Tree>
+      <TreeNode
+        v-for="(node, index) in collection.rootNode.children"
+        :key="node.id"
+        :node="node"
+        :indexPath="[index]"
+      />
+    </TreeView.Tree>
+  </TreeView.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { TreeView, createTreeCollection } from '@ark-ui/svelte/tree-view'
+  import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-svelte'
+
+  interface Node {
+    id: string
+    name: string
+    children?: Node[]
+  }
+
+  const collection = createTreeCollection<Node>({
+    nodeToValue: (node) => node.id,
+    nodeToString: (node) => node.name,
+    rootNode: {
+      id: 'ROOT',
+      name: '',
+      children: [
+        {
+          id: 'node_modules',
+          name: 'node_modules',
+          children: [
+            { id: 'node_modules/zag-js', name: 'zag-js' },
+            { id: 'node_modules/pandacss', name: 'panda' },
+            {
+              id: 'node_modules/@types',
+              name: '@types',
+              children: [
+                { id: 'node_modules/@types/react', name: 'react' },
+                { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'src',
+          name: 'src',
+          children: [
+            { id: 'src/app.tsx', name: 'app.tsx' },
+            { id: 'src/index.ts', name: 'index.ts' },
+          ],
+        },
+        { id: 'panda.config', name: 'panda.config.ts' },
+        { id: 'package.json', name: 'package.json' },
+        { id: 'renovate.json', name: 'renovate.json' },
+        { id: 'readme.md', name: 'README.md' },
+      ],
+    },
+  })
+</script>
+
+<TreeView.Root {collection}>
+  <TreeView.Label>Basic Tree</TreeView.Label>
+  <TreeView.Tree>
+    {#each collection.rootNode.children ?? [] as node, index (node.id)}
+      {@render renderNode(node, [index])}
+    {/each}
+  </TreeView.Tree>
+</TreeView.Root>
+
+{#snippet renderNode(node: Node, indexPath: number[])}
+  <TreeView.NodeProvider {node} {indexPath}>
+    {#if node.children}
+      <TreeView.Branch>
+        <TreeView.BranchControl>
+          <TreeView.BranchText>
+            <FolderIcon />
+            {node.name}
+          </TreeView.BranchText>
+          <TreeView.BranchIndicator>
+            <ChevronRightIcon />
+          </TreeView.BranchIndicator>
+        </TreeView.BranchControl>
+        <TreeView.BranchContent>
+          <TreeView.BranchIndentGuide />
+          {#each node.children as child, index (child.id)}
+            {@render renderNode(child, [...indexPath, index])}
+          {/each}
+        </TreeView.BranchContent>
+      </TreeView.Branch>
+    {:else}
+      <TreeView.Item>
+        <TreeView.ItemIndicator>
+          <SquareCheckBigIcon />
+        </TreeView.ItemIndicator>
+        <TreeView.ItemText>
+          <FileIcon />
+          {node.name}
+        </TreeView.ItemText>
+      </TreeView.Item>
+    {/if}
+  </TreeView.NodeProvider>
+{/snippet}
+
+```
+
+### Controlled Expanded
+
+Pass the `expandedValue` and `onExpandedChange` props to the `TreeView.Root` component to control the expanded state of
+the tree view.
+
+**Example: controlled-expanded**
+
+#### React
+
+```tsx
+import { TreeView, createTreeCollection } from '@ark-ui/react/tree-view'
+import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-react'
+import { useState } from 'react'
+
+export const ControlledExpanded = () => {
+  const [expandedValue, setExpandedValue] = useState<string[]>(['node_modules'])
+  return (
+    <TreeView.Root
+      collection={collection}
+      expandedValue={expandedValue}
+      onExpandedChange={({ expandedValue }) => setExpandedValue(expandedValue)}
+    >
+      <TreeView.Label>Tree</TreeView.Label>
+      <TreeView.Tree>
+        {collection.rootNode.children?.map((node, index) => (
+          <TreeNode key={node.id} node={node} indexPath={[index]} />
+        ))}
+      </TreeView.Tree>
+    </TreeView.Root>
+  )
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  return (
+    <TreeView.NodeProvider key={node.id} node={node} indexPath={indexPath}>
+      {node.children ? (
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>
+              <FolderIcon /> {node.name}
+            </TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            {node.children.map((child, index) => (
+              <TreeNode key={child.id} node={child} indexPath={[...indexPath, index]} />
+            ))}
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      ) : (
+        <TreeView.Item>
+          <TreeView.ItemIndicator>
+            <SquareCheckBigIcon />
+          </TreeView.ItemIndicator>
+          <TreeView.ItemText>
+            <FileIcon />
+            {node.name}
+          </TreeView.ItemText>
+        </TreeView.Item>
+      )}
+    </TreeView.NodeProvider>
+  )
+}
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+```
+
+#### Solid
+
+```tsx
+import { TreeView, createTreeCollection } from '@ark-ui/solid/tree-view'
+import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-solid'
+import { For, Show, createSignal } from 'solid-js'
+
+export const ControlledExpanded = () => {
+  const [expandedValue, setExpandedValue] = createSignal<string[]>(['node_modules'])
+
+  return (
+    <TreeView.Root
+      collection={collection}
+      expandedValue={expandedValue()}
+      onExpandedChange={({ expandedValue }) => setExpandedValue(expandedValue)}
+    >
+      <TreeView.Label>Tree</TreeView.Label>
+      <TreeView.Tree>
+        <For each={collection.rootNode.children}>{(node, index) => <TreeNode node={node} indexPath={[index()]} />}</For>
+      </TreeView.Tree>
+    </TreeView.Root>
+  )
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  return (
+    <TreeView.NodeProvider node={node} indexPath={indexPath}>
+      <Show
+        when={node.children}
+        fallback={
+          <TreeView.Item>
+            <TreeView.ItemIndicator>
+              <SquareCheckBigIcon />
+            </TreeView.ItemIndicator>
+            <TreeView.ItemText>
+              <FileIcon />
+              {node.name}
+            </TreeView.ItemText>
+          </TreeView.Item>
+        }
+      >
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>
+              <FolderIcon /> {node.name}
+            </TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            <For each={node.children}>
+              {(child, index) => <TreeNode node={child} indexPath={[...indexPath, index()]} />}
+            </For>
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      </Show>
+    </TreeView.NodeProvider>
+  )
+}
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { TreeView, createTreeCollection } from '@ark-ui/vue/tree-view'
+import { ref } from 'vue'
+import TreeNode from './tree-node.vue'
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+}
+
+const expandedValue = ref<string[]>(['node_modules'])
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+</script>
+
+<template>
+  <TreeView.Root :collection="collection" v-model:expanded-value="expandedValue">
+    <TreeView.Label>Tree</TreeView.Label>
+    <TreeView.Tree>
+      <TreeNode
+        v-for="(node, index) in collection.rootNode.children"
+        :key="node.id"
+        :node="node"
+        :indexPath="[index]"
+      />
+    </TreeView.Tree>
+  </TreeView.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { TreeView, createTreeCollection } from '@ark-ui/svelte/tree-view'
+  import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-svelte'
+
+  interface Node {
+    id: string
+    name: string
+    children?: Node[]
+  }
+
+  const collection = createTreeCollection<Node>({
+    nodeToValue: (node) => node.id,
+    nodeToString: (node) => node.name,
+    rootNode: {
+      id: 'ROOT',
+      name: '',
+      children: [
+        {
+          id: 'node_modules',
+          name: 'node_modules',
+          children: [
+            { id: 'node_modules/zag-js', name: 'zag-js' },
+            { id: 'node_modules/pandacss', name: 'panda' },
+          ],
+        },
+        {
+          id: 'src',
+          name: 'src',
+          children: [
+            { id: 'src/app.tsx', name: 'app.tsx' },
+            { id: 'src/index.ts', name: 'index.ts' },
+          ],
+        },
+        { id: 'package.json', name: 'package.json' },
+      ],
+    },
+  })
+
+  let expandedValue = $state(['node_modules'])
+</script>
+
+<TreeView.Root {collection} bind:expandedValue>
+  <TreeView.Label>Tree</TreeView.Label>
+  <TreeView.Tree>
+    {#each collection.rootNode.children ?? [] as node, index (node.id)}
+      {@render renderNode(node, [index])}
+    {/each}
+  </TreeView.Tree>
+</TreeView.Root>
+
+{#snippet renderNode(node: Node, indexPath: number[])}
+  <TreeView.NodeProvider {node} {indexPath}>
+    {#if node.children}
+      <TreeView.Branch>
+        <TreeView.BranchControl>
+          <TreeView.BranchText>
+            <FolderIcon />
+            {node.name}
+          </TreeView.BranchText>
+          <TreeView.BranchIndicator>
+            <ChevronRightIcon />
+          </TreeView.BranchIndicator>
+        </TreeView.BranchControl>
+        <TreeView.BranchContent>
+          <TreeView.BranchIndentGuide />
+          {#each node.children as child, index (child.id)}
+            {@render renderNode(child, [...indexPath, index])}
+          {/each}
+        </TreeView.BranchContent>
+      </TreeView.Branch>
+    {:else}
+      <TreeView.Item>
+        <TreeView.ItemIndicator>
+          <SquareCheckBigIcon />
+        </TreeView.ItemIndicator>
+        <TreeView.ItemText>
+          <FileIcon />
+          {node.name}
+        </TreeView.ItemText>
+      </TreeView.Item>
+    {/if}
+  </TreeView.NodeProvider>
+{/snippet}
+
+```
+
+### Controlled Selection
+
+Pass the `selectedValue` and `onSelectionChange` props to the `TreeView.Root` component to control the selected state of
+the tree view.
+
+**Example: controlled-selected**
+
+#### React
+
+```tsx
+import { TreeView, createTreeCollection } from '@ark-ui/react/tree-view'
+import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-react'
+import { useState } from 'react'
+
+export const ControlledSelected = () => {
+  const [selectedValue, setSelectedValue] = useState<string[]>(['package.json'])
+  return (
+    <TreeView.Root
+      collection={collection}
+      selectedValue={selectedValue}
+      onSelectionChange={({ selectedValue }) => setSelectedValue(selectedValue)}
+    >
+      <TreeView.Label>Tree</TreeView.Label>
+      <TreeView.Tree>
+        {collection.rootNode.children?.map((node, index) => (
+          <TreeNode key={node.id} node={node} indexPath={[index]} />
+        ))}
+      </TreeView.Tree>
+    </TreeView.Root>
+  )
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  return (
+    <TreeView.NodeProvider key={node.id} node={node} indexPath={indexPath}>
+      {node.children ? (
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>
+              <FolderIcon /> {node.name}
+            </TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            {node.children.map((child, index) => (
+              <TreeNode key={child.id} node={child} indexPath={[...indexPath, index]} />
+            ))}
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      ) : (
+        <TreeView.Item>
+          <TreeView.ItemIndicator>
+            <SquareCheckBigIcon />
+          </TreeView.ItemIndicator>
+          <TreeView.ItemText>
+            <FileIcon />
+            {node.name}
+          </TreeView.ItemText>
+        </TreeView.Item>
+      )}
+    </TreeView.NodeProvider>
+  )
+}
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+```
+
+#### Solid
+
+```tsx
+import { TreeView, createTreeCollection } from '@ark-ui/solid/tree-view'
+import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-solid'
+import { For, Show, createSignal } from 'solid-js'
+
+export const ControlledSelected = () => {
+  const [selectedValue, setSelectedValue] = createSignal<string[]>(['package.json'])
+
+  return (
+    <TreeView.Root
+      collection={collection}
+      selectedValue={selectedValue()}
+      onSelectionChange={({ selectedValue }) => setSelectedValue(selectedValue)}
+    >
+      <TreeView.Label>Tree</TreeView.Label>
+      <TreeView.Tree>
+        <For each={collection.rootNode.children}>{(node, index) => <TreeNode node={node} indexPath={[index()]} />}</For>
+      </TreeView.Tree>
+    </TreeView.Root>
+  )
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  return (
+    <TreeView.NodeProvider node={node} indexPath={indexPath}>
+      <Show
+        when={node.children}
+        fallback={
+          <TreeView.Item>
+            <TreeView.ItemIndicator>
+              <SquareCheckBigIcon />
+            </TreeView.ItemIndicator>
+            <TreeView.ItemText>
+              <FileIcon />
+              {node.name}
+            </TreeView.ItemText>
+          </TreeView.Item>
+        }
+      >
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>
+              <FolderIcon /> {node.name}
+            </TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            <For each={node.children}>
+              {(child, index) => <TreeNode node={child} indexPath={[...indexPath, index()]} />}
+            </For>
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      </Show>
+    </TreeView.NodeProvider>
+  )
+}
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { TreeView, createTreeCollection } from '@ark-ui/vue/tree-view'
+import { ref } from 'vue'
+import TreeNode from './tree-node.vue'
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+}
+
+const selectedValue = ref<string[]>(['package.json'])
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+</script>
+
+<template>
+  <TreeView.Root :collection="collection" v-model:selected-value="selectedValue">
+    <TreeView.Label>Tree</TreeView.Label>
+    <TreeView.Tree>
+      <TreeNode
+        v-for="(node, index) in collection.rootNode.children"
+        :key="node.id"
+        :node="node"
+        :indexPath="[index]"
+      />
+    </TreeView.Tree>
+  </TreeView.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { TreeView, createTreeCollection } from '@ark-ui/svelte/tree-view'
+  import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-svelte'
+
+  interface Node {
+    id: string
+    name: string
+    children?: Node[]
+  }
+
+  const collection = createTreeCollection<Node>({
+    nodeToValue: (node) => node.id,
+    nodeToString: (node) => node.name,
+    rootNode: {
+      id: 'ROOT',
+      name: '',
+      children: [
+        {
+          id: 'node_modules',
+          name: 'node_modules',
+          children: [
+            { id: 'node_modules/zag-js', name: 'zag-js' },
+            { id: 'node_modules/pandacss', name: 'panda' },
+          ],
+        },
+        {
+          id: 'src',
+          name: 'src',
+          children: [
+            { id: 'src/app.tsx', name: 'app.tsx' },
+            { id: 'src/index.ts', name: 'index.ts' },
+          ],
+        },
+        { id: 'package.json', name: 'package.json' },
+      ],
+    },
+  })
+
+  let selectedValue = $state(['package.json'])
+</script>
+
+<pre>Selected: {JSON.stringify(selectedValue)}</pre>
+
+<TreeView.Root {collection} bind:selectedValue>
+  <TreeView.Label>Tree</TreeView.Label>
+  <TreeView.Tree>
+    {#each collection.rootNode.children ?? [] as node, index (node.id)}
+      {@render renderNode(node, [index])}
+    {/each}
+  </TreeView.Tree>
+</TreeView.Root>
+
+{#snippet renderNode(node: Node, indexPath: number[])}
+  <TreeView.NodeProvider {node} {indexPath}>
+    {#if node.children}
+      <TreeView.Branch>
+        <TreeView.BranchControl>
+          <TreeView.BranchText>
+            <FolderIcon />
+            {node.name}
+          </TreeView.BranchText>
+          <TreeView.BranchIndicator>
+            <ChevronRightIcon />
+          </TreeView.BranchIndicator>
+        </TreeView.BranchControl>
+        <TreeView.BranchContent>
+          <TreeView.BranchIndentGuide />
+          {#each node.children as child, index (child.id)}
+            {@render renderNode(child, [...indexPath, index])}
+          {/each}
+        </TreeView.BranchContent>
+      </TreeView.Branch>
+    {:else}
+      <TreeView.Item>
+        <TreeView.ItemIndicator>
+          <SquareCheckBigIcon />
+        </TreeView.ItemIndicator>
+        <TreeView.ItemText>
+          <FileIcon />
+          {node.name}
+        </TreeView.ItemText>
+      </TreeView.Item>
+    {/if}
+  </TreeView.NodeProvider>
+{/snippet}
+
+```
+
+### Root Provider
+
+Use the `useTreeView` hook to create the tree view store and pass it to the `TreeView.RootProvider` component. This
+allows you to have maximum control over the tree view programmatically.
+
+**Example: root-provider**
+
+#### React
+
+```tsx
+import { TreeView, createTreeCollection, useTreeView } from '@ark-ui/react/tree-view'
+import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-react'
+
+export const RootProvider = () => {
+  const treeView = useTreeView({ collection })
+
+  return (
+    <TreeView.RootProvider value={treeView}>
+      <TreeView.Label>Tree</TreeView.Label>
+      <TreeView.Tree>
+        {collection.rootNode.children?.map((node, index) => (
+          <TreeNode key={node.id} node={node} indexPath={[index]} />
+        ))}
+      </TreeView.Tree>
+    </TreeView.RootProvider>
+  )
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  return (
+    <TreeView.NodeProvider key={node.id} node={node} indexPath={indexPath}>
+      {node.children ? (
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>
+              <FolderIcon /> {node.name}
+            </TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            {node.children.map((child, index) => (
+              <TreeNode key={child.id} node={child} indexPath={[...indexPath, index]} />
+            ))}
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      ) : (
+        <TreeView.Item>
+          <TreeView.ItemIndicator>
+            <SquareCheckBigIcon />
+          </TreeView.ItemIndicator>
+          <TreeView.ItemText>
+            <FileIcon />
+            {node.name}
+          </TreeView.ItemText>
+        </TreeView.Item>
+      )}
+    </TreeView.NodeProvider>
+  )
+}
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[] | undefined
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+```
+
+#### Solid
+
+```tsx
+import { TreeView, createTreeCollection, useTreeView } from '@ark-ui/solid/tree-view'
+import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-solid'
+import { For, Show } from 'solid-js'
+
+export const RootProvider = () => {
+  const treeView = useTreeView({ collection })
+
+  return (
+    <TreeView.RootProvider value={treeView}>
+      <TreeView.Label>Tree</TreeView.Label>
+      <TreeView.Tree>
+        <For each={collection.rootNode.children}>{(node, index) => <TreeNode node={node} indexPath={[index()]} />}</For>
+      </TreeView.Tree>
+    </TreeView.RootProvider>
+  )
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  return (
+    <TreeView.NodeProvider node={node} indexPath={indexPath}>
+      <Show
+        when={node.children}
+        fallback={
+          <TreeView.Item>
+            <TreeView.ItemIndicator>
+              <SquareCheckBigIcon />
+            </TreeView.ItemIndicator>
+            <TreeView.ItemText>
+              <FileIcon />
+              {node.name}
+            </TreeView.ItemText>
+          </TreeView.Item>
+        }
+      >
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>
+              <FolderIcon /> {node.name}
+            </TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            <For each={node.children}>
+              {(child, index) => <TreeNode node={child} indexPath={[...indexPath, index()]} />}
+            </For>
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      </Show>
+    </TreeView.NodeProvider>
+  )
+}
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { TreeView, createTreeCollection, useTreeView } from '@ark-ui/vue/tree-view'
+import TreeNode from './tree-node.vue'
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+const treeView = useTreeView({
+  collection,
+})
+</script>
+
+<template>
+  <TreeView.RootProvider :value="treeView">
+    <TreeView.Label>Tree</TreeView.Label>
+    <TreeView.Tree>
+      <TreeNode
+        v-for="(node, index) in collection.rootNode.children"
+        :key="node.id"
+        :node="node"
+        :indexPath="[index]"
+      />
+    </TreeView.Tree>
+  </TreeView.RootProvider>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { TreeView, createTreeCollection, useTreeView } from '@ark-ui/svelte/tree-view'
+  import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-svelte'
+
+  interface Node {
+    id: string
+    name: string
+    children?: Node[]
+  }
+
+  const collection = createTreeCollection<Node>({
+    nodeToValue: (node) => node.id,
+    nodeToString: (node) => node.name,
+    rootNode: {
+      id: 'ROOT',
+      name: '',
+      children: [
+        {
+          id: 'node_modules',
+          name: 'node_modules',
+          children: [
+            { id: 'node_modules/zag-js', name: 'zag-js' },
+            { id: 'node_modules/pandacss', name: 'panda' },
+          ],
+        },
+        {
+          id: 'src',
+          name: 'src',
+          children: [
+            { id: 'src/app.tsx', name: 'app.tsx' },
+            { id: 'src/index.ts', name: 'index.ts' },
+          ],
+        },
+        { id: 'package.json', name: 'package.json' },
+      ],
+    },
+  })
+
+  const id = $props.id()
+  const treeView = useTreeView({ collection, id })
+</script>
+
+<TreeView.RootProvider value={treeView}>
+  <TreeView.Label>Root Provider Tree</TreeView.Label>
+  <TreeView.Tree>
+    {#each collection.rootNode.children ?? [] as node, index (node.id)}
+      {@render renderNode(node, [index])}
+    {/each}
+  </TreeView.Tree>
+</TreeView.RootProvider>
+
+{#snippet renderNode(node: Node, indexPath: number[])}
+  <TreeView.NodeProvider {node} {indexPath}>
+    {#if node.children}
+      <TreeView.Branch>
+        <TreeView.BranchControl>
+          <TreeView.BranchText>
+            <FolderIcon />
+            {node.name}
+          </TreeView.BranchText>
+          <TreeView.BranchIndicator>
+            <ChevronRightIcon />
+          </TreeView.BranchIndicator>
+        </TreeView.BranchControl>
+        <TreeView.BranchContent>
+          <TreeView.BranchIndentGuide />
+          {#each node.children as child, index (child.id)}
+            {@render renderNode(child, [...indexPath, index])}
+          {/each}
+        </TreeView.BranchContent>
+      </TreeView.Branch>
+    {:else}
+      <TreeView.Item>
+        <TreeView.ItemIndicator>
+          <SquareCheckBigIcon />
+        </TreeView.ItemIndicator>
+        <TreeView.ItemText>
+          <FileIcon />
+          {node.name}
+        </TreeView.ItemText>
+      </TreeView.Item>
+    {/if}
+  </TreeView.NodeProvider>
+{/snippet}
+
+```
+
+> If you're using the `RootProvider` component, you don't need to use the `Root` component.
+
+### Lazy Loading
+
+Lazy loading is a feature that allows the tree view to load children of a node on demand (or async). This helps to
+improve the initial load time and memory usage.
+
+To use this, you need to provide the following:
+
+- `loadChildren` — A function that is used to load the children of a node.
+- `onLoadChildrenComplete` — A callback that is called when the children of a node are loaded. Used to update the tree
+  collection.
+- `childrenCount` — A number that indicates the number of children of a branch node.
+
+**Example: async-loading**
+
+#### React
+
+```tsx
+import { TreeView, createTreeCollection } from '@ark-ui/react/tree-view'
+import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon, LoaderCircleIcon } from 'lucide-react'
+import { useState } from 'react'
+import { useTreeViewNodeContext } from '../use-tree-view-node-context'
+
+// mock api result
+const response: Record<string, Node[]> = {
+  node_modules: [
+    { id: 'zag-js', name: 'zag-js' },
+    { id: 'pandacss', name: 'panda' },
+    { id: '@types', name: '@types', childrenCount: 2 },
+  ],
+  'node_modules/@types': [
+    { id: 'react', name: 'react' },
+    { id: 'react-dom', name: 'react-dom' },
+  ],
+  src: [
+    { id: 'app.tsx', name: 'app.tsx' },
+    { id: 'index.ts', name: 'index.ts' },
+  ],
+}
+
+// function to load children of a node
+function loadChildren(details: TreeView.LoadChildrenDetails<Node>): Promise<Node[]> {
+  const value = details.valuePath.join('/')
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(response[value] ?? [])
+    }, 1200)
+  })
+}
+
+export const AsyncLoading = () => {
+  const [collection, setCollection] = useState(initialCollection)
+  return (
+    <TreeView.Root
+      collection={collection}
+      loadChildren={loadChildren}
+      onLoadChildrenComplete={(e) => setCollection(e.collection)}
+    >
+      <TreeView.Label>Tree</TreeView.Label>
+      <TreeView.Tree>
+        {collection.rootNode.children?.map((node, index) => (
+          <TreeNode key={node.id} node={node} indexPath={[index]} />
+        ))}
+      </TreeView.Tree>
+    </TreeView.Root>
+  )
+}
+
+function TreeNodeIndicator() {
+  const nodeState = useTreeViewNodeContext()
+  return nodeState.loading ? <LoaderCircleIcon style={{ animation: 'spin 1s infinite' }} /> : <FolderIcon />
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  return (
+    <TreeView.NodeProvider key={node.id} node={node} indexPath={indexPath}>
+      {node.children || node.childrenCount ? (
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>
+              <TreeNodeIndicator /> {node.name}
+            </TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            {node.children?.map((child, index) => (
+              <TreeNode key={child.id} node={child} indexPath={[...indexPath, index]} />
+            ))}
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      ) : (
+        <TreeView.Item>
+          <TreeView.ItemIndicator>
+            <SquareCheckBigIcon />
+          </TreeView.ItemIndicator>
+          <TreeView.ItemText>
+            <FileIcon />
+            {node.name}
+          </TreeView.ItemText>
+        </TreeView.Item>
+      )}
+    </TreeView.NodeProvider>
+  )
+}
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+  childrenCount?: number
+}
+
+const initialCollection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      { id: 'node_modules', name: 'node_modules', childrenCount: 3 },
+      { id: 'src', name: 'src', childrenCount: 2 },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+```
+
+#### Solid
+
+```tsx
+import { TreeView, createTreeCollection } from '@ark-ui/solid/tree-view'
+import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon, LoaderCircleIcon } from 'lucide-solid'
+import { For, createSignal } from 'solid-js'
+import { useTreeViewNodeContext } from '../use-tree-view-node-context'
+
+// mock api result
+const response: Record<string, Node[]> = {
+  node_modules: [
+    { id: 'zag-js', name: 'zag-js' },
+    { id: 'pandacss', name: 'panda' },
+    { id: '@types', name: '@types', childrenCount: 2 },
+  ],
+  'node_modules/@types': [
+    { id: 'react', name: 'react' },
+    { id: 'react-dom', name: 'react-dom' },
+  ],
+  src: [
+    { id: 'app.tsx', name: 'app.tsx' },
+    { id: 'index.ts', name: 'index.ts' },
+  ],
+}
+
+// function to load children of a node
+function loadChildren(details: TreeView.LoadChildrenDetails<Node>): Promise<Node[]> {
+  const value = details.valuePath.join('/')
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(response[value] ?? [])
+    }, 1200)
+  })
+}
+
+export const AsyncLoading = () => {
+  const [collection, setCollection] = createSignal(initialCollection)
+  return (
+    <TreeView.Root
+      collection={collection()}
+      loadChildren={loadChildren}
+      onLoadChildrenComplete={(e) => setCollection(e.collection)}
+    >
+      <TreeView.Label>Tree</TreeView.Label>
+      <TreeView.Tree>
+        <For each={collection().rootNode.children}>
+          {(node, index) => <TreeNode node={node} indexPath={[index()]} />}
+        </For>
+      </TreeView.Tree>
+    </TreeView.Root>
+  )
+}
+
+function TreeNodeIndicator() {
+  const nodeState = useTreeViewNodeContext()
+  return nodeState().loading ? <LoaderCircleIcon style={{ animation: 'spin 1s infinite' }} /> : <FolderIcon />
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  return (
+    <TreeView.NodeProvider node={node} indexPath={indexPath}>
+      {node.children || node.childrenCount ? (
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>
+              <TreeNodeIndicator /> {node.name}
+            </TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            <For each={node.children}>
+              {(child, index) => <TreeNode node={child} indexPath={[...indexPath, index()]} />}
+            </For>
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      ) : (
+        <TreeView.Item>
+          <TreeView.ItemIndicator>
+            <SquareCheckBigIcon />
+          </TreeView.ItemIndicator>
+          <TreeView.ItemText>
+            <FileIcon />
+            {node.name}
+          </TreeView.ItemText>
+        </TreeView.Item>
+      )}
+    </TreeView.NodeProvider>
+  )
+}
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+  childrenCount?: number
+}
+
+const initialCollection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      { id: 'node_modules', name: 'node_modules', childrenCount: 3 },
+      { id: 'src', name: 'src', childrenCount: 2 },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import {
+  type TreeCollection,
+  TreeView,
+  type TreeView as TreeViewTypes,
+  createTreeCollection,
+} from '@ark-ui/vue/tree-view'
+import { type Ref, ref } from 'vue'
+import AsyncTreeNode from './async-tree-node.vue'
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+  childrenCount?: number
+}
+
+// mock api result
+const response: Record<string, Node[]> = {
+  node_modules: [
+    { id: 'zag-js', name: 'zag-js' },
+    { id: 'pandacss', name: 'panda' },
+    { id: '@types', name: '@types', childrenCount: 2 },
+  ],
+  'node_modules/@types': [
+    { id: 'react', name: 'react' },
+    { id: 'react-dom', name: 'react-dom' },
+  ],
+  src: [
+    { id: 'app.tsx', name: 'app.tsx' },
+    { id: 'index.ts', name: 'index.ts' },
+  ],
+}
+
+// function to load children of a node
+function loadChildren(details: TreeViewTypes.LoadChildrenDetails<Node>): Promise<Node[]> {
+  const value = details.valuePath.join('/')
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(response[value] ?? [])
+    }, 1200)
+  })
+}
+
+const initialCollection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      { id: 'node_modules', name: 'node_modules', childrenCount: 3 },
+      { id: 'src', name: 'src', childrenCount: 2 },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+const collection = ref(initialCollection) as Ref<TreeCollection<Node>>
+</script>
+
+<template>
+  <TreeView.Root
+    :collection="collection"
+    :loadChildren="loadChildren"
+    @loadChildrenComplete="(e) => (collection = e.collection)"
+  >
+    <TreeView.Label>Tree</TreeView.Label>
+    <TreeView.Tree>
+      <AsyncTreeNode
+        v-for="(node, index) in collection.rootNode.children"
+        :key="node.id"
+        :node="node"
+        :indexPath="[index]"
+      />
+    </TreeView.Tree>
+  </TreeView.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  // biome-ignore lint/style/useImportType: intentional
+  import { TreeView, createTreeCollection } from '@ark-ui/svelte/tree-view'
+  import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon, LoaderCircleIcon } from 'lucide-svelte'
+
+  interface Node {
+    id: string
+    name: string
+    children?: Node[]
+    childrenCount?: number
+  }
+
+  // mock api result
+  const response: Record<string, Node[]> = {
+    node_modules: [
+      { id: 'zag-js', name: 'zag-js' },
+      { id: 'pandacss', name: 'panda' },
+      { id: '@types', name: '@types', childrenCount: 2 },
+    ],
+    'node_modules/@types': [
+      { id: 'react', name: 'react' },
+      { id: 'react-dom', name: 'react-dom' },
+    ],
+    src: [
+      { id: 'app.tsx', name: 'app.tsx' },
+      { id: 'index.ts', name: 'index.ts' },
+    ],
+  }
+
+  // function to load children of a node
+  function loadChildren(details: TreeView.LoadChildrenDetails<Node>): Promise<Node[]> {
+    const value = details.valuePath.join('/')
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(response[value] ?? [])
+      }, 1200)
+    })
+  }
+
+  const initialCollection = createTreeCollection<Node>({
+    nodeToValue: (node) => node.id,
+    nodeToString: (node) => node.name,
+    rootNode: {
+      id: 'ROOT',
+      name: '',
+      children: [
+        { id: 'node_modules', name: 'node_modules', childrenCount: 3 },
+        { id: 'src', name: 'src', childrenCount: 2 },
+        { id: 'panda.config', name: 'panda.config.ts' },
+        { id: 'package.json', name: 'package.json' },
+        { id: 'renovate.json', name: 'renovate.json' },
+        { id: 'readme.md', name: 'README.md' },
+      ],
+    },
+  })
+
+  let collection = $state(initialCollection)
+</script>
+
+<TreeView.Root {collection} {loadChildren} onLoadChildrenComplete={(e) => (collection = e.collection)}>
+  <TreeView.Label>Tree</TreeView.Label>
+  <TreeView.Tree>
+    {#each collection.rootNode.children ?? [] as node, index (node.id)}
+      {@render TreeNode(node, [index])}
+    {/each}
+  </TreeView.Tree>
+</TreeView.Root>
+
+{#snippet TreeNodeIndicator()}
+  <TreeView.NodeContext>
+    {#snippet render(nodeState)}
+      {#if nodeState().loading}
+        <LoaderCircleIcon style="animation: spin 1s infinite" />
+      {:else}
+        <FolderIcon />
+      {/if}
+    {/snippet}
+  </TreeView.NodeContext>
+{/snippet}
+
+{#snippet TreeNode(node: Node, indexPath: number[])}
+  <TreeView.NodeProvider {node} {indexPath}>
+    {#if node.children || node.childrenCount}
+      <TreeView.Branch>
+        <TreeView.BranchControl>
+          <TreeView.BranchText>
+            {@render TreeNodeIndicator()}
+            {node.name}
+          </TreeView.BranchText>
+          <TreeView.BranchIndicator>
+            <ChevronRightIcon />
+          </TreeView.BranchIndicator>
+        </TreeView.BranchControl>
+        <TreeView.BranchContent>
+          <TreeView.BranchIndentGuide />
+          {#each node.children ?? [] as child, index (child.id)}
+            {@render TreeNode(child, [...indexPath, index])}
+          {/each}
+        </TreeView.BranchContent>
+      </TreeView.Branch>
+    {:else}
+      <TreeView.Item>
+        <TreeView.ItemIndicator>
+          <SquareCheckBigIcon />
+        </TreeView.ItemIndicator>
+        <TreeView.ItemText>
+          <FileIcon />
+          {node.name}
+        </TreeView.ItemText>
+      </TreeView.Item>
+    {/if}
+  </TreeView.NodeProvider>
+{/snippet}
+
+```
+
+### Lazy Mount
+
+Lazy mounting is a feature that allows the content of a tree view to be rendered only when it is expanded. This is
+useful for performance optimization, especially when tree content is large or complex. To enable lazy mounting, use the
+`lazyMount` prop on the `TreeView.Root` component.
+
+In addition, the `unmountOnExit` prop can be used in conjunction with `lazyMount` to unmount the tree view content when
+branches are collapsed, freeing up resources. The next time a branch is expanded, its content will be re-rendered.
+
+**Example: lazy-mount**
+
+#### React
+
+```tsx
+import { TreeView, createTreeCollection } from '@ark-ui/react/tree-view'
+import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-react'
+
+export const LazyMount = () => {
+  return (
+    <TreeView.Root collection={collection} lazyMount unmountOnExit>
+      <TreeView.Label>Tree</TreeView.Label>
+      <TreeView.Tree>
+        {collection.rootNode.children?.map((node, index) => (
+          <TreeNode key={node.id} node={node} indexPath={[index]} />
+        ))}
+      </TreeView.Tree>
+    </TreeView.Root>
+  )
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  return (
+    <TreeView.NodeProvider key={node.id} node={node} indexPath={indexPath}>
+      {node.children ? (
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>
+              <FolderIcon /> {node.name}
+            </TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            {node.children.map((child, index) => (
+              <TreeNode key={child.id} node={child} indexPath={[...indexPath, index]} />
+            ))}
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      ) : (
+        <TreeView.Item>
+          <TreeView.ItemIndicator>
+            <SquareCheckBigIcon />
+          </TreeView.ItemIndicator>
+          <TreeView.ItemText>
+            <FileIcon />
+            {node.name}
+          </TreeView.ItemText>
+        </TreeView.Item>
+      )}
+    </TreeView.NodeProvider>
+  )
+}
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[] | undefined
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+```
+
+#### Solid
+
+```tsx
+import { TreeView, createTreeCollection } from '@ark-ui/solid/tree-view'
+import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-solid'
+import { For, Show } from 'solid-js'
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+export const LazyMount = () => {
+  return (
+    <TreeView.Root collection={collection} lazyMount unmountOnExit>
+      <TreeView.Label>Tree</TreeView.Label>
+      <TreeView.Tree>
+        <For each={collection.rootNode.children}>{(node, index) => <TreeNode node={node} indexPath={[index()]} />}</For>
+      </TreeView.Tree>
+    </TreeView.Root>
+  )
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  return (
+    <TreeView.NodeProvider node={node} indexPath={indexPath}>
+      <Show
+        when={node.children}
+        fallback={
+          <TreeView.Item>
+            <TreeView.ItemIndicator>
+              <SquareCheckBigIcon />
+            </TreeView.ItemIndicator>
+            <TreeView.ItemText>
+              <FileIcon />
+              {node.name}
+            </TreeView.ItemText>
+          </TreeView.Item>
+        }
+      >
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>
+              <FolderIcon /> {node.name}
+            </TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            <For each={node.children}>
+              {(child, index) => <TreeNode node={child} indexPath={[...indexPath, index()]} />}
+            </For>
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      </Show>
+    </TreeView.NodeProvider>
+  )
+}
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { TreeView, createTreeCollection } from '@ark-ui/vue/tree-view'
+import TreeNode from './tree-node.vue'
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+</script>
+
+<template>
+  <TreeView.Root :collection="collection" lazy-mount unmount-on-exit>
+    <TreeView.Label>Tree</TreeView.Label>
+    <TreeView.Tree>
+      <TreeNode
+        v-for="(node, index) in collection.rootNode.children"
+        :key="node.id"
+        :node="node"
+        :indexPath="[index]"
+      />
+    </TreeView.Tree>
+  </TreeView.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { TreeView, createTreeCollection } from '@ark-ui/svelte/tree-view'
+  import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-svelte'
+
+  interface Node {
+    id: string
+    name: string
+    children?: Node[]
+  }
+
+  const collection = createTreeCollection<Node>({
+    nodeToValue: (node) => node.id,
+    nodeToString: (node) => node.name,
+    rootNode: {
+      id: 'ROOT',
+      name: '',
+      children: [
+        {
+          id: 'node_modules',
+          name: 'node_modules',
+          children: [
+            { id: 'node_modules/zag-js', name: 'zag-js' },
+            { id: 'node_modules/pandacss', name: 'panda' },
+            {
+              id: 'node_modules/@types',
+              name: '@types',
+              children: [
+                { id: 'node_modules/@types/react', name: 'react' },
+                { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'src',
+          name: 'src',
+          children: [
+            { id: 'src/app.tsx', name: 'app.tsx' },
+            { id: 'src/index.ts', name: 'index.ts' },
+          ],
+        },
+        { id: 'panda.config', name: 'panda.config.ts' },
+        { id: 'package.json', name: 'package.json' },
+        { id: 'renovate.json', name: 'renovate.json' },
+        { id: 'readme.md', name: 'README.md' },
+      ],
+    },
+  })
+</script>
+
+<TreeView.Root {collection} lazyMount unmountOnExit>
+  <TreeView.Label>Tree</TreeView.Label>
+  <TreeView.Tree>
+    {#each collection.rootNode.children ?? [] as node, index (node.id)}
+      {@render renderNode(node, [index])}
+    {/each}
+  </TreeView.Tree>
+</TreeView.Root>
+
+{#snippet renderNode(node: Node, indexPath: number[])}
+  <TreeView.NodeProvider {node} {indexPath}>
+    {#if node.children}
+      <TreeView.Branch>
+        <TreeView.BranchControl>
+          <TreeView.BranchText>
+            <FolderIcon />
+            {node.name}
+          </TreeView.BranchText>
+          <TreeView.BranchIndicator>
+            <ChevronRightIcon />
+          </TreeView.BranchIndicator>
+        </TreeView.BranchControl>
+        <TreeView.BranchContent>
+          <TreeView.BranchIndentGuide />
+          {#each node.children as child, index (child.id)}
+            {@render renderNode(child, [...indexPath, index])}
+          {/each}
+        </TreeView.BranchContent>
+      </TreeView.Branch>
+    {:else}
+      <TreeView.Item>
+        <TreeView.ItemIndicator>
+          <SquareCheckBigIcon />
+        </TreeView.ItemIndicator>
+        <TreeView.ItemText>
+          <FileIcon />
+          {node.name}
+        </TreeView.ItemText>
+      </TreeView.Item>
+    {/if}
+  </TreeView.NodeProvider>
+{/snippet}
+
+```
+
+### Filtering
+
+Filtering is useful when you have a large tree and you want to filter the nodes to only show the ones that match the
+search query. Here's an example that composes the `filter` method from the `TreeCollection` and `useFilter` hook to
+filter the nodes.
+
+**Example: filtering**
+
+#### React
+
+```tsx
+import { useFilter } from '@ark-ui/react/locale'
+import { TreeView, createTreeCollection, useTreeViewContext } from '@ark-ui/react/tree-view'
+import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-react'
+import { useState } from 'react'
+
+export const Filtering = () => {
+  const { contains } = useFilter({ sensitivity: 'base' })
+  const [collection, setCollection] = useState(initialCollection)
+
+  const filter = (value: string) => {
+    const filtered =
+      value.length > 0 ? initialCollection.filter((node) => contains(node.name, value)) : initialCollection
+    setCollection(filtered)
+  }
+
+  return (
+    <div>
+      <input placeholder="Search" onChange={(e) => filter(e.target.value)} />
+      <TreeView.Root collection={collection}>
+        <TreeView.Tree>
+          {collection.rootNode.children?.map((node, index) => (
+            <TreeNode key={node.id} node={node} indexPath={[index]} />
+          ))}
+        </TreeView.Tree>
+      </TreeView.Root>
+    </div>
+  )
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  const tree = useTreeViewContext()
+  const nodeState = tree.getNodeState(props)
+  return (
+    <TreeView.NodeProvider key={node.id} node={node} indexPath={indexPath}>
+      {nodeState.isBranch ? (
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>
+              <FolderIcon /> {node.name}
+            </TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            {node.children?.map((child, index) => (
+              <TreeNode key={child.id} node={child} indexPath={[...indexPath, index]} />
+            ))}
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      ) : (
+        <TreeView.Item>
+          <TreeView.ItemIndicator>
+            <SquareCheckBigIcon />
+          </TreeView.ItemIndicator>
+          <TreeView.ItemText>
+            <FileIcon />
+            {node.name}
+          </TreeView.ItemText>
+        </TreeView.Item>
+      )}
+    </TreeView.NodeProvider>
+  )
+}
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+}
+
+const initialCollection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+```
+
+#### Solid
+
+```tsx
+import { useFilter } from '@ark-ui/solid/locale'
+import { TreeView, createTreeCollection } from '@ark-ui/solid/tree-view'
+import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-solid'
+import { For, Show, createSignal } from 'solid-js'
+
+export const Filtering = () => {
+  const filterFn = useFilter({ sensitivity: 'base' })
+  const [collection, setCollection] = createSignal(initialCollection)
+
+  const filter = (value: string) => {
+    const filtered =
+      value.length > 0 ? initialCollection.filter((node) => filterFn().contains(node.name, value)) : initialCollection
+    setCollection(filtered)
+  }
+
+  return (
+    <div>
+      <input placeholder="Search" onInput={(e) => filter(e.currentTarget.value)} />
+      <TreeView.Root collection={collection()}>
+        <TreeView.Tree>
+          <For each={collection().rootNode.children}>
+            {(node, index) => <TreeNode node={node} indexPath={[index()]} />}
+          </For>
+        </TreeView.Tree>
+      </TreeView.Root>
+    </div>
+  )
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  return (
+    <TreeView.NodeProvider node={node} indexPath={indexPath}>
+      <Show
+        when={node.children}
+        fallback={
+          <TreeView.Item>
+            <TreeView.ItemIndicator>
+              <SquareCheckBigIcon />
+            </TreeView.ItemIndicator>
+            <TreeView.ItemText>
+              <FileIcon />
+              {node.name}
+            </TreeView.ItemText>
+          </TreeView.Item>
+        }
+      >
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>
+              <FolderIcon /> {node.name}
+            </TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            <For each={node.children}>
+              {(child, index) => <TreeNode node={child} indexPath={[...indexPath, index()]} />}
+            </For>
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      </Show>
+    </TreeView.NodeProvider>
+  )
+}
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+}
+
+const initialCollection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { useFilter } from '@ark-ui/vue/locale'
+import { TreeView, createTreeCollection } from '@ark-ui/vue/tree-view'
+import { shallowRef } from 'vue'
+import TreeNode from './tree-node.vue'
+
+interface Node {
+  id: string
+  name: string
+  children?: Node[]
+}
+
+const initialCollection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'node_modules',
+        name: 'node_modules',
+        children: [
+          { id: 'node_modules/zag-js', name: 'zag-js' },
+          { id: 'node_modules/pandacss', name: 'panda' },
+          {
+            id: 'node_modules/@types',
+            name: '@types',
+            children: [
+              { id: 'node_modules/@types/react', name: 'react' },
+              { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'src',
+        name: 'src',
+        children: [
+          { id: 'src/app.tsx', name: 'app.tsx' },
+          { id: 'src/index.ts', name: 'index.ts' },
+        ],
+      },
+      { id: 'panda.config', name: 'panda.config.ts' },
+      { id: 'package.json', name: 'package.json' },
+      { id: 'renovate.json', name: 'renovate.json' },
+      { id: 'readme.md', name: 'README.md' },
+    ],
+  },
+})
+
+const filterFns = useFilter({ sensitivity: 'base' })
+const collection = shallowRef(initialCollection)
+
+const filter = (value: string) => {
+  const filtered =
+    value.length > 0
+      ? initialCollection.filter((node) => filterFns.value.contains(node.name, value))
+      : initialCollection
+
+  collection.value = filtered
+}
+</script>
+
+<template>
+  <div>
+    <input placeholder="Search" @input="(e) => filter((e.currentTarget as HTMLInputElement).value)" />
+    <TreeView.Root :collection="collection">
+      <TreeView.Tree>
+        <TreeNode
+          v-for="(node, index) in collection.rootNode.children"
+          :key="node.id"
+          :node="node"
+          :indexPath="[index]"
+        />
+      </TreeView.Tree>
+    </TreeView.Root>
+  </div>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { TreeView, createTreeCollection } from '@ark-ui/svelte/tree-view'
+  import { useFilter } from '@ark-ui/svelte/locale'
+  import { SquareCheckBigIcon, ChevronRightIcon, FileIcon, FolderIcon } from 'lucide-svelte'
+
+  interface Node {
+    id: string
+    name: string
+    children?: Node[]
+  }
+
+  const initialCollection = createTreeCollection<Node>({
+    nodeToValue: (node) => node.id,
+    nodeToString: (node) => node.name,
+    rootNode: {
+      id: 'ROOT',
+      name: '',
+      children: [
+        {
+          id: 'node_modules',
+          name: 'node_modules',
+          children: [
+            { id: 'node_modules/zag-js', name: 'zag-js' },
+            { id: 'node_modules/pandacss', name: 'panda' },
+            {
+              id: 'node_modules/@types',
+              name: '@types',
+              children: [
+                { id: 'node_modules/@types/react', name: 'react' },
+                { id: 'node_modules/@types/react-dom', name: 'react-dom' },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'src',
+          name: 'src',
+          children: [
+            { id: 'src/app.tsx', name: 'app.tsx' },
+            { id: 'src/index.ts', name: 'index.ts' },
+          ],
+        },
+        { id: 'panda.config', name: 'panda.config.ts' },
+        { id: 'package.json', name: 'package.json' },
+        { id: 'renovate.json', name: 'renovate.json' },
+        { id: 'readme.md', name: 'README.md' },
+      ],
+    },
+  })
+
+  const filterFns = useFilter({ sensitivity: 'base' })
+  let collection = $state(initialCollection)
+
+  const filter = (value: string) => {
+    const filtered =
+      value.length > 0 ? initialCollection.filter((node) => filterFns().contains(node.name, value)) : initialCollection
+    collection = filtered
+  }
+</script>
+
+<div>
+  <input placeholder="Search" oninput={(e) => filter(e.currentTarget.value)} />
+  <TreeView.Root {collection}>
+    <TreeView.Tree>
+      {#each collection.rootNode.children ?? [] as node, index (node.id)}
+        {@render renderNode(node, [index])}
+      {/each}
+    </TreeView.Tree>
+  </TreeView.Root>
+</div>
+
+{#snippet renderNode(node: Node, indexPath: number[])}
+  <TreeView.NodeProvider {node} {indexPath}>
+    {#if node.children}
+      <TreeView.Branch>
+        <TreeView.BranchControl>
+          <TreeView.BranchText>
+            <FolderIcon />
+            {node.name}
+          </TreeView.BranchText>
+          <TreeView.BranchIndicator>
+            <ChevronRightIcon />
+          </TreeView.BranchIndicator>
+        </TreeView.BranchControl>
+        <TreeView.BranchContent>
+          <TreeView.BranchIndentGuide />
+          {#each node.children as child, index (child.id)}
+            {@render renderNode(child, [...indexPath, index])}
+          {/each}
+        </TreeView.BranchContent>
+      </TreeView.Branch>
+    {:else}
+      <TreeView.Item>
+        <TreeView.ItemIndicator>
+          <SquareCheckBigIcon />
+        </TreeView.ItemIndicator>
+        <TreeView.ItemText>
+          <FileIcon />
+          {node.name}
+        </TreeView.ItemText>
+      </TreeView.Item>
+    {/if}
+  </TreeView.NodeProvider>
+{/snippet}
+
+```
+
+### Links
+
+Tree items can be rendered as links to another page or website. This could be useful for documentation sites.
+
+Here's an example that modifies the tree collection to represent an hierarchical link structure. It uses the `asChild`
+prop to render the tree items as links, passing the `href` prop to a `<a>` element.
+
+**Example: links**
+
+#### React
+
+```tsx
+import { TreeView, createTreeCollection } from '@ark-ui/react/tree-view'
+import { ChevronRightIcon, ExternalLinkIcon, FileIcon } from 'lucide-react'
+
+export const Links = () => {
+  return (
+    <TreeView.Root collection={collection}>
+      <TreeView.Label>Docs</TreeView.Label>
+      <TreeView.Tree>
+        {collection.rootNode.children?.map((node, index) => (
+          <TreeNode key={node.id} node={node} indexPath={[index]} />
+        ))}
+      </TreeView.Tree>
+    </TreeView.Root>
+  )
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  return (
+    <TreeView.NodeProvider key={node.id} node={node} indexPath={indexPath}>
+      {node.children ? (
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>{node.name}</TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            {node.children.map((child, index) => (
+              <TreeNode key={child.id} node={child} indexPath={[...indexPath, index]} />
+            ))}
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      ) : (
+        <TreeView.Item asChild>
+          <a href={node.href}>
+            <TreeView.ItemText>
+              <FileIcon />
+              {node.name}
+            </TreeView.ItemText>
+            {node.href?.startsWith('http') && <ExternalLinkIcon size={12} />}
+          </a>
+        </TreeView.Item>
+      )}
+    </TreeView.NodeProvider>
+  )
+}
+
+interface Node {
+  id: string
+  name: string
+  href?: string
+  children?: Node[]
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'docs',
+        name: 'Documentation',
+        children: [
+          { id: 'docs/getting-started', name: 'Getting Started', href: '/docs/getting-started' },
+          { id: 'docs/installation', name: 'Installation', href: '/docs/installation' },
+          {
+            id: 'docs/components',
+            name: 'Components',
+            children: [
+              { id: 'docs/components/accordion', name: 'Accordion', href: '/docs/components/accordion' },
+              { id: 'docs/components/dialog', name: 'Dialog', href: '/docs/components/dialog' },
+              { id: 'docs/components/menu', name: 'Menu', href: '/docs/components/menu' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'examples',
+        name: 'Examples',
+        children: [
+          { id: 'examples/react', name: 'React Examples', href: '/examples/react' },
+          { id: 'examples/vue', name: 'Vue Examples', href: '/examples/vue' },
+          { id: 'examples/solid', name: 'Solid Examples', href: '/examples/solid' },
+        ],
+      },
+      {
+        id: 'external',
+        name: 'External Links',
+        children: [
+          { id: 'external/github', name: 'GitHub Repository', href: 'https://github.com/chakra-ui/zag' },
+          { id: 'external/npm', name: 'NPM Package', href: 'https://www.npmjs.com/package/@zag-js/core' },
+          { id: 'external/docs', name: 'Official Docs', href: 'https://zagjs.com' },
+        ],
+      },
+      { id: 'readme.md', name: 'README.md', href: '/readme' },
+      { id: 'license', name: 'LICENSE', href: '/license' },
+    ],
+  },
+})
+
+```
+
+#### Solid
+
+```tsx
+import { TreeView, createTreeCollection } from '@ark-ui/solid/tree-view'
+import { ChevronRightIcon, ExternalLinkIcon, FileIcon } from 'lucide-solid'
+import { For, Show } from 'solid-js'
+
+export const Links = () => {
+  return (
+    <TreeView.Root collection={collection}>
+      <TreeView.Label>Docs</TreeView.Label>
+      <TreeView.Tree>
+        <For each={collection.rootNode.children}>{(node, index) => <TreeNode node={node} indexPath={[index()]} />}</For>
+      </TreeView.Tree>
+    </TreeView.Root>
+  )
+}
+
+const TreeNode = (props: TreeView.NodeProviderProps<Node>) => {
+  const { node, indexPath } = props
+  return (
+    <TreeView.NodeProvider node={node} indexPath={indexPath}>
+      <Show
+        when={node.children}
+        fallback={
+          <TreeView.Item asChild={(props) => <a href={node.href} {...props()} />}>
+            <TreeView.ItemText>
+              <FileIcon />
+              {node.name}
+            </TreeView.ItemText>
+            <Show when={node.href?.startsWith('http')}>
+              <ExternalLinkIcon size={12} />
+            </Show>
+          </TreeView.Item>
+        }
+      >
+        <TreeView.Branch>
+          <TreeView.BranchControl>
+            <TreeView.BranchText>{node.name}</TreeView.BranchText>
+            <TreeView.BranchIndicator>
+              <ChevronRightIcon />
+            </TreeView.BranchIndicator>
+          </TreeView.BranchControl>
+          <TreeView.BranchContent>
+            <TreeView.BranchIndentGuide />
+            <For each={node.children}>
+              {(child, index) => <TreeNode node={child} indexPath={[...indexPath, index()]} />}
+            </For>
+          </TreeView.BranchContent>
+        </TreeView.Branch>
+      </Show>
+    </TreeView.NodeProvider>
+  )
+}
+
+interface Node {
+  id: string
+  name: string
+  href?: string
+  children?: Node[]
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'docs',
+        name: 'Documentation',
+        children: [
+          { id: 'docs/getting-started', name: 'Getting Started', href: '/docs/getting-started' },
+          { id: 'docs/installation', name: 'Installation', href: '/docs/installation' },
+          {
+            id: 'docs/components',
+            name: 'Components',
+            children: [
+              { id: 'docs/components/accordion', name: 'Accordion', href: '/docs/components/accordion' },
+              { id: 'docs/components/dialog', name: 'Dialog', href: '/docs/components/dialog' },
+              { id: 'docs/components/menu', name: 'Menu', href: '/docs/components/menu' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'examples',
+        name: 'Examples',
+        children: [
+          { id: 'examples/react', name: 'React Examples', href: '/examples/react' },
+          { id: 'examples/vue', name: 'Vue Examples', href: '/examples/vue' },
+          { id: 'examples/solid', name: 'Solid Examples', href: '/examples/solid' },
+        ],
+      },
+      {
+        id: 'external',
+        name: 'External Links',
+        children: [
+          { id: 'external/github', name: 'GitHub Repository', href: 'https://github.com/chakra-ui/zag' },
+          { id: 'external/npm', name: 'NPM Package', href: 'https://www.npmjs.com/package/@zag-js/core' },
+          { id: 'external/docs', name: 'Official Docs', href: 'https://zagjs.com' },
+        ],
+      },
+      { id: 'readme.md', name: 'README.md', href: '/readme' },
+      { id: 'license', name: 'LICENSE', href: '/license' },
+    ],
+  },
+})
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { TreeView, createTreeCollection } from '@ark-ui/vue/tree-view'
+import TreeNodeWithLinks from './tree-node-with-links.vue'
+
+interface Node {
+  id: string
+  name: string
+  href?: string
+  children?: Node[]
+}
+
+const collection = createTreeCollection<Node>({
+  nodeToValue: (node) => node.id,
+  nodeToString: (node) => node.name,
+  rootNode: {
+    id: 'ROOT',
+    name: '',
+    children: [
+      {
+        id: 'docs',
+        name: 'Documentation',
+        children: [
+          { id: 'docs/getting-started', name: 'Getting Started', href: '/docs/getting-started' },
+          { id: 'docs/installation', name: 'Installation', href: '/docs/installation' },
+          {
+            id: 'docs/components',
+            name: 'Components',
+            children: [
+              { id: 'docs/components/accordion', name: 'Accordion', href: '/docs/components/accordion' },
+              { id: 'docs/components/dialog', name: 'Dialog', href: '/docs/components/dialog' },
+              { id: 'docs/components/menu', name: 'Menu', href: '/docs/components/menu' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'examples',
+        name: 'Examples',
+        children: [
+          { id: 'examples/react', name: 'React Examples', href: '/examples/react' },
+          { id: 'examples/vue', name: 'Vue Examples', href: '/examples/vue' },
+          { id: 'examples/solid', name: 'Solid Examples', href: '/examples/solid' },
+        ],
+      },
+      {
+        id: 'external',
+        name: 'External Links',
+        children: [
+          { id: 'external/github', name: 'GitHub Repository', href: 'https://github.com/chakra-ui/zag' },
+          { id: 'external/npm', name: 'NPM Package', href: 'https://www.npmjs.com/package/@zag-js/core' },
+          { id: 'external/docs', name: 'Official Docs', href: 'https://zagjs.com' },
+        ],
+      },
+      { id: 'readme.md', name: 'README.md', href: '/readme' },
+      { id: 'license', name: 'LICENSE', href: '/license' },
+    ],
+  },
+})
+</script>
+
+<template>
+  <TreeView.Root :collection="collection">
+    <TreeView.Label>Docs</TreeView.Label>
+    <TreeView.Tree>
+      <TreeNodeWithLinks
+        v-for="(node, index) in collection.rootNode.children"
+        :key="node.id"
+        :node="node"
+        :indexPath="[index]"
+      />
+    </TreeView.Tree>
+  </TreeView.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { TreeView, createTreeCollection } from '@ark-ui/svelte/tree-view'
+  import LinksTreeNode from './links-tree-node.svelte'
+
+  interface Node {
+    id: string
+    name: string
+    href?: string
+    children?: Node[]
+  }
+
+  const collection = createTreeCollection<Node>({
+    nodeToValue: (node) => node.id,
+    nodeToString: (node) => node.name,
+    rootNode: {
+      id: 'ROOT',
+      name: '',
+      children: [
+        {
+          id: 'docs',
+          name: 'Documentation',
+          children: [
+            { id: 'docs/getting-started', name: 'Getting Started', href: '/docs/getting-started' },
+            { id: 'docs/installation', name: 'Installation', href: '/docs/installation' },
+            {
+              id: 'docs/components',
+              name: 'Components',
+              children: [
+                { id: 'docs/components/accordion', name: 'Accordion', href: '/docs/components/accordion' },
+                { id: 'docs/components/dialog', name: 'Dialog', href: '/docs/components/dialog' },
+                { id: 'docs/components/menu', name: 'Menu', href: '/docs/components/menu' },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'examples',
+          name: 'Examples',
+          children: [
+            { id: 'examples/react', name: 'React Examples', href: '/examples/react' },
+            { id: 'examples/vue', name: 'Vue Examples', href: '/examples/vue' },
+            { id: 'examples/solid', name: 'Solid Examples', href: '/examples/solid' },
+          ],
+        },
+        {
+          id: 'external',
+          name: 'External Links',
+          children: [
+            { id: 'external/github', name: 'GitHub Repository', href: 'https://github.com/chakra-ui/zag' },
+            { id: 'external/npm', name: 'NPM Package', href: 'https://www.npmjs.com/package/@zag-js/core' },
+            { id: 'external/docs', name: 'Official Docs', href: 'https://zagjs.com' },
+          ],
+        },
+        { id: 'readme.md', name: 'README.md', href: '/readme' },
+        { id: 'license', name: 'LICENSE', href: '/license' },
+      ],
+    },
+  })
+</script>
+
+<TreeView.Root {collection}>
+  <TreeView.Label>Docs</TreeView.Label>
+  <TreeView.Tree>
+    {#each collection.rootNode.children ?? [] as node, index (node.id)}
+      <LinksTreeNode {node} indexPath={[index]} />
+    {/each}
+  </TreeView.Tree>
+</TreeView.Root>
+
+```
+
+## Guides
+
+### Type-Safety
+
+The `TreeView.RootComponent` type enables you to create closed, strongly typed wrapper components that maintain full
+type safety for tree nodes.
+
+This is particularly useful when building reusable tree view components with custom props and consistent styling.
+
+```tsx
+import { TreeView as ArkTreeView, type TreeNode } from '@ark-ui/react/tree-view'
+import { createTreeCollection } from '@ark-ui/react/collection'
+
+interface TreeViewProps<T extends TreeNode> extends ArkTreeView.RootProps<T> {}
+
+const TreeView: ArkTreeView.RootComponent = (props) => {
+  return <ArkTreeView.Root {...props}>{/* ... */}</ArkTreeView.Root>
+}
+```
+
+Then, you can use the `TreeView` component as follows:
+
+```tsx
+const App = () => {
+  const collection = createTreeCollection({
+    initialItems: [
+      { id: '1', label: 'React', children: [] },
+      { id: '2', label: 'Vue', children: [] },
+      { id: '3', label: 'Svelte', children: [] },
+    ],
+  })
+  return (
+    <TreeView
+      collection={collection}
+      onSelectionChange={(e) => {
+        // this will be strongly typed Array<{ id: string, label: string, children: [] }>
+        console.log(e.value)
+      }}
+    >
+      {/* ... */}
+    </TreeView>
+  )
+}
+```
+
+## API Reference
+
+### Props
+
+**Component API Reference**
+
+#### React
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `collection` | `TreeCollection<T>` | Yes | The collection of tree nodes |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `canRename` | `(node: T, indexPath: IndexPath) => boolean` | No | Function to determine if a node can be renamed |
+| `checkedValue` | `string[]` | No | The controlled checked node value |
+| `defaultCheckedValue` | `string[]` | No | The initial checked node value when rendered.
+Use when you don't need to control the checked node value. |
+| `defaultExpandedValue` | `string[]` | No | The initial expanded node ids when rendered.
+Use when you don't need to control the expanded node value. |
+| `defaultFocusedValue` | `string` | No | The initial focused node value when rendered.
+Use when you don't need to control the focused node value. |
+| `defaultSelectedValue` | `string[]` | No | The initial selected node value when rendered.
+Use when you don't need to control the selected node value. |
+| `expandedValue` | `string[]` | No | The controlled expanded node ids |
+| `expandOnClick` | `boolean` | No | Whether clicking on a branch should open it or not |
+| `focusedValue` | `string` | No | The value of the focused node |
+| `ids` | `Partial<{ root: string; tree: string; label: string; node: (value: string) => string }>` | No | The ids of the tree elements. Useful for composition. |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `loadChildren` | `(details: LoadChildrenDetails<T>) => Promise<T[]>` | No | Function to load children for a node asynchronously.
+When provided, branches will wait for this promise to resolve before expanding. |
+| `onBeforeRename` | `(details: RenameCompleteDetails) => boolean` | No | Called before a rename is completed. Return false to prevent the rename. |
+| `onCheckedChange` | `(details: CheckedChangeDetails) => void` | No | Called when the checked value changes |
+| `onExpandedChange` | `(details: ExpandedChangeDetails<T>) => void` | No | Called when the tree is opened or closed |
+| `onFocusChange` | `(details: FocusChangeDetails<T>) => void` | No | Called when the focused node changes |
+| `onLoadChildrenComplete` | `(details: LoadChildrenCompleteDetails<T>) => void` | No | Called when a node finishes loading children |
+| `onLoadChildrenError` | `(details: LoadChildrenErrorDetails<T>) => void` | No | Called when loading children fails for one or more nodes |
+| `onRenameComplete` | `(details: RenameCompleteDetails) => void` | No | Called when a node label rename is completed |
+| `onRenameStart` | `(details: RenameStartDetails<T>) => void` | No | Called when a node starts being renamed |
+| `onSelectionChange` | `(details: SelectionChangeDetails<T>) => void` | No | Called when the selection changes |
+| `selectedValue` | `string[]` | No | The controlled selected node value |
+| `selectionMode` | `'multiple' | 'single'` | No | Whether the tree supports multiple selection
+- "single": only one node can be selected
+- "multiple": multiple nodes can be selected |
+| `typeahead` | `boolean` | No | Whether the tree supports typeahead search |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**BranchContent Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchContent Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-content |
+| `[data-state]` | "open" | "closed" |
+| `[data-depth]` | The depth of the item |
+| `[data-path]` | The path of the item |
+| `[data-value]` | The value of the item |
+
+
+**BranchControl Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchControl Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-control |
+| `[data-path]` | The path of the item |
+| `[data-state]` | "open" | "closed" |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+| `[data-renaming]` |  |
+| `[data-value]` | The value of the item |
+| `[data-depth]` | The depth of the item |
+| `[data-loading]` | Present when loading |
+
+
+**BranchIndentGuide Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchIndentGuide Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-indent-guide |
+| `[data-depth]` | The depth of the item |
+
+
+**BranchIndicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchIndicator Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-indicator |
+| `[data-state]` | "open" | "closed" |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+| `[data-loading]` | Present when loading |
+
+
+**Branch Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Branch Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch |
+| `[data-depth]` | The depth of the item |
+| `[data-branch]` |  |
+| `[data-value]` | The value of the item |
+| `[data-path]` | The path of the item |
+| `[data-selected]` | Present when selected |
+| `[data-state]` | "open" | "closed" |
+| `[data-disabled]` | Present when disabled |
+| `[data-loading]` | Present when loading |
+
+
+**BranchText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchText Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-text |
+| `[data-disabled]` | Present when disabled |
+| `[data-state]` | "open" | "closed" |
+| `[data-loading]` | Present when loading |
+
+
+**BranchTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-trigger |
+| `[data-disabled]` | Present when disabled |
+| `[data-state]` | "open" | "closed" |
+| `[data-value]` | The value of the item |
+| `[data-loading]` | Present when loading |
+
+
+**ItemIndicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ItemIndicator Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | item-indicator |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+
+
+**Item Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Item Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | item |
+| `[data-path]` | The path of the item |
+| `[data-value]` | The value of the item |
+| `[data-focus]` | Present when focused |
+| `[data-selected]` | Present when selected |
+| `[data-disabled]` | Present when disabled |
+| `[data-renaming]` |  |
+| `[data-depth]` | The depth of the item |
+
+
+**ItemText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ItemText Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | item-text |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+
+
+**Label Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**NodeCheckboxIndicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `fallback` | `string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...>` | No |  |
+| `indeterminate` | `string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...>` | No |  |
+
+
+**NodeCheckbox Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**NodeCheckbox Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | node-checkbox |
+| `[data-state]` | "checked" | "unchecked" | "indeterminate" |
+| `[data-disabled]` | Present when disabled |
+
+
+**NodeProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `indexPath` | `number[]` | Yes | The index path of the tree node |
+| `node` | `NonNullable<T>` | No | The tree node |
+
+
+**NodeRenameInput Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `UseTreeViewReturn<T>` | Yes |  |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**Tree Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+#### Solid
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `collection` | `TreeCollection<T>` | Yes | The collection of tree nodes |
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `canRename` | `(node: any, indexPath: IndexPath) => boolean` | No | Function to determine if a node can be renamed |
+| `checkedValue` | `string[]` | No | The controlled checked node value |
+| `defaultCheckedValue` | `string[]` | No | The initial checked node value when rendered.
+Use when you don't need to control the checked node value. |
+| `defaultExpandedValue` | `string[]` | No | The initial expanded node ids when rendered.
+Use when you don't need to control the expanded node value. |
+| `defaultFocusedValue` | `string` | No | The initial focused node value when rendered.
+Use when you don't need to control the focused node value. |
+| `defaultSelectedValue` | `string[]` | No | The initial selected node value when rendered.
+Use when you don't need to control the selected node value. |
+| `expandedValue` | `string[]` | No | The controlled expanded node ids |
+| `expandOnClick` | `boolean` | No | Whether clicking on a branch should open it or not |
+| `focusedValue` | `string` | No | The value of the focused node |
+| `id` | `string` | No | The unique identifier of the machine. |
+| `ids` | `Partial<{ root: string; tree: string; label: string; node: (value: string) => string }>` | No | The ids of the tree elements. Useful for composition. |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `loadChildren` | `(details: LoadChildrenDetails<any>) => Promise<any[]>` | No | Function to load children for a node asynchronously.
+When provided, branches will wait for this promise to resolve before expanding. |
+| `onBeforeRename` | `(details: RenameCompleteDetails) => boolean` | No | Called before a rename is completed. Return false to prevent the rename. |
+| `onCheckedChange` | `(details: CheckedChangeDetails) => void` | No | Called when the checked value changes |
+| `onExpandedChange` | `(details: ExpandedChangeDetails<any>) => void` | No | Called when the tree is opened or closed |
+| `onFocusChange` | `(details: FocusChangeDetails<any>) => void` | No | Called when the focused node changes |
+| `onLoadChildrenComplete` | `(details: LoadChildrenCompleteDetails<any>) => void` | No | Called when a node finishes loading children |
+| `onLoadChildrenError` | `(details: LoadChildrenErrorDetails<any>) => void` | No | Called when loading children fails for one or more nodes |
+| `onRenameComplete` | `(details: RenameCompleteDetails) => void` | No | Called when a node label rename is completed |
+| `onRenameStart` | `(details: RenameStartDetails<any>) => void` | No | Called when a node starts being renamed |
+| `onSelectionChange` | `(details: SelectionChangeDetails<any>) => void` | No | Called when the selection changes |
+| `selectedValue` | `string[]` | No | The controlled selected node value |
+| `selectionMode` | `'multiple' | 'single'` | No | Whether the tree supports multiple selection
+- "single": only one node can be selected
+- "multiple": multiple nodes can be selected |
+| `typeahead` | `boolean` | No | Whether the tree supports typeahead search |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**BranchContent Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchContent Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-content |
+| `[data-state]` | "open" | "closed" |
+| `[data-depth]` | The depth of the item |
+| `[data-path]` | The path of the item |
+| `[data-value]` | The value of the item |
+
+
+**BranchControl Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchControl Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-control |
+| `[data-path]` | The path of the item |
+| `[data-state]` | "open" | "closed" |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+| `[data-renaming]` |  |
+| `[data-value]` | The value of the item |
+| `[data-depth]` | The depth of the item |
+| `[data-loading]` | Present when loading |
+
+
+**BranchIndentGuide Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchIndentGuide Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-indent-guide |
+| `[data-depth]` | The depth of the item |
+
+
+**BranchIndicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchIndicator Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-indicator |
+| `[data-state]` | "open" | "closed" |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+| `[data-loading]` | Present when loading |
+
+
+**Branch Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Branch Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch |
+| `[data-depth]` | The depth of the item |
+| `[data-branch]` |  |
+| `[data-value]` | The value of the item |
+| `[data-path]` | The path of the item |
+| `[data-selected]` | Present when selected |
+| `[data-state]` | "open" | "closed" |
+| `[data-disabled]` | Present when disabled |
+| `[data-loading]` | Present when loading |
+
+
+**BranchText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'span'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchText Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-text |
+| `[data-disabled]` | Present when disabled |
+| `[data-state]` | "open" | "closed" |
+| `[data-loading]` | Present when loading |
+
+
+**BranchTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-trigger |
+| `[data-disabled]` | Present when disabled |
+| `[data-state]` | "open" | "closed" |
+| `[data-value]` | The value of the item |
+| `[data-loading]` | Present when loading |
+
+
+**ItemIndicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ItemIndicator Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | item-indicator |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+
+
+**Item Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Item Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | item |
+| `[data-path]` | The path of the item |
+| `[data-value]` | The value of the item |
+| `[data-focus]` | Present when focused |
+| `[data-selected]` | Present when selected |
+| `[data-disabled]` | Present when disabled |
+| `[data-renaming]` |  |
+| `[data-depth]` | The depth of the item |
+
+
+**ItemText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'span'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ItemText Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | item-text |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+
+
+**Label Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'h3'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**NodeCheckboxIndicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `fallback` | `number | boolean | Node | (string & {}) | ArrayElement` | No |  |
+| `indeterminate` | `number | boolean | Node | (string & {}) | ArrayElement` | No |  |
+
+
+**NodeCheckbox Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'span'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**NodeCheckbox Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | node-checkbox |
+| `[data-state]` | "checked" | "unchecked" | "indeterminate" |
+| `[data-disabled]` | Present when disabled |
+
+
+**NodeProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `indexPath` | `number[]` | Yes | The index path of the tree node |
+| `node` | `NonNullable<T>` | No | The tree node |
+
+
+**NodeRenameInput Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'input'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `UseTreeViewReturn<T>` | Yes |  |
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**Tree Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+#### Vue
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `collection` | `TreeCollection<T>` | Yes | The collection of tree nodes |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `canRename` | `(node: T, indexPath: number[]) => boolean` | No | Function to determine if a node can be renamed |
+| `checkedValue` | `string[]` | No | The controlled checked node values |
+| `defaultCheckedValue` | `string[]` | No | The initial checked node values when rendered.
+Use when you don't need to control the checked node values. |
+| `defaultExpandedValue` | `string[]` | No | The initial expanded node values when rendered.
+Use when you don't need to control the expanded node values. |
+| `defaultFocusedValue` | `string` | No | The initial focused node value when rendered.
+Use when you don't need to control the focused node value. |
+| `defaultSelectedValue` | `string[]` | No | The initial selected node values when rendered.
+Use when you don't need to control the selected node values. |
+| `expandedValue` | `string[]` | No | The controlled expanded node values |
+| `expandOnClick` | `boolean` | No | Whether clicking on a branch should open it or not |
+| `focusedValue` | `string` | No | The id of the focused node |
+| `id` | `string` | No | The unique identifier of the machine. |
+| `ids` | `Partial<{ root: string; tree: string; label: string; node(value: string): string }>` | No | The ids of the tree elements. Useful for composition. |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `loadChildren` | `(details: LoadChildrenDetails<T>) => Promise<T[]>` | No | A function that loads the children of a node. |
+| `selectedValue` | `string[]` | No | The controlled selected node values |
+| `selectionMode` | `'single' | 'multiple'` | No | Whether the tree supports multiple selection
+- "single": only one node can be selected
+- "multiple": multiple nodes can be selected |
+| `typeahead` | `boolean` | No | Whether the tree supports typeahead search |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**BranchContent Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchContent Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-content |
+| `[data-state]` | "open" | "closed" |
+| `[data-depth]` | The depth of the item |
+| `[data-path]` | The path of the item |
+| `[data-value]` | The value of the item |
+
+
+**BranchControl Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchControl Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-control |
+| `[data-path]` | The path of the item |
+| `[data-state]` | "open" | "closed" |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+| `[data-renaming]` |  |
+| `[data-value]` | The value of the item |
+| `[data-depth]` | The depth of the item |
+| `[data-loading]` | Present when loading |
+
+
+**BranchIndentGuide Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchIndentGuide Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-indent-guide |
+| `[data-depth]` | The depth of the item |
+
+
+**BranchIndicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchIndicator Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-indicator |
+| `[data-state]` | "open" | "closed" |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+| `[data-loading]` | Present when loading |
+
+
+**Branch Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Branch Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch |
+| `[data-depth]` | The depth of the item |
+| `[data-branch]` |  |
+| `[data-value]` | The value of the item |
+| `[data-path]` | The path of the item |
+| `[data-selected]` | Present when selected |
+| `[data-state]` | "open" | "closed" |
+| `[data-disabled]` | Present when disabled |
+| `[data-loading]` | Present when loading |
+
+
+**BranchText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchText Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-text |
+| `[data-disabled]` | Present when disabled |
+| `[data-state]` | "open" | "closed" |
+| `[data-loading]` | Present when loading |
+
+
+**BranchTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**BranchTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-trigger |
+| `[data-disabled]` | Present when disabled |
+| `[data-state]` | "open" | "closed" |
+| `[data-value]` | The value of the item |
+| `[data-loading]` | Present when loading |
+
+
+**ItemIndicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ItemIndicator Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | item-indicator |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+
+
+**Item Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Item Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | item |
+| `[data-path]` | The path of the item |
+| `[data-value]` | The value of the item |
+| `[data-focus]` | Present when focused |
+| `[data-selected]` | Present when selected |
+| `[data-disabled]` | Present when disabled |
+| `[data-renaming]` |  |
+| `[data-depth]` | The depth of the item |
+
+
+**ItemText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ItemText Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | item-text |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+
+
+**Label Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**NodeCheckboxIndicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `fallback` | `{}` | No |  |
+| `indeterminate` | `{}` | No |  |
+
+
+**NodeCheckbox Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**NodeCheckbox Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | node-checkbox |
+| `[data-state]` | "checked" | "unchecked" | "indeterminate" |
+| `[data-disabled]` | Present when disabled |
+
+
+**NodeProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `indexPath` | `number[]` | Yes | The index path of the tree node |
+| `node` | `NonNullable<T>` | No | The tree node |
+
+
+**NodeRenameInput Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `TreeViewApi<PropTypes, T>` | Yes |  |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**Tree Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+#### Svelte
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `canRename` | `(node: T, indexPath: IndexPath) => boolean` | No | Function to determine if a node can be renamed |
+| `checkedValue` | `string[]` | No | The controlled checked node value |
+| `collection` | `TreeCollection<T>` | No | The tree collection data |
+| `defaultCheckedValue` | `string[]` | No | The initial checked node value when rendered.
+Use when you don't need to control the checked node value. |
+| `defaultExpandedValue` | `string[]` | No | The initial expanded node ids when rendered.
+Use when you don't need to control the expanded node value. |
+| `defaultFocusedValue` | `string` | No | The initial focused node value when rendered.
+Use when you don't need to control the focused node value. |
+| `defaultSelectedValue` | `string[]` | No | The initial selected node value when rendered.
+Use when you don't need to control the selected node value. |
+| `expandedValue` | `string[]` | No | The controlled expanded node ids |
+| `expandOnClick` | `boolean` | No | Whether clicking on a branch should open it or not |
+| `focusedValue` | `string` | No | The value of the focused node |
+| `id` | `string` | No | The unique identifier of the machine. |
+| `ids` | `Partial<{ root: string; tree: string; label: string; node: (value: string) => string }>` | No | The ids of the tree elements. Useful for composition. |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `loadChildren` | `(details: LoadChildrenDetails<T>) => Promise<T[]>` | No | Function to load children for a node asynchronously.
+When provided, branches will wait for this promise to resolve before expanding. |
+| `onBeforeRename` | `(details: RenameCompleteDetails) => boolean` | No | Called before a rename is completed. Return false to prevent the rename. |
+| `onCheckedChange` | `(details: CheckedChangeDetails) => void` | No | Called when the checked value changes |
+| `onExpandedChange` | `(details: ExpandedChangeDetails<T>) => void` | No | Called when the tree is opened or closed |
+| `onFocusChange` | `(details: FocusChangeDetails<T>) => void` | No | Called when the focused node changes |
+| `onLoadChildrenComplete` | `(details: LoadChildrenCompleteDetails<T>) => void` | No | Called when a node finishes loading children |
+| `onLoadChildrenError` | `(details: LoadChildrenErrorDetails<T>) => void` | No | Called when loading children fails for one or more nodes |
+| `onRenameComplete` | `(details: RenameCompleteDetails) => void` | No | Called when a node label rename is completed |
+| `onRenameStart` | `(details: RenameStartDetails<T>) => void` | No | Called when a node starts being renamed |
+| `onSelectionChange` | `(details: SelectionChangeDetails<T>) => void` | No | Called when the selection changes |
+| `ref` | `Element` | No |  |
+| `selectedValue` | `string[]` | No | The controlled selected node value |
+| `selectionMode` | `'multiple' | 'single'` | No | Whether the tree supports multiple selection
+- "single": only one node can be selected
+- "multiple": multiple nodes can be selected |
+| `typeahead` | `boolean` | No | Whether the tree supports typeahead search |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**BranchContent Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'ul'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**BranchContent Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-content |
+| `[data-state]` | "open" | "closed" |
+| `[data-depth]` | The depth of the item |
+| `[data-path]` | The path of the item |
+| `[data-value]` | The value of the item |
+
+
+**BranchControl Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**BranchControl Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-control |
+| `[data-path]` | The path of the item |
+| `[data-state]` | "open" | "closed" |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+| `[data-renaming]` |  |
+| `[data-value]` | The value of the item |
+| `[data-depth]` | The depth of the item |
+| `[data-loading]` | Present when loading |
+
+
+**BranchIndentGuide Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**BranchIndentGuide Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-indent-guide |
+| `[data-depth]` | The depth of the item |
+
+
+**BranchIndicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**BranchIndicator Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-indicator |
+| `[data-state]` | "open" | "closed" |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+| `[data-loading]` | Present when loading |
+
+
+**Branch Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'li'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Branch Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch |
+| `[data-depth]` | The depth of the item |
+| `[data-branch]` |  |
+| `[data-value]` | The value of the item |
+| `[data-path]` | The path of the item |
+| `[data-selected]` | Present when selected |
+| `[data-state]` | "open" | "closed" |
+| `[data-disabled]` | Present when disabled |
+| `[data-loading]` | Present when loading |
+
+
+**BranchText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'span'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**BranchText Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-text |
+| `[data-disabled]` | Present when disabled |
+| `[data-state]` | "open" | "closed" |
+| `[data-loading]` | Present when loading |
+
+
+**BranchTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'button'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**BranchTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | branch-trigger |
+| `[data-disabled]` | Present when disabled |
+| `[data-state]` | "open" | "closed" |
+| `[data-value]` | The value of the item |
+| `[data-loading]` | Present when loading |
+
+
+**Context Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `render` | `Snippet<[UseTreeViewContext<any>]>` | Yes |  |
+
+
+**ItemIndicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**ItemIndicator Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | item-indicator |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+
+
+**Item Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'li'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Item Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | item |
+| `[data-path]` | The path of the item |
+| `[data-value]` | The value of the item |
+| `[data-focus]` | Present when focused |
+| `[data-selected]` | Present when selected |
+| `[data-disabled]` | Present when disabled |
+| `[data-renaming]` |  |
+| `[data-depth]` | The depth of the item |
+
+
+**ItemText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'span'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**ItemText Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | item-text |
+| `[data-disabled]` | Present when disabled |
+| `[data-selected]` | Present when selected |
+| `[data-focus]` | Present when focused |
+
+
+**Label Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'h3'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**NodeCheckboxIndicator Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `fallback` | `Snippet<[]>` | No |  |
+| `indeterminate` | `Snippet<[]>` | No |  |
+
+
+**NodeCheckbox Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'span'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**NodeCheckbox Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tree-view |
+| `[data-part]` | node-checkbox |
+| `[data-state]` | "checked" | "unchecked" | "indeterminate" |
+| `[data-disabled]` | Present when disabled |
+
+
+**NodeContext Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `render` | `Snippet<[UseTreeViewNodeContext]>` | Yes |  |
+
+
+**NodeProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `indexPath` | `number[]` | Yes |  |
+| `node` | `NonNullable<T>` | No |  |
+
+
+**NodeRenameInput Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'input'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `UseTreeViewReturn<T>` | Yes |  |
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `ref` | `Element` | No |  |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**Tree Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'ul'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+### Context
+
+These are the properties available when using `UtreeUview.Context`, `useUtreeUviewContext` hook or `useUtreeUview` hook.
+
+**API:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `collection` | `TreeCollection<V>` | The tree collection data |
+| `expandedValue` | `string[]` | The value of the expanded nodes. |
+| `setExpandedValue` | `(value: string[]) => void` | Sets the expanded value |
+| `selectedValue` | `string[]` | The value of the selected nodes. |
+| `setSelectedValue` | `(value: string[]) => void` | Sets the selected value |
+| `checkedValue` | `string[]` | The value of the checked nodes |
+| `toggleChecked` | `(value: string, isBranch: boolean) => void` | Toggles the checked value of a node |
+| `setChecked` | `(value: string[]) => void` | Sets the checked value of a node |
+| `clearChecked` | `VoidFunction` | Clears the checked value of a node |
+| `getCheckedMap` | `() => CheckedValueMap` | Returns the checked details of branch and leaf nodes |
+| `getVisibleNodes` | `() => V[]` | Returns the visible nodes as a flat array of nodes and their index path |
+| `expand` | `(value?: string[]) => void` | Function to expand nodes.
+If no value is provided, all nodes will be expanded |
+| `collapse` | `(value?: string[]) => void` | Function to collapse nodes
+If no value is provided, all nodes will be collapsed |
+| `select` | `(value?: string[]) => void` | Function to select nodes
+If no value is provided, all nodes will be selected |
+| `deselect` | `(value?: string[]) => void` | Function to deselect nodes
+If no value is provided, all nodes will be deselected |
+| `focus` | `(value: string) => void` | Function to focus a node by value |
+| `selectParent` | `(value: string) => void` | Function to select the parent node of the focused node |
+| `expandParent` | `(value: string) => void` | Function to expand the parent node of the focused node |
+| `startRenaming` | `(value: string) => void` | Function to start renaming a node by value |
+| `submitRenaming` | `(value: string, label: string) => void` | Function to submit the rename and update the node label |
+| `cancelRenaming` | `() => void` | Function to cancel renaming without changes |
+
+
+## Accessibility
+
+Complies with the [Tree View WAI-ARIA design pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/).
+
+### Keyboard Support
+
+<KeyBindingsTable id="tree-view" />

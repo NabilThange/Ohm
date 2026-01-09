@@ -1,0 +1,1055 @@
+<ComponentPreview id="Splitter" />
+
+## Anatomy
+
+To set up the splitter correctly, you'll need to understand its anatomy and how we name its parts.
+
+> Each part includes a `data-part` attribute to help identify them in the DOM.
+
+<Anatomy id="splitter" />
+
+## Examples
+
+Learn how to use the `Splitter` component in your project. Let's take a look at the most basic example:
+
+**Example: basic**
+
+#### React
+
+```tsx
+import { Splitter } from '@ark-ui/react/splitter'
+
+export const Basic = () => (
+  <Splitter.Root panels={[{ id: 'a' }, { id: 'b' }]}>
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+  </Splitter.Root>
+)
+
+```
+
+#### Solid
+
+```tsx
+import { Splitter } from '@ark-ui/solid/splitter'
+
+export const Basic = () => (
+  <Splitter.Root panels={[{ id: 'a' }, { id: 'b' }]}>
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+  </Splitter.Root>
+)
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { Splitter } from '@ark-ui/vue/splitter'
+</script>
+
+<template>
+  <Splitter.Root :panels="[{ id: 'a' }, { id: 'b' }]">
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+  </Splitter.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { Splitter } from '@ark-ui/svelte/splitter'
+</script>
+
+<Splitter.Root panels={[{ id: 'a' }, { id: 'b' }]}>
+  <Splitter.Panel id="a">A</Splitter.Panel>
+  <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+  <Splitter.Panel id="b">B</Splitter.Panel>
+</Splitter.Root>
+
+```
+
+### Using Render Props
+
+The Splitter component allows you to pass a function as a child to gain direct access to its API. This provides more
+control and allows you to modify the size of the panels programmatically:
+
+**Example: render-prop**
+
+#### React
+
+```tsx
+import { Splitter } from '@ark-ui/react/splitter'
+
+export const RenderProp = () => (
+  <Splitter.Root panels={[{ id: 'a' }, { id: 'b' }]}>
+    <Splitter.Context>
+      {(splitter) => (
+        <>
+          <Splitter.Panel id="a">
+            <button type="button" onClick={() => splitter.resizePanel('a', 10)}>
+              Set to 10%
+            </button>
+          </Splitter.Panel>
+          <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+          <Splitter.Panel id="b">
+            <button type="button" onClick={() => splitter.resizePanel('b', 10)}>
+              Set to 10%
+            </button>
+          </Splitter.Panel>
+        </>
+      )}
+    </Splitter.Context>
+  </Splitter.Root>
+)
+
+```
+
+#### Solid
+
+```tsx
+import { Splitter } from '@ark-ui/solid/splitter'
+
+export const RenderProp = () => (
+  <Splitter.Root defaultSize={[50, 50]} panels={[{ id: 'a' }, { id: 'b' }]}>
+    <Splitter.Context>
+      {(api) => (
+        <>
+          <Splitter.Panel id="a">
+            <button type="button" onClick={() => api().resizePanel('a', 10)}>
+              Set to 10%
+            </button>
+          </Splitter.Panel>
+          <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+          <Splitter.Panel id="b">
+            <button type="button" onClick={() => api().resizePanel('b', 10)}>
+              Set to 10%
+            </button>
+          </Splitter.Panel>
+        </>
+      )}
+    </Splitter.Context>
+  </Splitter.Root>
+)
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { Splitter } from '@ark-ui/vue/splitter'
+</script>
+
+<template>
+  <Splitter.Root :panels="[{ id: 'a' }, { id: 'b' }]">
+    <Splitter.Context v-slot="splitter">
+      <Splitter.Panel id="a">
+        <button @click="splitter.resizePanel('a', 10)">Set A to 10%</button>
+      </Splitter.Panel>
+      <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+      <Splitter.Panel id="b">
+        <button @click="splitter.resizePanel('b', 10)">Set B to 10%</button>
+      </Splitter.Panel>
+    </Splitter.Context>
+  </Splitter.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { Splitter } from '@ark-ui/svelte/splitter'
+</script>
+
+<Splitter.Root panels={[{ id: 'a' }, { id: 'b' }]}>
+  <Splitter.Context>
+    {#snippet render(splitter)}
+      <Splitter.Panel id="a">
+        <button type="button" onclick={() => splitter().resizePanel('a', 10)}>Set to 10%</button>
+      </Splitter.Panel>
+      <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+      <Splitter.Panel id="b">
+        <button type="button" onclick={() => splitter().resizePanel('b', 10)}>Set to 10%</button>
+      </Splitter.Panel>
+    {/snippet}
+  </Splitter.Context>
+</Splitter.Root>
+
+```
+
+### Handling Events
+
+Splitter also provides `onResizeStart`, `onResize`, and `onResizeEnd` events which can be useful to perform some actions
+during the start and end of the resizing process:
+
+**Example: events**
+
+#### React
+
+```tsx
+import { Splitter } from '@ark-ui/react/splitter'
+
+export const Events = () => (
+  <Splitter.Root
+    panels={[{ id: 'a' }, { id: 'b' }]}
+    onResize={(details) => console.log('onResize', details)}
+    onResizeStart={() => console.log('onResizeStart')}
+    onResizeEnd={(details) => console.log('onResizeEnd', details)}
+    onExpand={(details) => console.log('onExpand', details)}
+    onCollapse={(details) => console.log('onCollapse', details)}
+  >
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+  </Splitter.Root>
+)
+
+```
+
+#### Solid
+
+```tsx
+import { Splitter } from '@ark-ui/solid/splitter'
+
+export const Events = () => (
+  <Splitter.Root
+    panels={[{ id: 'a' }, { id: 'b' }]}
+    defaultSize={[50, 50]}
+    onResizeStart={() => console.log('onResizeStart')}
+    onResizeEnd={(details) => console.log('onResizeEnd', details)}
+    onExpand={(details) => console.log('onExpand', details)}
+    onCollapse={(details) => console.log('onCollapse', details)}
+  >
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+  </Splitter.Root>
+)
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { Splitter } from '@ark-ui/vue/splitter'
+</script>
+
+<template>
+  <Splitter.Root
+    :panels="[{ id: 'a' }, { id: 'b' }]"
+    @resize="(details) => console.log('onResize', details)"
+    @resize-start="() => console.log('onResizeStart')"
+    @resize-end="(details) => console.log('onResizeEnd', details)"
+    @expand="(details) => console.log('onExpand', details)"
+    @collapse="(details) => console.log('onCollapse', details)"
+  >
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+  </Splitter.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { Splitter } from '@ark-ui/svelte/splitter'
+</script>
+
+<Splitter.Root
+  panels={[{ id: 'a' }, { id: 'b' }]}
+  onResize={(details) => console.log('onResize', details)}
+  onResizeStart={() => console.log('onResizeStart')}
+  onResizeEnd={(details) => console.log('onResizeEnd', details)}
+  onExpand={(details) => console.log('onExpand', details)}
+  onCollapse={(details) => console.log('onCollapse', details)}
+>
+  <Splitter.Panel id="a">A</Splitter.Panel>
+  <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+  <Splitter.Panel id="b">B</Splitter.Panel>
+</Splitter.Root>
+
+```
+
+### Vertical Splitter
+
+By default, the Splitter component is horizontal. If you need a vertical splitter, use the `orientation` prop:
+
+**Example: vertical**
+
+#### React
+
+```tsx
+import { Splitter } from '@ark-ui/react/splitter'
+
+export const Vertical = () => (
+  <Splitter.Root orientation="vertical" panels={[{ id: 'a' }, { id: 'b' }]}>
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+  </Splitter.Root>
+)
+
+```
+
+#### Solid
+
+```tsx
+import { Splitter } from '@ark-ui/solid/splitter'
+
+export const Vertical = () => (
+  <Splitter.Root orientation="vertical" defaultSize={[50, 50]} panels={[{ id: 'a' }, { id: 'b' }]}>
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+  </Splitter.Root>
+)
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { Splitter } from '@ark-ui/vue/splitter'
+</script>
+
+<template>
+  <Splitter.Root orientation="vertical" :panels="[{ id: 'a' }, { id: 'b' }]">
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+  </Splitter.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { Splitter } from '@ark-ui/svelte/splitter'
+</script>
+
+<Splitter.Root orientation="vertical" panels={[{ id: 'a' }, { id: 'b' }]}>
+  <Splitter.Panel id="a">A</Splitter.Panel>
+  <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+  <Splitter.Panel id="b">B</Splitter.Panel>
+</Splitter.Root>
+
+```
+
+### Collapsible Panels
+
+To make a panel collapsible, set the `collapsible` prop to `true` on the panel you want to make collapsible.
+Additionally, you can use the `collapsedSize` prop to set the size of the panel when it's collapsed.
+
+> This can be useful for building sidebar layouts.
+
+**Example: collapsible**
+
+#### React
+
+```tsx
+import { Splitter } from '@ark-ui/react/splitter'
+
+export const Collapsible = () => (
+  <Splitter.Root
+    defaultSize={[15, 20]}
+    panels={[
+      { id: 'a', collapsible: true, collapsedSize: 5, minSize: 10, maxSize: 20 },
+      { id: 'b', minSize: 50 },
+    ]}
+  >
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+  </Splitter.Root>
+)
+
+```
+
+#### Solid
+
+```tsx
+import { Splitter } from '@ark-ui/solid/splitter'
+
+export const Collapsible = () => (
+  <Splitter.Root
+    defaultSize={[15, 20]}
+    panels={[
+      { id: 'a', collapsible: true, collapsedSize: 5, minSize: 10, maxSize: 20 },
+      { id: 'b', minSize: 50 },
+    ]}
+  >
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+  </Splitter.Root>
+)
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { Splitter } from '@ark-ui/vue/splitter'
+</script>
+
+<template>
+  <Splitter.Root
+    :default-size="[15, 20]"
+    :panels="[
+      { id: 'a', collapsible: true, collapsedSize: 5, minSize: 10, maxSize: 20 },
+      { id: 'b', minSize: 50 },
+    ]"
+  >
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+  </Splitter.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { Splitter } from '@ark-ui/svelte/splitter'
+</script>
+
+<Splitter.Root
+  defaultSize={[15, 20]}
+  panels={[
+    { id: 'a', collapsible: true, collapsedSize: 5, minSize: 10, maxSize: 20 },
+    { id: 'b', minSize: 50 },
+  ]}
+>
+  <Splitter.Panel id="a">A</Splitter.Panel>
+  <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+  <Splitter.Panel id="b">B</Splitter.Panel>
+</Splitter.Root>
+
+```
+
+### Multiple Panels
+
+Here's an example of how to use the `Splitter` component with multiple panels.
+
+**Example: multiple-panels**
+
+#### React
+
+```tsx
+import { Splitter } from '@ark-ui/react/splitter'
+
+export const MultiplePanels = () => (
+  <Splitter.Root
+    panels={[
+      { id: 'a', minSize: 20 },
+      { id: 'b', minSize: 40 },
+      { id: 'c', minSize: 20 },
+    ]}
+    defaultSize={[20, 60, 20]}
+  >
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+    <Splitter.ResizeTrigger id="b:c" aria-label="Resize" />
+    <Splitter.Panel id="c">C</Splitter.Panel>
+  </Splitter.Root>
+)
+
+```
+
+#### Solid
+
+```tsx
+import { Splitter } from '@ark-ui/solid/splitter'
+
+export const MultiplePanels = () => (
+  <Splitter.Root
+    panels={[
+      { id: 'a', minSize: 20 },
+      { id: 'b', minSize: 40 },
+      { id: 'c', minSize: 20 },
+    ]}
+    defaultSize={[20, 60, 20]}
+  >
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+    <Splitter.ResizeTrigger id="b:c" aria-label="Resize" />
+    <Splitter.Panel id="c">C</Splitter.Panel>
+  </Splitter.Root>
+)
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { Splitter } from '@ark-ui/vue/splitter'
+</script>
+
+<template>
+  <Splitter.Root
+    :panels="[
+      { id: 'a', minSize: 20 },
+      { id: 'b', minSize: 40 },
+      { id: 'c', minSize: 20 },
+    ]"
+    :default-size="[20, 60, 20]"
+  >
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+    <Splitter.ResizeTrigger id="b:c" aria-label="Resize" />
+    <Splitter.Panel id="c">C</Splitter.Panel>
+  </Splitter.Root>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { Splitter } from '@ark-ui/svelte/splitter'
+</script>
+
+<Splitter.Root
+  panels={[
+    { id: 'a', minSize: 20 },
+    { id: 'b', minSize: 40 },
+    { id: 'c', minSize: 20 },
+  ]}
+  defaultSize={[20, 60, 20]}
+>
+  <Splitter.Panel id="a">
+    <div>Panel A (min: 20%)</div>
+  </Splitter.Panel>
+  <Splitter.ResizeTrigger id="a:b" aria-label="Resize between A and B" />
+  <Splitter.Panel id="b">
+    <div>Panel B (min: 40%)</div>
+  </Splitter.Panel>
+  <Splitter.ResizeTrigger id="b:c" aria-label="Resize between B and C" />
+  <Splitter.Panel id="c">
+    <div>Panel C (min: 20%)</div>
+  </Splitter.Panel>
+</Splitter.Root>
+
+```
+
+### Using the Root Provider
+
+The `RootProvider` component provides a context for the splitter. It accepts the value of the `useSplitter` hook. You
+can leverage it to access the component state and methods from outside the splitter.
+
+**Example: root-provider**
+
+#### React
+
+```tsx
+import { Splitter, useSplitter } from '@ark-ui/react/splitter'
+
+export const RootProvider = () => {
+  const splitter = useSplitter({ defaultSize: [50, 50], panels: [{ id: 'a' }, { id: 'b' }] })
+
+  return (
+    <>
+      <button onClick={() => splitter.setSizes([100, 0])}>Maximize a</button>
+
+      <Splitter.RootProvider value={splitter}>
+        <Splitter.Panel id="a">A</Splitter.Panel>
+        <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+        <Splitter.Panel id="b">B</Splitter.Panel>
+      </Splitter.RootProvider>
+    </>
+  )
+}
+
+```
+
+#### Solid
+
+```tsx
+import { Splitter, useSplitter } from '@ark-ui/solid/splitter'
+
+export const RootProvider = () => {
+  const splitter = useSplitter({ defaultSize: [50, 50], panels: [{ id: 'a' }, { id: 'b' }] })
+
+  return (
+    <>
+      <button onClick={() => splitter().setSizes([100, 0])}>Maximize a</button>
+
+      <Splitter.RootProvider value={splitter}>
+        <Splitter.Panel id="a">A</Splitter.Panel>
+        <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+        <Splitter.Panel id="b">B</Splitter.Panel>
+      </Splitter.RootProvider>
+    </>
+  )
+}
+
+```
+
+#### Vue
+
+```vue
+<script setup lang="ts">
+import { Splitter, useSplitter } from '@ark-ui/vue/splitter'
+
+const splitter = useSplitter({
+  defaultSize: [50, 50],
+  panels: [{ id: 'a' }, { id: 'b' }],
+})
+</script>
+
+<template>
+  <button @click="splitter.setSizes([100, 0])">Maximize a</button>
+
+  <Splitter.RootProvider :value="splitter">
+    <Splitter.Panel id="a">A</Splitter.Panel>
+    <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+    <Splitter.Panel id="b">B</Splitter.Panel>
+  </Splitter.RootProvider>
+</template>
+
+```
+
+#### Svelte
+
+```svelte
+<script lang="ts">
+  import { Splitter, useSplitter } from '@ark-ui/svelte/splitter'
+
+  const id = $props.id()
+  const splitter = useSplitter({
+    id,
+    defaultSize: [50, 50],
+    panels: [{ id: 'a' }, { id: 'b' }],
+  })
+</script>
+
+<button onclick={() => splitter().setSizes([100, 0])}>Maximize a</button>
+
+<Splitter.RootProvider value={splitter}>
+  <Splitter.Panel id="a">A</Splitter.Panel>
+  <Splitter.ResizeTrigger id="a:b" aria-label="Resize" />
+  <Splitter.Panel id="b">B</Splitter.Panel>
+</Splitter.RootProvider>
+
+```
+
+> If you're using the `RootProvider` component, you don't need to use the `Root` component.
+
+## API Reference
+
+### Props
+
+**Component API Reference**
+
+#### React
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `panels` | `PanelData[]` | Yes | The size constraints of the panels. |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `defaultSize` | `number[]` | No | The initial size of the panels when rendered.
+Use when you don't need to control the size of the panels. |
+| `id` | `string` | No | The unique identifier of the machine. |
+| `ids` | `Partial<{
+  root: string
+  resizeTrigger: (id: string) => string
+  label: (id: string) => string
+  panel: (id: string | number) => string
+}>` | No | The ids of the elements in the splitter. Useful for composition. |
+| `keyboardResizeBy` | `number` | No | The number of pixels to resize the panel by when the keyboard is used. |
+| `nonce` | `string` | No | The nonce for the injected splitter cursor stylesheet. |
+| `onCollapse` | `(details: ExpandCollapseDetails) => void` | No | Function called when a panel is collapsed. |
+| `onExpand` | `(details: ExpandCollapseDetails) => void` | No | Function called when a panel is expanded. |
+| `onResize` | `(details: ResizeDetails) => void` | No | Function called when the splitter is resized. |
+| `onResizeEnd` | `(details: ResizeEndDetails) => void` | No | Function called when the splitter resize ends. |
+| `onResizeStart` | `() => void` | No | Function called when the splitter resize starts. |
+| `orientation` | `'horizontal' | 'vertical'` | No | The orientation of the splitter. Can be `horizontal` or `vertical` |
+| `size` | `number[]` | No | The controlled size data of the panels |
+
+
+**Root Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | splitter |
+| `[data-part]` | root |
+| `[data-orientation]` | The orientation of the splitter |
+| `[data-dragging]` | Present when in the dragging state |
+
+
+**Panel Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | `string` | Yes |  |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Panel Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | splitter |
+| `[data-part]` | panel |
+| `[data-orientation]` | The orientation of the panel |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-id]` |  |
+| `[data-index]` | The index of the item |
+
+
+**ResizeTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | ``${string}:${string}`` | Yes |  |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `disabled` | `boolean` | No |  |
+
+
+**ResizeTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | splitter |
+| `[data-part]` | resize-trigger |
+| `[data-id]` |  |
+| `[data-orientation]` | The orientation of the resizetrigger |
+| `[data-focus]` | Present when focused |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-disabled]` | Present when disabled |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `UseSplitterReturn` | Yes |  |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+#### Solid
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `panels` | `PanelData[]` | Yes | The size constraints of the panels. |
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `defaultSize` | `number[]` | No | The initial size of the panels when rendered.
+Use when you don't need to control the size of the panels. |
+| `id` | `string` | No | The unique identifier of the machine. |
+| `ids` | `Partial<{
+  root: string
+  resizeTrigger: (id: string) => string
+  label: (id: string) => string
+  panel: (id: string | number) => string
+}>` | No | The ids of the elements in the splitter. Useful for composition. |
+| `keyboardResizeBy` | `number` | No | The number of pixels to resize the panel by when the keyboard is used. |
+| `nonce` | `string` | No | The nonce for the injected splitter cursor stylesheet. |
+| `onCollapse` | `(details: ExpandCollapseDetails) => void` | No | Function called when a panel is collapsed. |
+| `onExpand` | `(details: ExpandCollapseDetails) => void` | No | Function called when a panel is expanded. |
+| `onResize` | `(details: ResizeDetails) => void` | No | Function called when the splitter is resized. |
+| `onResizeEnd` | `(details: ResizeEndDetails) => void` | No | Function called when the splitter resize ends. |
+| `onResizeStart` | `() => void` | No | Function called when the splitter resize starts. |
+| `orientation` | `'horizontal' | 'vertical'` | No | The orientation of the splitter. Can be `horizontal` or `vertical` |
+| `size` | `number[]` | No | The controlled size data of the panels |
+
+
+**Root Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | splitter |
+| `[data-part]` | root |
+| `[data-orientation]` | The orientation of the splitter |
+| `[data-dragging]` | Present when in the dragging state |
+
+
+**Panel Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | `string` | Yes |  |
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Panel Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | splitter |
+| `[data-part]` | panel |
+| `[data-orientation]` | The orientation of the panel |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-id]` |  |
+| `[data-index]` | The index of the item |
+
+
+**ResizeTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | ``${string}:${string}`` | Yes |  |
+| `asChild` | `(props: ParentProps<'button'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `disabled` | `boolean` | No |  |
+
+
+**ResizeTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | splitter |
+| `[data-part]` | resize-trigger |
+| `[data-id]` |  |
+| `[data-orientation]` | The orientation of the resizetrigger |
+| `[data-focus]` | Present when focused |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-disabled]` | Present when disabled |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `UseSplitterReturn` | Yes |  |
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+#### Vue
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `panels` | `PanelData[]` | Yes | The size constraints of the panels. |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `defaultSize` | `number[]` | No | The initial size of the panels when rendered.
+Use when you don't need to control the size of the panels. |
+| `id` | `string` | No | The unique identifier of the machine. |
+| `ids` | `Partial<{
+  root: string
+  resizeTrigger(id: string): string
+  label(id: string): string
+  panel(id: string | number): string
+}>` | No | The ids of the elements in the splitter. Useful for composition. |
+| `keyboardResizeBy` | `number` | No | The number of pixels to resize the panel by when the keyboard is used. |
+| `nonce` | `string` | No | The nonce for the injected splitter cursor stylesheet. |
+| `orientation` | `'horizontal' | 'vertical'` | No | The orientation of the splitter. Can be `horizontal` or `vertical` |
+| `size` | `number[]` | No | The controlled size data of the panels |
+
+
+**Root Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | splitter |
+| `[data-part]` | root |
+| `[data-orientation]` | The orientation of the splitter |
+| `[data-dragging]` | Present when in the dragging state |
+
+
+**Panel Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | `string` | Yes |  |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Panel Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | splitter |
+| `[data-part]` | panel |
+| `[data-orientation]` | The orientation of the panel |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-id]` |  |
+| `[data-index]` | The index of the item |
+
+
+**ResizeTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | ``${string}:${string}`` | Yes |  |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `disabled` | `boolean` | No |  |
+
+
+**ResizeTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | splitter |
+| `[data-part]` | resize-trigger |
+| `[data-id]` |  |
+| `[data-orientation]` | The orientation of the resizetrigger |
+| `[data-focus]` | Present when focused |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-disabled]` | Present when disabled |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `SplitterApi<PropTypes>` | Yes |  |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+#### Svelte
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `panels` | `PanelData[]` | Yes | The size constraints of the panels. |
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `defaultSize` | `number[]` | No | The initial size of the panels when rendered.
+Use when you don't need to control the size of the panels. |
+| `id` | `string` | No | The unique identifier of the machine. |
+| `ids` | `Partial<{
+  root: string
+  resizeTrigger: (id: string) => string
+  label: (id: string) => string
+  panel: (id: string | number) => string
+}>` | No | The ids of the elements in the splitter. Useful for composition. |
+| `keyboardResizeBy` | `number` | No | The number of pixels to resize the panel by when the keyboard is used. |
+| `nonce` | `string` | No | The nonce for the injected splitter cursor stylesheet. |
+| `onCollapse` | `(details: ExpandCollapseDetails) => void` | No | Function called when a panel is collapsed. |
+| `onExpand` | `(details: ExpandCollapseDetails) => void` | No | Function called when a panel is expanded. |
+| `onResize` | `(details: ResizeDetails) => void` | No | Function called when the splitter is resized. |
+| `onResizeEnd` | `(details: ResizeEndDetails) => void` | No | Function called when the splitter resize ends. |
+| `onResizeStart` | `() => void` | No | Function called when the splitter resize starts. |
+| `orientation` | `'horizontal' | 'vertical'` | No | The orientation of the splitter. Can be `horizontal` or `vertical` |
+| `ref` | `Element` | No |  |
+| `size` | `number[]` | No | The controlled size data of the panels |
+
+
+**Root Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | splitter |
+| `[data-part]` | root |
+| `[data-orientation]` | The orientation of the splitter |
+| `[data-dragging]` | Present when in the dragging state |
+
+
+**Context Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `render` | `Snippet<[UseSplitterContext]>` | Yes |  |
+
+
+**Panel Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | `string` | Yes |  |
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Panel Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | splitter |
+| `[data-part]` | panel |
+| `[data-orientation]` | The orientation of the panel |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-id]` |  |
+| `[data-index]` | The index of the item |
+
+
+**ResizeTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `id` | ``${string}:${string}`` | Yes |  |
+| `asChild` | `Snippet<[PropsFn<'button'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `disabled` | `boolean` | No |  |
+| `ref` | `Element` | No |  |
+
+
+**ResizeTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | splitter |
+| `[data-part]` | resize-trigger |
+| `[data-id]` |  |
+| `[data-orientation]` | The orientation of the resizetrigger |
+| `[data-focus]` | Present when focused |
+| `[data-dragging]` | Present when in the dragging state |
+| `[data-disabled]` | Present when disabled |
+
+
+**RootProvider Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | `UseSplitterReturn` | Yes |  |
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+### Context
+
+These are the properties available when using `Splitter.Context`, `useSplitterContext` hook or `useSplitter` hook.
+
+**API:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `dragging` | `boolean` | Whether the splitter is currently being resized. |
+| `orientation` | `"horizontal" | "vertical"` | The orientation of the splitter. |
+| `getSizes` | `() => number[]` | Returns the current sizes of the panels. |
+| `setSizes` | `(size: number[]) => void` | Sets the sizes of the panels. |
+| `getItems` | `() => SplitterItem[]` | Returns the items of the splitter. |
+| `getPanels` | `() => PanelData[]` | Returns the panels of the splitter. |
+| `getPanelById` | `(id: string) => PanelData` | Returns the panel with the specified id. |
+| `getPanelSize` | `(id: string) => number` | Returns the size of the specified panel. |
+| `isPanelCollapsed` | `(id: string) => boolean` | Returns whether the specified panel is collapsed. |
+| `isPanelExpanded` | `(id: string) => boolean` | Returns whether the specified panel is expanded. |
+| `collapsePanel` | `(id: string) => void` | Collapses the specified panel. |
+| `expandPanel` | `(id: string, minSize?: number) => void` | Expands the specified panel. |
+| `resizePanel` | `(id: string, unsafePanelSize: number) => void` | Resizes the specified panel. |
+| `getLayout` | `() => string` | Returns the layout of the splitter. |
+| `resetSizes` | `VoidFunction` | Resets the splitter to its initial state. |
+| `getResizeTriggerState` | `(props: ResizeTriggerProps) => ResizeTriggerState` | Returns the state of the resize trigger. |
+
+
+## Accessibility
+
+Complies with the [Window Splitter WAI-ARIA design pattern](https://www.w3.org/WAI/ARIA/apg/patterns/windowsplitter/).

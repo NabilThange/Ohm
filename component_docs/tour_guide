@@ -1,0 +1,937 @@
+<ComponentPreview id="Tour" />
+
+## Features
+
+- Support for different step types such as "dialog", "floating", "tooltip" or "wait"
+- Support for customizable content per step
+- Wait steps for waiting for a specific selector to appear on the page before showing the next step
+- Flexible positioning of the tour dialog per step
+- Progress tracking shows users their progress through the tour
+
+## Anatomy
+
+To set up the tour correctly, it's essential to understand its anatomy and the naming of its parts.
+
+> Each part includes a `data-part` attribute to help identify them in the DOM.
+
+<Anatomy id="tour" />
+
+## Guides
+
+### Using step types
+
+The tour machine supports different types of steps, allowing you to create a diverse and interactive tour experience.
+The available step types are defined in the `StepType` type:
+
+- `tooltip`: Displays the step content as a tooltip, typically positioned near the target element.
+
+- `dialog`: Shows the step content in a modal dialog centered on screen, useful for starting or ending the tour. This
+  usually don't have a `target` defined.
+
+- `floating`: Presents the step content as a floating element, which can be positioned flexibly on the screen. This
+  usually don't have a `target` defined.
+
+- `wait`: A special type that waits for a specific condition before proceeding to the next step.
+
+```tsx
+const steps: TourStepDetails[] = [
+  {
+    id: 'step-1',
+    type: 'tooltip',
+    placement: 'top-start',
+    target: () => document.querySelector('#target-1'),
+    title: 'Tooltip Step',
+    description: 'This is a tooltip step',
+  },
+  {
+    id: 'step-2',
+    type: 'dialog',
+    title: 'Dialog Step',
+    description: 'This is a dialog step',
+  },
+  {
+    id: 'step-3',
+    type: 'floating',
+    placement: 'top-start',
+    title: 'Floating Step',
+    description: 'This is a floating step',
+  },
+  {
+    id: 'step-4',
+    type: 'wait',
+    title: 'Wait Step',
+    description: 'This is a wait step',
+    effect({ next }) {
+      // do something and go next
+      // you can also return a cleanup
+    },
+  },
+]
+```
+
+### Configuring actions
+
+Every step supports a list of actions that are rendered in the step footer.Use the `actions` property to define each
+action.
+
+```tsx
+const steps: TourStepDetails[] = [
+  {
+    id: 'step-1',
+    type: 'dialog',
+    title: 'Dialog Step',
+    description: 'This is a dialog step',
+    actions: [{ label: 'Show me a tour!', action: 'next' }],
+  },
+]
+```
+
+### Changing tooltip placement
+
+Use the `placement` property to define the placement of the tooltip.
+
+```tsx {5}
+const steps: TourStepDetails[] = [
+  {
+    id: 'step-1',
+    type: 'tooltip',
+    placement: 'top-start',
+    // ...
+  },
+]
+```
+
+### Hiding the arrow
+
+Set `arrow: false` in the step property to hide the tooltip arrow. This is only useful for tooltip steps.
+
+```tsx {5}
+const steps: TourStepDetails[] = [
+  {
+    id: 'step-1',
+    type: 'tooltip',
+    arrow: false,
+  },
+]
+```
+
+### Hiding the backdrop
+
+Set `backdrop: false` in the step property to hide the backdrop. This applies to all step types except the `wait` step.
+
+```tsx {5}
+const steps: TourStepDetails[] = [
+  {
+    id: 'step-1',
+    type: 'dialog',
+    backdrop: false,
+  },
+]
+```
+
+### Step Effects
+
+Step effects are functions that are called before a step is opened. They are useful for adding custom logic to a step.
+
+This function provides the following methods:
+
+- `next()`: Call this method to move to the next step.
+- `show()`: Call this method to show the current step.
+- `update(details: StepDetails)`: Call this method to update the details of the current step (say, after data has been
+  fetched).
+
+```tsx
+const steps: TourStepDetails[] = [
+  {
+    id: 'step-1',
+    type: 'tooltip',
+    effect({ next, show, update }) {
+      fetchData().then((res) => {
+        // update the step details
+        update({ title: res.title })
+        // then show show the step
+        show()
+      })
+
+      return () => {
+        // cleanup fetch data
+      }
+    },
+  },
+]
+```
+
+### Wait Steps
+
+Wait steps are useful when you need to wait for a specific condition before proceeding to the next step.
+
+Use the step `effect` function to perform an action and then call `next()` to move to the next step.
+
+> **Note:** You cannot call `show()` in a wait step.
+
+```tsx
+const steps: TourStepDetails[] = [
+  {
+    id: 'step-1',
+    type: 'wait',
+    effect({ next }) {
+      const button = document.querySelector('#button')
+      const listener = () => next()
+      button.addEventListener('click', listener)
+      return () => button.removeEventListener('click', listener)
+    },
+  },
+]
+```
+
+### Styling Requirements
+
+Ensure the `box-sizing` is set to `border-box` for the means of measuring the tour target.
+
+```css
+* {
+  box-sizing: border-box;
+}
+```
+
+Ensure the `body` has a `position` of `relative`.
+
+```css
+body {
+  position: relative;
+}
+```
+
+## API Reference
+
+### Props
+
+**Component API Reference**
+
+#### React
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `tour` | `UseTourReturn` | Yes |  |
+| `immediate` | `boolean` | No | Whether to synchronize the present change immediately or defer it to the next frame |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `onExitComplete` | `VoidFunction` | No | Function called when the animation ends in the closed state |
+| `present` | `boolean` | No | Whether the node is present (controlled by the user) |
+| `skipAnimationOnMount` | `boolean` | No | Whether to allow the initial presence animation. |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**ActionTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `action` | `StepAction` | Yes |  |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ActionTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | action-trigger |
+| `[data-type]` | The type of the item |
+| `[data-disabled]` | Present when disabled |
+
+
+**Arrow Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ArrowTip Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Backdrop Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Backdrop Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | backdrop |
+| `[data-state]` | "open" | "closed" |
+| `[data-type]` | The type of the item |
+
+
+**CloseTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**CloseTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | close-trigger |
+| `[data-type]` | The type of the item |
+
+
+**Content Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Content Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | content |
+| `[data-state]` | "open" | "closed" |
+| `[data-nested]` | popover |
+| `[data-has-nested]` | popover |
+| `[data-type]` | The type of the item |
+| `[data-placement]` | The placement of the content |
+| `[data-step]` |  |
+
+
+**Control Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Description Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Description Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | description |
+| `[data-placement]` | The placement of the description |
+
+
+**Positioner Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Positioner Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | positioner |
+| `[data-type]` | The type of the item |
+| `[data-placement]` | The placement of the positioner |
+
+
+**ProgressText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Spotlight Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Title Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Title Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | title |
+| `[data-placement]` | The placement of the title |
+
+
+#### Solid
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `tour` | `UseTourReturn` | Yes |  |
+| `immediate` | `boolean` | No | Whether to synchronize the present change immediately or defer it to the next frame |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `onExitComplete` | `VoidFunction` | No | Function called when the animation ends in the closed state |
+| `present` | `boolean` | No | Whether the node is present (controlled by the user) |
+| `skipAnimationOnMount` | `boolean` | No | Whether to allow the initial presence animation. |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**ActionTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `action` | `StepAction` | Yes |  |
+| `asChild` | `(props: ParentProps<'button'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ActionTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | action-trigger |
+| `[data-type]` | The type of the item |
+| `[data-disabled]` | Present when disabled |
+
+
+**Arrow Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ArrowTip Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Backdrop Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Backdrop Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | backdrop |
+| `[data-state]` | "open" | "closed" |
+| `[data-type]` | The type of the item |
+
+
+**CloseTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'button'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**CloseTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | close-trigger |
+| `[data-type]` | The type of the item |
+
+
+**Content Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Content Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | content |
+| `[data-state]` | "open" | "closed" |
+| `[data-nested]` | popover |
+| `[data-has-nested]` | popover |
+| `[data-type]` | The type of the item |
+| `[data-placement]` | The placement of the content |
+| `[data-step]` |  |
+
+
+**Control Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Description Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Description Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | description |
+| `[data-placement]` | The placement of the description |
+
+
+**Positioner Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Positioner Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | positioner |
+| `[data-type]` | The type of the item |
+| `[data-placement]` | The placement of the positioner |
+
+
+**ProgressText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Spotlight Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'div'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Title Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `(props: ParentProps<'h2'>) => Element` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Title Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | title |
+| `[data-placement]` | The placement of the title |
+
+
+#### Vue
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `tour` | `TourApi<PropTypes>` | Yes |  |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**ActionTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `action` | `StepAction` | Yes |  |
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ActionTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | action-trigger |
+| `[data-type]` | The type of the item |
+| `[data-disabled]` | Present when disabled |
+
+
+**Arrow Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**ArrowTip Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Backdrop Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Backdrop Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | backdrop |
+| `[data-state]` | "open" | "closed" |
+| `[data-type]` | The type of the item |
+
+
+**CloseTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**CloseTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | close-trigger |
+| `[data-type]` | The type of the item |
+
+
+**Content Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Content Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | content |
+| `[data-state]` | "open" | "closed" |
+| `[data-nested]` | popover |
+| `[data-has-nested]` | popover |
+| `[data-type]` | The type of the item |
+| `[data-placement]` | The placement of the content |
+| `[data-step]` |  |
+
+
+**Control Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Description Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Description Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | description |
+| `[data-placement]` | The placement of the description |
+
+
+**Positioner Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Positioner Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | positioner |
+| `[data-type]` | The type of the item |
+| `[data-placement]` | The placement of the positioner |
+
+
+**ProgressText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Spotlight Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Title Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `boolean` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+
+
+**Title Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | title |
+| `[data-placement]` | The placement of the title |
+
+
+#### Svelte
+
+**Root Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `tour` | `UseTourReturn` | Yes |  |
+| `immediate` | `boolean` | No | Whether to synchronize the present change immediately or defer it to the next frame |
+| `lazyMount` | `boolean` | No | Whether to enable lazy mounting |
+| `onExitComplete` | `VoidFunction` | No | Function called when the animation ends in the closed state |
+| `present` | `boolean` | No | Whether the node is present (controlled by the user) |
+| `skipAnimationOnMount` | `boolean` | No | Whether to allow the initial presence animation. |
+| `unmountOnExit` | `boolean` | No | Whether to unmount on exit. |
+
+
+**ActionTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `action` | `StepAction` | Yes |  |
+| `asChild` | `Snippet<[PropsFn<'button'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**ActionTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | action-trigger |
+| `[data-type]` | The type of the item |
+| `[data-disabled]` | Present when disabled |
+
+
+**Arrow Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**ArrowTip Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Backdrop Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Backdrop Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | backdrop |
+| `[data-state]` | "open" | "closed" |
+| `[data-type]` | The type of the item |
+
+
+**CloseTrigger Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'button'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**CloseTrigger Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | close-trigger |
+| `[data-type]` | The type of the item |
+
+
+**Content Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Content Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | content |
+| `[data-state]` | "open" | "closed" |
+| `[data-nested]` | popover |
+| `[data-has-nested]` | popover |
+| `[data-type]` | The type of the item |
+| `[data-placement]` | The placement of the content |
+| `[data-step]` |  |
+
+
+**Context Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `render` | `Snippet<[UseTourContext]>` | Yes |  |
+
+
+**Control Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Description Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Description Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | description |
+| `[data-placement]` | The placement of the description |
+
+
+**Positioner Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Positioner Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | positioner |
+| `[data-type]` | The type of the item |
+| `[data-placement]` | The placement of the positioner |
+
+
+**ProgressText Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Spotlight Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'div'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Title Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `asChild` | `Snippet<[PropsFn<'h2'>]>` | No | Use the provided child element as the default rendered element, combining their props and behavior. |
+| `ref` | `Element` | No |  |
+
+
+**Title Data Attributes:**
+
+| Attribute | Value |
+|-----------|-------|
+| `[data-scope]` | tour |
+| `[data-part]` | title |
+| `[data-placement]` | The placement of the title |
+
+
+### Context
+
+These are the properties available when using `Tour.Context`, `useTourContext` hook or `useTour` hook.
+
+**API:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `open` | `boolean` | Whether the tour is open |
+| `totalSteps` | `number` | The total number of steps |
+| `stepIndex` | `number` | The index of the current step |
+| `step` | `StepDetails` | The current step details |
+| `hasNextStep` | `boolean` | Whether there is a next step |
+| `hasPrevStep` | `boolean` | Whether there is a previous step |
+| `firstStep` | `boolean` | Whether the current step is the first step |
+| `lastStep` | `boolean` | Whether the current step is the last step |
+| `addStep` | `(step: StepDetails) => void` | Add a new step to the tour |
+| `removeStep` | `(id: string) => void` | Remove a step from the tour |
+| `updateStep` | `(id: string, stepOverrides: Partial<StepDetails>) => void` | Update a step in the tour with partial details |
+| `setSteps` | `(steps: StepDetails[]) => void` | Set the steps of the tour |
+| `setStep` | `(id: string) => void` | Set the current step of the tour |
+| `start` | `(id?: string) => void` | Start the tour at a specific step (or the first step if not provided) |
+| `isValidStep` | `(id: string) => boolean` | Check if a step is valid |
+| `isCurrentStep` | `(id: string) => boolean` | Check if a step is visible |
+| `next` | `VoidFunction` | Move to the next step |
+| `prev` | `VoidFunction` | Move to the previous step |
+| `getProgressText` | `() => string` | Returns the progress text |
+| `getProgressPercent` | `() => number` | Returns the progress percent |

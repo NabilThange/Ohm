@@ -1,0 +1,203 @@
+# Drawer
+
+A slide-out panel component for navigation or additional content.
+
+```tsx
+import { Portal } from '@ark-ui/react/portal'
+import { Button, CloseButton, Drawer } from '@/components/ui'
+
+export const App = () => {
+  return (
+    <Drawer.Root>
+      <Drawer.Trigger asChild>
+        <Button>Open Drawer</Button>
+      </Drawer.Trigger>
+      <Portal>
+        <Drawer.Backdrop />
+        <Drawer.Positioner>
+          <Drawer.Content>
+            <Drawer.CloseTrigger asChild>
+              <CloseButton />
+            </Drawer.CloseTrigger>
+            <Drawer.Header>
+              <Drawer.Title>Title</Drawer.Title>
+              <Drawer.Description>Description</Drawer.Description>
+            </Drawer.Header>
+            <Drawer.Body>{/* Content */}</Drawer.Body>
+            <Drawer.Footer gap="3">
+              <Button variant="outline">Cancel</Button>
+              <Button>Save</Button>
+            </Drawer.Footer>
+          </Drawer.Content>
+        </Drawer.Positioner>
+      </Portal>
+    </Drawer.Root>
+  )
+}
+
+```
+
+## Installation
+
+Use the Park UI CLI to add the Drawer component to your project:
+
+```bash
+npx @park-ui/cli add drawer
+```
+
+## Usage
+
+```tsx
+import { Drawer } from '@/components/ui'
+```
+
+```tsx
+<Drawer.Root>
+  <Drawer.Backdrop />
+  <Drawer.Trigger />
+  <Drawer.Positioner>
+    <Drawer.Content>
+      <Drawer.CloseTrigger />
+      <Drawer.Header>
+        <Drawer.Title />
+      </Drawer.Header>
+      <Drawer.Body />
+      <Drawer.Footer />
+    </Drawer.Content>
+  </Drawer.Positioner>
+</Drawer.Root>
+```
+
+## Examples
+
+### Sizes
+
+Use the `size` prop to change the size of the drawer.
+
+```tsx
+import { Portal } from '@ark-ui/react/portal'
+import { Wrap } from 'styled-system/jsx'
+import { Button, CloseButton, Drawer } from '@/components/ui'
+
+export const App = () => {
+  return (
+    <Wrap gap="4">
+      {(['xs', 'sm', 'md', 'lg', 'xl', 'full'] as const).map((size) => (
+        <Drawer.Root key={size} size={size}>
+          <Drawer.Trigger asChild>
+            <Button variant="outline">Open ({size})</Button>
+          </Drawer.Trigger>
+          <Portal>
+            <Drawer.Backdrop />
+            <Drawer.Positioner>
+              <Drawer.Content>
+                <Drawer.CloseTrigger asChild>
+                  <CloseButton />
+                </Drawer.CloseTrigger>
+                <Drawer.Header>
+                  <Drawer.Title>Title</Drawer.Title>
+                  <Drawer.Description>Description</Drawer.Description>
+                </Drawer.Header>
+                <Drawer.Body>{/* Content */}</Drawer.Body>
+                <Drawer.Footer>
+                  <Button>Save</Button>
+                </Drawer.Footer>
+              </Drawer.Content>
+            </Drawer.Positioner>
+          </Portal>
+        </Drawer.Root>
+      ))}
+    </Wrap>
+  )
+}
+
+```
+
+### Placements
+
+Use the `placement` prop to change the placement of the drawer.
+
+```tsx
+import { Portal } from '@ark-ui/react/portal'
+import { Wrap } from 'styled-system/jsx'
+import { Button, CloseButton, Drawer } from '@/components/ui'
+
+export const App = () => {
+  return (
+    <Wrap gap="4">
+      {(['bottom', 'top', 'start', 'end'] as const).map((placement) => (
+        <Drawer.Root key={placement} placement={placement}>
+          <Drawer.Trigger asChild>
+            <Button variant="outline">Open ({placement})</Button>
+          </Drawer.Trigger>
+          <Portal>
+            <Drawer.Backdrop />
+            <Drawer.Positioner>
+              <Drawer.Content>
+                <Drawer.CloseTrigger asChild>
+                  <CloseButton />
+                </Drawer.CloseTrigger>
+                <Drawer.Header>
+                  <Drawer.Title>Title</Drawer.Title>
+                  <Drawer.Description>Description</Drawer.Description>
+                </Drawer.Header>
+                <Drawer.Body>{/* Content */}</Drawer.Body>
+                <Drawer.Footer gap="3">
+                  <Button variant="outline">Cancel</Button>
+                  <Button>Save</Button>
+                </Drawer.Footer>
+              </Drawer.Content>
+            </Drawer.Positioner>
+          </Portal>
+        </Drawer.Root>
+      ))}
+    </Wrap>
+  )
+}
+
+```
+
+## Props
+
+| Prop | Default | Type |
+| --- | --- | --- |
+| `size` | 'sm' | `'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full'` |
+| `placement` | 'end' | `'start' | 'end' | 'top' | 'bottom'` |
+| `closeOnEscape` | true | `boolean`<br/>Whether to close the dialog when the escape key is pressed |
+| `closeOnInteractOutside` | true | `boolean`<br/>Whether to close the dialog when the outside is clicked |
+| `defaultOpen` | false | `boolean`<br/>The initial open state of the dialog when rendered.
+Use when you don't need to control the open state of the dialog. |
+| `lazyMount` | false | `boolean`<br/>Whether to enable lazy mounting |
+| `modal` | true | `boolean`<br/>Whether to prevent pointer interaction outside the element and hide all content below it |
+| `preventScroll` | true | `boolean`<br/>Whether to prevent scrolling behind the dialog when it's opened |
+| `role` | \dialog\ | `'dialog' | 'alertdialog'`<br/>The dialog's role |
+| `skipAnimationOnMount` | false | `boolean`<br/>Whether to allow the initial presence animation. |
+| `trapFocus` | true | `boolean`<br/>Whether to trap focus inside the dialog when it's opened |
+| `unmountOnExit` | false | `boolean`<br/>Whether to unmount on exit. |
+| `aria-label` | - | `string`<br/>Human readable label for the dialog, in event the dialog title is not rendered |
+| `finalFocusEl` | - | `() => MaybeElement`<br/>Element to receive focus when the dialog is closed |
+| `id` | - | `string`<br/>The unique identifier of the machine. |
+| `ids` | - | `Partial<{
+  trigger: string
+  positioner: string
+  backdrop: string
+  content: string
+  closeTrigger: string
+  title: string
+  description: string
+}>`<br/>The ids of the elements in the dialog. Useful for composition. |
+| `immediate` | - | `boolean`<br/>Whether to synchronize the present change immediately or defer it to the next frame |
+| `initialFocusEl` | - | `() => MaybeElement`<br/>Element to receive focus when the dialog is opened |
+| `onEscapeKeyDown` | - | `(event: KeyboardEvent) => void`<br/>Function called when the escape key is pressed |
+| `onExitComplete` | - | `VoidFunction`<br/>Function called when the animation ends in the closed state |
+| `onFocusOutside` | - | `(event: FocusOutsideEvent) => void`<br/>Function called when the focus is moved outside the component |
+| `onInteractOutside` | - | `(event: InteractOutsideEvent) => void`<br/>Function called when an interaction happens outside the component |
+| `onOpenChange` | - | `(details: OpenChangeDetails) => void`<br/>Function to call when the dialog's open state changes |
+| `onPointerDownOutside` | - | `(event: PointerDownOutsideEvent) => void`<br/>Function called when the pointer is pressed down outside the component |
+| `onRequestDismiss` | - | `(event: LayerDismissEvent) => void`<br/>Function called when this layer is closed due to a parent layer being closed |
+| `open` | - | `boolean`<br/>The controlled open state of the dialog |
+| `persistentElements` | - | `(() => Element | null)[]`<br/>Returns the persistent elements that:
+- should not have pointer-events disabled
+- should not trigger the dismiss event |
+| `present` | - | `boolean`<br/>Whether the node is present (controlled by the user) |
+| `restoreFocus` | - | `boolean`<br/>Whether to restore focus to the element that had focus before the dialog was opened |

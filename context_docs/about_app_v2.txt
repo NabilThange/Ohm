@@ -1,0 +1,248 @@
+=============================================================================
+                    OHM - HARDWARE LIFECYCLE ORCHESTRATOR
+                        Application Overview v2.0
+=============================================================================
+
+PROJECT NAME: Ohm
+TAGLINE: "The path of least resistance" - An intelligent workspace that bridges 
+         the gap between software and silicon.
+
+=============================================================================
+                          CURRENT APPLICATION STATE
+=============================================================================
+
+TECHNOLOGY STACK:
+- Frontend Framework: Next.js 15.1.6 with React 19
+- Language: TypeScript
+- Styling: Tailwind CSS with custom dark theme
+- UI Components: Radix UI (Dialog, Dropdown, Popover, Select)
+- Animations: Framer Motion
+- Code Highlighting: Prism.js
+- Content Rendering: React Markdown
+
+
+=============================================================================
+                          APPLICATION PURPOSE
+=============================================================================
+
+Ohm is an AI-powered IoT/Hardware Development IDE that helps makers, engineers,
+and hobbyists go from idea to working prototype. It automates the complex 
+process of:
+- Brainstorming on User's Idea.
+- Budget management [A slider which will be used as reference for parts selection]
+- Component selection and compatibility checking
+- Bill of Materials (BOM) generation
+- Wiring diagram creation
+- Code generation (Arduino C++, MicroPython)
+- Hardware troubleshooting
+
+The app eliminates the need for extensive datasheet diving and reduces the
+friction between having a hardware idea and actually building it.
+
+=============================================================================
+                          USER FLOW (EXPECTED)
+=============================================================================
+
+PHASE 1: LANDING & DISCOVERY (/)
+┌─────────────────────────────────────────────────────────────────────────┐
+│ User arrives at the landing page                                        │
+│ - Views hero section with value proposition                             │
+│ - Sees "How it Works" (3-step process)                                  │
+│ - Explores features showcase                                            │
+│ - Clicks "Try Now" or "Get Started" → routed to /tellme                │
+└─────────────────────────────────────────────────────────────────────────┘
+
+PHASE 2: PROJECT INITIATION (/build) [this has the text_area]
+┌─────────────────────────────────────────────────────────────────────────┐
+│ User lands on IoTCreator component                                      │
+│ - Sees initial prompt input                                             │
+│ - Can select project style/category                                     │
+│ - Submits project idea (e.g., "Build a radar detector")                │
+│ -   │
+└─────────────────────────────────────────────────────────────────────────┘
+
+PHASE 3: ARCHITECT - DISCOVERY (/build) [from now onwards we have ai_chat]
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Ohm greets user and starts guided conversation                          │
+│                                                                          │
+│ Q1 - GOAL:                                                              │
+│   - "What should this radar detect?"                                    │
+│   - Suggestions: Vehicle Speed, Pedestrian, Object Counting, etc.       │
+│   - User inputs goal → clicks "Next →"                                  │
+│                                                                          │
+│ Q2 - LOCATION:                                                          │
+│   - "Where will this be deployed?"                                      │
+│   - Suggestions: School Zone, Farm Road, Highway, Bike Lane             │
+│   - User inputs location → clicks "Next →"                              │
+│                                                                          │
+│ Q3 - BUDGET:                                                            │
+│   - "What's your target budget?"                                        │
+│   - Slider input: $10 - $100                                            │
+│   - User selects budget → clicks "⚙️ Generate Initial Logic"           │
+└─────────────────────────────────────────────────────────────────────────┘
+
+PHASE 4: ARCHITECT - REFINEMENT (/build)
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Ohm analyzes context and suggests enhancements                          │
+│ - Presents context-aware feature additions as pills                     │
+│ - Examples: "💡 High-brightness LED flash", "☀️ Solar charging"      │
+│ - User can select multiple features (optional)                          │
+│ - Clicks "🔒 Lock & Create Plan"                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+PHASE 5: PLAN LOCKED → BOM GENERATION (/build)
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Ohm displays locked mission statement                                   │
+│ - Hardware Mission summary                                              │
+│ - Success metrics                                                       │
+│ - Status: IDEA LOCKED                                                   │
+│ - Mission phase changes to "parts"                                      │
+│ - Artifacts sidebar becomes visible (Overview, BOM, Wiring, Code, Budget)│
+│ - User clicks "📦 Build BOM"                                            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+PHASE 6: BOM BUILDER (/build)
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Ohm synthesizes Bill of Materials                                       │
+│ - Selects compatible components (e.g., HB100 Radar, ESP32-CAM, OLED)   │
+│ - Performs compatibility checks (voltage, protocol, power)              │
+│ - Auto-adds fixing components (e.g., logic level shifters)             │
+│ - Displays warnings if incompatibilities exist                          │
+│ - Shows current budget vs target                                        │
+│ - User can view BOM in artifacts panel                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+PHASE 7: DIGITAL TWIN (Wiring) (/build)
+┌─────────────────────────────────────────────────────────────────────────┐
+│ User navigates to "Wiring" in artifacts sidebar                         │
+│ - Views interactive wiring diagram                                      │
+│ - See pin connections (from/to, voltage levels, wire colors)           │
+│ - Gets assembly notes and warnings                                      │
+└─────────────────────────────────────────────────────────────────────────┘
+
+PHASE 8: MODULAR CODE GENERATION (/build)
+┌─────────────────────────────────────────────────────────────────────────┐
+│ User navigates to "Code" in artifacts sidebar                           │
+│ - Views generated code in "Success Units" (modular approach)            │
+│ - Unit 1: Calibration script                                           │
+│ - Unit 2: Full implementation                                           │
+│ - Code includes:                                                        │
+│   • Pin definitions matching exact wiring                               │
+│   • Library includes                                                    │
+│   • Commented logic                                                     │
+│   • Best practices                                                      │
+│ - User can copy/download code snippets                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+PHASE 9: CONTINUOUS ITERATION (/build)
+┌─────────────────────────────────────────────────────────────────────────┐
+│ User can continue chatting with Ohm                                     │
+│ - Ask questions about components                                        │
+│ - Request changes (swap parts, adjust budget)                           │
+│ - Troubleshoot issues                                                   │
+│ - Get deployment guidance                                               │
+│ - Export project files                                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+=============================================================================
+                          KEY FEATURES (IMPLEMENTED)
+=============================================================================
+
+1. INTELLIGENT COMPONENT SELECTION
+   - Hardware database with specs (voltage, current, pins, dimensions)
+   - Protocol compatibility checking (I2C, SPI, UART)
+   - Automatic voltage level shifting detection
+   - Multi-supplier support (Amazon, Adafruit, AliExpress, SparkFun)
+
+2. CONVERSATIONAL UI
+   - Guided question flow (Goal → Location → Budget)
+   - Inline input types: textarea, slider, pills (multi-select)
+   - Suggestion chips for common use cases
+   - Progressive disclosure pattern
+
+3. COMPATIBILITY WARNINGS
+   - Real-time voltage mismatch detection
+   - Automatic component addition (e.g., logic level shifters)
+   - Visual warning indicators
+
+4. VISUAL WIRING DIAGRAMS
+   - Pin-to-pin connection mapping
+   - Color-coded wiring (power, ground, signal)
+   - Assembly notes and voltage labels
+
+5. CODE GENERATION
+   - Success Unit methodology (incremental testing)
+   - Platform-specific code (Arduino, ESP32, Pico)
+   - Library management
+   - Syntax highlighting (Prism.js)
+
+6. BUDGET TRACKING
+   - Real-time cost calculation
+   - Target vs actual budget visualization
+   - Budget range categories (low/standard/premium)
+
+7. MISSION STEPPER
+   - Visual progress tracking through phases:
+     • Ideation → Parts → Assembly → Code → Test → Deploy
+   - Completed phase indicators
+
+8. PROJECT ARTIFACTS PANEL
+   - Overview (workflow steps, description, notes)
+   - BOM (parts list with specs and pricing)
+   - Wiring (connection diagrams)
+   - Code (downloadable snippets)
+   - Budget (slider with optimization suggestions)
+
+=============================================================================
+                          DESIGN PHILOSOPHY
+=============================================================================
+
+
+
+TONE:
+- Professional yet approachable
+- Engineering-focused
+- Efficiency-driven ("path of least resistance")
+
+UX PATTERNS:
+- Progressive disclosure (show complexity only when needed)
+- Inline inputs (reduce context switching)
+- Action-oriented buttons (clear next steps)
+- Real-time feedback (warnings, compatibility checks)
+
+=============================================================================
+                          DATA MODELS
+=============================================================================
+
+PROJECT {
+  id, name, description, category
+  currentStep (workflow position)
+  budget { target, current, range }
+  parts[] (selected components)
+  connections[] (wiring map)
+  code[] (generated snippets)
+  workflow[] (step-by-step progress)
+  notes[], warnings[]
+}
+
+PART {
+  id, name, category
+  price, voltage, current, pins, dimensions
+  specs {} (technical details)
+  inStock, supplier
+  compatibilityWarnings[] (optional)
+}
+
+CONNECTION {
+  from (part id), fromPin
+  to (part id), toPin
+  voltage, wireColor
+  notes (optional)
+}
+
+CODE_SNIPPET {
+  filename, language
+  description (success unit purpose)
+  content (actual code)
+}
+

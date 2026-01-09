@@ -104,7 +104,7 @@ export default function Home() {
 
                         {/* Headlines + ShapeShifter */}
                         <div className="flex flex-col xl:flex-row items-center justify-between w-full max-w-6xl gap-12 mb-12">
-                            <div className="flex-1">
+                            <div className="flex-1 flex-shrink-0 relative z-10">
                                 {/* Headline */}
                                 <h1 className="text-5xl md:text-6xl font-mono font-bold text-left mb-6 text-pretty">
                                     Meet your first autonomous hardware engineer.
@@ -116,8 +116,8 @@ export default function Home() {
                                 </p>
                             </div>
 
-                            <div className="flex-1 w-full flex justify-center xl:justify-end">
-                                <ShapeShifter prefix="Automate" suffix="Everything" containerClassName="translate-x--50" />
+                            <div className="flex-1 w-full flex justify-center xl:justify-end xl:min-w-[500px] relative">
+                                <ShapeShifter prefix="Automate" suffix="Everything" containerClassName="xl:translate-x-[200px]" />
                             </div>
                         </div>
 

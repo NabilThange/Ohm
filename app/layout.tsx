@@ -4,6 +4,9 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'Ohm - Hardware Lifecycle Orchestrator',
   description: 'The path of least resistance. An intelligent workspace that bridges the gap between software and silicon.',
+  icons: {
+    icon: '/omega.png',
+  },
 }
 
 export default function RootLayout({

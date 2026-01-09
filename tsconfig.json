@@ -35,6 +35,11 @@
         ".next/types/**/*.ts"
     ],
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "Landing page",
+        "ai_chat",
+        "text_area",
+        "component_docs",
+        "context_docs"
     ]
 }

@@ -10,10 +10,10 @@ import type { ProjectContextData } from '@/lib/parsers'
 interface ContextDrawerProps {
     isOpen: boolean
     onClose: () => void
-    data: ProjectContextData | null // Renamed from contextData
+    contextData: ProjectContextData | null
 }
 
-export default function ContextDrawer({ isOpen, onClose, data }: ContextDrawerProps) {
+export default function ContextDrawer({ isOpen, onClose, contextData }: ContextDrawerProps) {
     const [expandedFolders, setExpandedFolders] = useState<string[]>(['root'])
     const [selectedFile, setSelectedFile] = useState<string | null>('context')
 
@@ -27,22 +27,22 @@ export default function ContextDrawer({ isOpen, onClose, data }: ContextDrawerPr
                 id: 'context',
                 name: 'Project Context',
                 type: 'file' as const,
-                content: data?.context || '' // updated usage
+                content: contextData?.context || ''
             },
             {
                 id: 'mvp',
                 name: 'MVP',
                 type: 'file' as const,
-                content: data?.mvp || '' // updated usage
+                content: contextData?.mvp || ''
             },
             {
                 id: 'prd',
                 name: 'PRD',
                 type: 'file' as const,
-                content: data?.prd || '' // updated usage
+                content: contextData?.prd || ''
             }
         ]
-    }), [data])
+    }), [contextData])
 
     const activeContent = useMemo(() => {
         if (!selectedFile) return ''
@@ -156,7 +156,7 @@ export default function ContextDrawer({ isOpen, onClose, data }: ContextDrawerPr
                                                 </ReactMarkdown>
                                             ) : (
                                                 <span className="text-muted-foreground italic">
-                                                    {data ? "File is empty" : "Waiting for generated content. Type 'lock the plan' to generate."}
+                                                    {contextData ? "File is empty" : "Waiting for generated content. Type 'lock the plan' to generate."}
                                                 </span>
                                             )}
                                         </div>

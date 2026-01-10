@@ -6,7 +6,7 @@ import { AssemblyLineOrchestrator } from "@/lib/agents/orchestrator";
 
 export async function POST(req: NextRequest) {
     try {
-        const { message, chatId } = await req.json();
+        const { message, chatId, userContext } = await req.json();
 
         // Allow "default" or missing chatId for checking status, but for real chat we need it.
         // If no chatId, we can't persist history easily.
@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Instantiate orchestrator with the ID
-        const orchestrator = new AssemblyLineOrchestrator(effectiveChatId);
+        // Instantiate orchestrator with the ID and userContext
+        const orchestrator = new AssemblyLineOrchestrator(effectiveChatId, userContext);
 
         // Run conversational agent (Claude Opus 4.5)
         // This will now persist messages to DB if chatId is valid (UUID)

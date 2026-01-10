@@ -290,7 +290,7 @@ export default function Sidebar({
                 {activeTool === 'bom' && <BOMDrawer isOpen={true} onClose={() => setActiveTool(null)} bomData={bomData} />}
                 {activeTool === 'wiring' && <WiringDrawer isOpen={true} onClose={() => setActiveTool(null)} />}
                 {activeTool === 'code' && <CodeDrawer isOpen={true} onClose={() => setActiveTool(null)} codeData={codeData} />}
-                {activeTool === 'context' && <ContextDrawer isOpen={true} onClose={() => setActiveTool(null)} data={contextData} />}
+                {activeTool === 'context' && <ContextDrawer isOpen={true} onClose={() => setActiveTool(null)} contextData={contextData} />}
             </>
         )
     }
@@ -580,7 +580,7 @@ export default function Sidebar({
             {activeTool === 'bom' && <BOMDrawer isOpen={true} onClose={() => setActiveTool(null)} bomData={bomData} />}
             {activeTool === 'wiring' && <WiringDrawer isOpen={true} onClose={() => setActiveTool(null)} />}
             {activeTool === 'code' && <CodeDrawer isOpen={true} onClose={() => setActiveTool(null)} codeData={codeData} />}
-            {activeTool === 'context' && <ContextDrawer isOpen={true} onClose={() => setActiveTool(null)} data={contextData} />}
+            {activeTool === 'context' && <ContextDrawer isOpen={true} onClose={() => setActiveTool(null)} contextData={contextData} />}
         </>
     )
 }

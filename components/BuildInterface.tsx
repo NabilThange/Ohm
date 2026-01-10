@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { flushSync } from 'react-dom'
 import {
     ArrowLeft,
     Send,
@@ -166,7 +167,19 @@ export default function BuildInterface({ initialPrompt, projectStyle, onBack }: 
     const handleSend = () => {
         if (!input.trim() || isThinking) return
 
-        const currentInput = input
+        // Capture input value before clearing
+        const currentInput = input.trim()
+
+        // Force immediate synchronous DOM update
+        flushSync(() => {
+            setInput('')
+        })
+
+        // Ensure the textarea DOM element is also cleared (fallback)
+        if (inputRef.current) {
+            inputRef.current.value = ''
+        }
+
         // Add user message
         const userMessage: Message = {
             id: Date.now().toString(),
@@ -175,7 +188,6 @@ export default function BuildInterface({ initialPrompt, projectStyle, onBack }: 
             timestamp: new Date(),
         }
 
-        setInput('')
         setIsThinking(true)
         setMessages(prev => [...prev, userMessage])
 

@@ -1,8 +1,8 @@
 'use client'
 
-import { Dialog as Drawer } from '@ark-ui/react'
+import { Splitter } from '@ark-ui/react/splitter'
 import { X, ChevronRight, ChevronDown, FileText, Folder } from 'lucide-react'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { ProjectContextData } from '@/lib/parsers'
@@ -101,23 +101,64 @@ export default function ContextDrawer({ isOpen, onClose, contextData }: ContextD
         )
     }
 
+    // Close on Escape key
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isOpen) {
+                onClose()
+            }
+        }
+        window.addEventListener('keydown', handleEscape)
+        return () => window.removeEventListener('keydown', handleEscape)
+    }, [isOpen, onClose])
+
+    if (!isOpen) return null
+
     return (
-        <Drawer.Root open={!!isOpen} onOpenChange={(details: { open: boolean }) => !details.open && onClose()}>
-            <Drawer.Backdrop className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-            <Drawer.Positioner className="fixed inset-0 z-[70] flex justify-end">
-                {/* Wider drawer with max-w-2xl instead of max-w-md */}
-                <Drawer.Content className="h-full w-full max-w-2xl bg-background border-l border-border shadow-2xl flex flex-col gap-0 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right duration-300">
-                    {/* Header */}
-                    <div className="flex items-center justify-between border-b border-border px-6 py-4">
-                        <div className="space-y-1">
-                            <Drawer.Title className="text-lg font-semibold leading-none">
-                                Project Context
-                            </Drawer.Title>
-                            <Drawer.Description className="text-sm text-muted-foreground">
-                                Manage your project documentation and specifications
-                            </Drawer.Description>
-                        </div>
-                        <Drawer.CloseTrigger asChild>
+        <>
+            {/* Backdrop */}
+            <div
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] animate-in fade-in duration-200"
+                onClick={onClose}
+            />
+
+            {/* Resizable Drawer using Splitter */}
+            <div className="fixed inset-0 z-[70] pointer-events-none">
+                <Splitter.Root
+                    className="h-full w-full pointer-events-auto"
+                    panels={[
+                        { id: 'main', minSize: 30 },
+                        { id: 'drawer', minSize: 30, maxSize: 70 }
+                    ]}
+                    defaultSize={[40, 60]}
+                >
+                    {/* Main content area (invisible, just for spacing) */}
+                    <Splitter.Panel id="main" className="pointer-events-none" />
+
+                    {/* Resize Trigger - Left edge of drawer */}
+                    <Splitter.ResizeTrigger
+                        id="main:drawer"
+                        aria-label="Resize drawer"
+                        className="w-1 bg-border hover:bg-primary transition-colors cursor-col-resize relative pointer-events-auto"
+                    >
+                        <div className="absolute inset-y-0 -left-2 -right-2" />
+                    </Splitter.ResizeTrigger>
+
+                    {/* Drawer Panel */}
+                    <Splitter.Panel
+                        id="drawer"
+                        className="h-full bg-background border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 pointer-events-auto"
+                    >
+                        {/* Header */}
+                        <div className="flex items-center justify-between border-b border-border px-6 py-4 shrink-0">
+                            <div className="space-y-1">
+                                <h2 className="text-lg font-semibold leading-none">
+                                    Project Context
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
+                                    Manage your project documentation and specifications
+                                </p>
+                            </div>
                             <button
                                 onClick={onClose}
                                 className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
@@ -125,63 +166,78 @@ export default function ContextDrawer({ isOpen, onClose, contextData }: ContextD
                                 <X className="w-4 h-4" />
                                 <span className="sr-only">Close</span>
                             </button>
-                        </Drawer.CloseTrigger>
-                    </div>
-
-                    {/* Split layout: Tree on left, content on right */}
-                    <div className="flex-1 flex overflow-hidden">
-                        {/* Tree View - Left Side */}
-                        <div className="w-64 border-r border-border overflow-y-auto p-4 bg-muted/10">
-                            <div className="text-xs font-semibold text-muted-foreground mb-2 px-3">
-                                FILES
-                            </div>
-                            <TreeNode node={treeData} />
                         </div>
 
-                        {/* Content Editor - Right Side */}
-                        <div className="flex-1 overflow-y-auto p-6">
-                            {selectedFile ? (
-                                <div className="space-y-4 h-full flex flex-col">
-                                    <div className="flex items-center gap-2 pb-4 border-b border-border">
-                                        <FileText className="w-5 h-5 text-primary" />
-                                        <h3 className="text-lg font-semibold">
-                                            {treeData.children.find(f => f.id === selectedFile)?.name}
-                                        </h3>
-                                    </div>
-                                    <div className="flex-1 min-h-0 relative overflow-y-auto bg-background rounded-lg border border-border">
-                                        <div className="p-6 prose prose-sm dark:prose-invert max-w-none prose-pre:bg-muted prose-pre:text-foreground">
-                                            {activeContent ? (
-                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                                    {activeContent}
-                                                </ReactMarkdown>
-                                            ) : (
-                                                <span className="text-muted-foreground italic">
-                                                    {contextData ? "File is empty" : "Waiting for generated content. Type 'lock the plan' to generate."}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                    {/* Read-only mode for now as this is generated data */}
+                        {/* Nested Splitter for Tree and Content */}
+                        <Splitter.Root
+                            className="flex-1 flex overflow-hidden"
+                            panels={[
+                                { id: 'tree', minSize: 15 },
+                                { id: 'content', minSize: 40 }
+                            ]}
+                            defaultSize={[25, 75]}
+                        >
+                            {/* Tree View Panel */}
+                            <Splitter.Panel id="tree" className="overflow-y-auto p-4 bg-muted/10">
+                                <div className="text-xs font-semibold text-muted-foreground mb-2 px-3">
+                                    FILES
                                 </div>
-                            ) : (
-                                <div className="h-full flex items-center justify-center text-center p-8">
-                                    <div className="space-y-3">
-                                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent">
-                                            <FileText className="w-8 h-8 text-muted-foreground" />
+                                <TreeNode node={treeData} />
+                            </Splitter.Panel>
+
+                            {/* Resize Trigger between Tree and Content */}
+                            <Splitter.ResizeTrigger
+                                id="tree:content"
+                                aria-label="Resize panels"
+                                className="w-1 bg-border hover:bg-primary/50 transition-colors cursor-col-resize relative group"
+                            >
+                                <div className="absolute inset-y-0 -left-1 -right-1" />
+                            </Splitter.ResizeTrigger>
+
+                            {/* Content Panel */}
+                            <Splitter.Panel id="content" className="overflow-y-auto p-6">
+                                {selectedFile ? (
+                                    <div className="space-y-4 h-full flex flex-col">
+                                        <div className="flex items-center gap-2 pb-4 border-b border-border">
+                                            <FileText className="w-5 h-5 text-primary" />
+                                            <h3 className="text-lg font-semibold">
+                                                {treeData.children.find(f => f.id === selectedFile)?.name}
+                                            </h3>
                                         </div>
-                                        <div>
-                                            <h3 className="text-lg font-semibold mb-1">No file selected</h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                Select a file from the tree to view contents
-                                            </p>
+                                        <div className="flex-1 min-h-0 relative overflow-y-auto bg-background rounded-lg border border-border">
+                                            <div className="p-6 prose prose-sm dark:prose-invert max-w-none prose-pre:bg-muted prose-pre:text-foreground">
+                                                {activeContent && activeContent.trim() ? (
+                                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                        {activeContent}
+                                                    </ReactMarkdown>
+                                                ) : (
+                                                    <span className="text-muted-foreground italic">
+                                                        Waiting for generated content. The AI will create this document during the conversation.
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </Drawer.Content>
-            </Drawer.Positioner>
-        </Drawer.Root>
+                                ) : (
+                                    <div className="h-full flex items-center justify-center text-center p-8">
+                                        <div className="space-y-3">
+                                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent">
+                                                <FileText className="w-8 h-8 text-muted-foreground" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-semibold mb-1">No file selected</h3>
+                                                <p className="text-sm text-muted-foreground">
+                                                    Select a file from the tree to view contents
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </Splitter.Panel>
+                        </Splitter.Root>
+                    </Splitter.Panel>
+                </Splitter.Root>
+            </div>
+        </>
     )
 }

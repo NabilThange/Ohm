@@ -1,7 +1,31 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Sun, Moon } from "lucide-react";
 
 export default function ThemeToggle({ theme, setTheme }) {
+    const [mounted, setMounted] = useState(false);
+
+    // Only render theme-dependent content after client-side mount
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // During SSR and initial hydration, render a neutral placeholder
+    if (!mounted) {
+        return (
+            <button
+                className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-2.5 py-1.5 text-sm hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800"
+                aria-label="Toggle theme"
+                title="Toggle theme"
+                disabled
+            >
+                {/* Neutral placeholder - no icon */}
+                <div className="h-4 w-4" />
+                <span className="hidden sm:inline">Theme</span>
+            </button>
+        );
+    }
+
+    // After mount, render the actual theme toggle
     return (
         <button
             className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-2.5 py-1.5 text-sm hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800"

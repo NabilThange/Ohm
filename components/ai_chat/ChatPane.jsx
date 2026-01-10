@@ -62,13 +62,16 @@ Reflect any changes made during the chat in these documents.`;
             if (!chatId) {
                 // Create new chat first
                 const newChat = await ChatService.createChat("00000000-0000-0000-0000-000000000000", content.slice(0, 30))
-                onChatCreated?.(newChat.id)
 
+                // Send initial message BEFORE notifying parent, to avoid aborting fetch on navigation
                 await fetch('/api/agents/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: finalContent, chatId: newChat.id })
                 })
+
+                // Now update parent-selected chat (may trigger router.push in AIAssistantUI)
+                onChatCreated?.(newChat.id)
             } else {
                 await sendMessage(finalContent)
             }
@@ -114,21 +117,21 @@ Reflect any changes made during the chat in these documents.`;
 
                     const showFakeInitial = initialPrompt && initialPrompt !== "New Project" && !hasInitial;
 
-                    if (messages.length === 0 && !showFakeInitial) {
-                        return (
-                            <div className="rounded-xl border border-dashed border-zinc-300 p-6 text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-                                {isLoading ? "Loading history..." : "No messages yet. Say hello to start."}
-                            </div>
-                        )
-                    }
-
+                    // Always render the message container - never unmount
                     return (
                         <>
+                            {messages.length === 0 && !showFakeInitial && (
+                                <div className="rounded-xl border border-dashed border-zinc-300 p-6 text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+                                    {isLoading ? "Loading history..." : "No messages yet. Say hello to start."}
+                                </div>
+                            )}
+                            
                             {showFakeInitial && (
                                 <div className="space-y-2 fade-in">
                                     <Message role="user">{initialPrompt}</Message>
                                 </div>
                             )}
+                            
                             {messages.map((m) => (
                                 <div key={m.id} className="space-y-2">
                                     <Message role={m.role}>

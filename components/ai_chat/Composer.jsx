@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState, forwardRef, useImperativeHandle, useEffect } from "react"
+import { flushSync } from "react-dom"
 import { Send, Loader2, Plus, Mic, X } from "lucide-react"
 import ComposerActionsPopover from "./ComposerActionsPopover"
 import { cn as cls } from "@/lib/utils"
@@ -83,11 +84,29 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
 
     async function handleSend() {
         if (!value.trim() || sending) return
-        setSending(true)
-        try {
-            await onSend?.(value)
+
+        // Capture the message before clearing
+        const messageToSend = value.trim()
+
+        // Clear input IMMEDIATELY for better UX (before async operations)
+        flushSync(() => {
             setValue("")
+        })
+
+        // Ensure the textarea DOM element is also cleared (fallback)
+        if (inputRef.current) {
+            inputRef.current.value = ''
+        }
+
+        setSending(true)
+
+        try {
+            // Call onSend AFTER clearing the input
+            await onSend?.(messageToSend)
             inputRef.current?.focus()
+        } catch (err) {
+            console.error('Composer handleSend error:', err)
+            // Don't restore text on error - user can use undo or retype
         } finally {
             setSending(false)
         }

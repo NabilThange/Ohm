@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { AGENTS, type AgentType } from "./config";
+import { AGENTS, type AgentType, getContextualSystemPrompt, type UserContext } from "./config";
 
 /**
  * BYTEZ Client Singleton
@@ -62,6 +62,7 @@ export class AgentRunner {
         options?: {
             onStream?: (chunk: string) => void;
             stream?: boolean;
+            userContext?: UserContext;
         }
     ): Promise<string> {
         const agent = AGENTS[agentType];
@@ -70,9 +71,14 @@ export class AgentRunner {
             throw new Error(`Unknown agent type: ${agentType}`);
         }
 
+        // Apply user context to system prompt if available
+        const systemPrompt = options?.userContext
+            ? getContextualSystemPrompt(agent.systemPrompt, options.userContext)
+            : agent.systemPrompt;
+
         // Prepend system prompt
         const fullMessages = [
-            { role: "system" as const, content: agent.systemPrompt },
+            { role: "system" as const, content: systemPrompt },
             ...messages
         ];
 
@@ -227,10 +233,12 @@ import { ComponentService } from "@/lib/db/components";
 export class AssemblyLineOrchestrator {
     private runner: AgentRunner;
     private chatId: string | null = null;
+    private userContext?: UserContext;
 
-    constructor(chatId?: string) {
+    constructor(chatId?: string, userContext?: UserContext) {
         this.runner = new AgentRunner();
         this.chatId = chatId || null;
+        this.userContext = userContext;
     }
 
     private async getHistory() {
@@ -265,11 +273,11 @@ export class AssemblyLineOrchestrator {
         // 2. Get History (inclusive of new message)
         const history = await this.getHistory();
 
-        // 3. Run Agent
+        // 3. Run Agent with user context
         const response = await this.runner.runAgent(
             "conversational",
             history,
-            { stream: true, onStream }
+            { stream: true, onStream, userContext: this.userContext }
         );
 
         // 4. Persist Assistant Response

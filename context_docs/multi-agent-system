@@ -89,3 +89,4 @@ function getSystemPrompt(phase: string, context: any) {
 * **Flow:** Idea  Validation (Voltage Check)  Code  Visual Check.
 * **Multi-Agent:** **YES.** Use the approach above.
 * **Why it wins:** It proves you aren't just sending everything to a generic ChatGPT prompt. You are **orchestrating** a workflow, which is exactly what the "Hardware Lifecycle Orchestrator" name promises.
+

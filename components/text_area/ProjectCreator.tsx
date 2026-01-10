@@ -9,12 +9,14 @@ import MeshGradient from "./mesh-gradient"
 import FaultyTerminal from "../mage-ui/faulty-terminal"
 
 interface ProjectCreatorProps {
-    onSubmit: (prompt: string, style: string) => void
+    onSubmit: (prompt: string, style: string, userLevel: string, projectComplexity: string) => void
 }
 
 export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
     const [prompt, setPrompt] = useState("")
     const [selectedStyle, setSelectedStyle] = useState("")
+    const [userLevel, setUserLevel] = useState("")
+    const [projectComplexity, setProjectComplexity] = useState("")
     const promptRef = useRef<HTMLTextAreaElement>(null)
     const [showHowItWorks, setShowHowItWorks] = useState(false)
 
@@ -32,9 +34,21 @@ export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
         { value: "embedded", label: "Embedded", description: "Microcontrollers, RTOS, bare metal" },
     ]
 
+    const userLevels = [
+        { value: "beginner", label: "Beginner", description: "New to hardware/electronics" },
+        { value: "intermediate", label: "Intermediate", description: "Some experience with projects" },
+        { value: "advanced", label: "Advanced", description: "Experienced engineer" },
+    ]
+
+    const projectComplexities = [
+        { value: "simple", label: "Simple", description: "Basic functionality, few components" },
+        { value: "moderate", label: "Moderate", description: "Multiple features, standard complexity" },
+        { value: "complex", label: "Complex", description: "Advanced features, many components" },
+    ]
+
     const handleSubmit = () => {
-        if (prompt.trim() && selectedStyle) {
-            onSubmit(prompt, selectedStyle)
+        if (prompt.trim() && selectedStyle && userLevel && projectComplexity) {
+            onSubmit(prompt, selectedStyle, userLevel, projectComplexity)
         }
     }
 
@@ -108,10 +122,46 @@ export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
                         </div>
                     </div>
 
+                    <div className="space-y-3">
+                        <p className="text-xs md:text-sm text-zinc-300 font-semibold tracking-wide uppercase">Your Experience Level</p>
+                        <div className="grid grid-cols-3 gap-2">
+                            {userLevels.map((level) => (
+                                <button
+                                    key={level.value}
+                                    onClick={() => setUserLevel(level.value)}
+                                    className={`group px-2 sm:px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm rounded-sm transition-all duration-300 ease-out cursor-pointer border ${userLevel === level.value
+                                        ? "text-white bg-[#0071e3] border-[#0071e3] shadow-md shadow-[#0071e3]/20"
+                                        : "text-zinc-300 bg-black border-zinc-700 hover:text-white hover:border-zinc-500 hover:bg-zinc-900"
+                                        }`}
+                                >
+                                    <div className="font-bold text-xs md:text-sm tracking-wide leading-tight">{level.label}</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <p className="text-xs md:text-sm text-zinc-300 font-semibold tracking-wide uppercase">Project Complexity</p>
+                        <div className="grid grid-cols-3 gap-2">
+                            {projectComplexities.map((complexity) => (
+                                <button
+                                    key={complexity.value}
+                                    onClick={() => setProjectComplexity(complexity.value)}
+                                    className={`group px-2 sm:px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm rounded-sm transition-all duration-300 ease-out cursor-pointer border ${projectComplexity === complexity.value
+                                        ? "text-white bg-[#0071e3] border-[#0071e3] shadow-md shadow-[#0071e3]/20"
+                                        : "text-zinc-300 bg-black border-zinc-700 hover:text-white hover:border-zinc-500 hover:bg-zinc-900"
+                                        }`}
+                                >
+                                    <div className="font-bold text-xs md:text-sm tracking-wide leading-tight">{complexity.label}</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="flex flex-col sm:flex-row justify-center items-center gap-3 pt-4 md:pt-6">
                         <Button
                             onClick={handleSubmit}
-                            disabled={!prompt.trim() || !selectedStyle}
+                            disabled={!prompt.trim() || !selectedStyle || !userLevel || !projectComplexity}
                             className="w-full sm:w-auto bg-[#0071e3] hover:bg-[#0077ed] text-white transition-all duration-200 h-11 md:h-12 text-sm md:text-base rounded-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-200 px-10 md:px-12"
                         >
                             Start Building

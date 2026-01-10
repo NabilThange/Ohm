@@ -22,19 +22,29 @@ import ContextDrawer from "@/components/tools/ContextDrawer"
 // Default/System user ID for MVP
 const DEFAULT_USER_ID = "00000000-0000-0000-0000-000000000000"
 
-export default function AIAssistantUI({ initialPrompt, initialChatId }) {
+export default function AIAssistantUI({ initialPrompt, initialChatId, userContext }) {
     const router = useRouter()
 
-    // Theme Management
-    const [theme, setTheme] = useState(() => {
-        const saved = typeof window !== "undefined" && localStorage.getItem("theme")
-        if (saved) return saved
-        if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)
-            return "dark"
-        return "light"
-    })
+    // Theme Management - Initialize to null to avoid hydration mismatch
+    const [theme, setTheme] = useState(null)
+
+    // Initialize theme on client side only
+    useEffect(() => {
+        if (theme !== null) return // Already initialized
+
+        const saved = localStorage.getItem("theme")
+        if (saved) {
+            setTheme(saved)
+        } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            setTheme("dark")
+        } else {
+            setTheme("light")
+        }
+    }, [])
 
     useEffect(() => {
+        if (!theme) return // Wait for theme to be initialized
+
         try {
             if (theme === "dark") document.documentElement.classList.add("dark")
             else document.documentElement.classList.remove("dark")
@@ -82,8 +92,8 @@ export default function AIAssistantUI({ initialPrompt, initialChatId }) {
     const [query, setQuery] = useState("")
     const searchRef = useRef(null)
 
-    // Lifted useChat Hook
-    const { messages, isLoading: chatLoading, sendMessage } = useChat(selectedId)
+    // Lifted useChat Hook - pass userContext
+    const { messages, isLoading: chatLoading, sendMessage } = useChat(selectedId, userContext)
 
     // Artifact Parsing State
     const [bomData, setBomData] = useState(null)
@@ -195,11 +205,12 @@ export default function AIAssistantUI({ initialPrompt, initialChatId }) {
     // Initial Prompt Handling
     const hasInitializedPrompt = useRef(false)
     useEffect(() => {
-        if (initialPrompt && !hasInitializedPrompt.current && !initialChatId) {
+        if (initialPrompt && !hasInitializedPrompt.current && !initialChatId && !selectedId) {
             hasInitializedPrompt.current = true
+            // Create chat immediately on mount with initialPrompt
             handleCreateNewChat(initialPrompt)
         }
-    }, [initialPrompt, initialChatId])
+    }, [initialPrompt, initialChatId, selectedId])
 
     useEffect(() => {
         if (initialPrompt || initialChatId) return
@@ -231,20 +242,38 @@ export default function AIAssistantUI({ initialPrompt, initialChatId }) {
     async function handleCreateNewChat(promptText = "New Project") {
         try {
             const newChat = await ChatService.createChat(DEFAULT_USER_ID, promptText.slice(0, 30))
-            router.push(`/build/${newChat.id}`)
+
+            // Update local state immediately so useChat can start loading
             setSelectedId(newChat.id)
             setSidebarOpen(false)
 
+            // Send initial message before navigating, to avoid aborting the fetch
             if (promptText && promptText !== "New Project") {
-                await fetch('/api/agents/chat', {
+                const res = await fetch('/api/agents/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: promptText, chatId: newChat.id })
+                    body: JSON.stringify({
+                        message: promptText,
+                        chatId: newChat.id,
+                        userContext: userContext
+                    })
                 })
+
+                if (!res.ok) {
+                    throw new Error(`API error: ${res.status}`)
+                }
+
+                const data = await res.json()
+                if (data.error) {
+                    throw new Error(data.error)
+                }
             }
+
+            // After the message has been accepted, update the URL for deep-linking
+            router.push(`/build/${newChat.id}`)
         } catch (e) {
-            console.error("Failed to create chat", e)
-            alert("Could not create chat. See console.")
+            console.error("Failed to create chat or send initial message:", e)
+            alert(`Could not create chat: ${e.message}`)
         }
     }
 
@@ -322,23 +351,18 @@ export default function AIAssistantUI({ initialPrompt, initialChatId }) {
                     <main className="relative flex min-w-0 flex-1 flex-col h-full">
                         <Header createNewChat={() => router.push('/build')} sidebarCollapsed={sidebarCollapsed} setSidebarOpen={setSidebarOpen} />
 
-                        {selectedId || initialPrompt ? (
-                            <ChatPane
-                                ref={composerRef}
-                                chatId={selectedId}
-                                onChatCreated={handleSelectChat}
-                                initialPrompt={initialPrompt}
-                                chat={selectedChat}
-                                // Pass messages explicitly
-                                messages={messages}
-                                isLoading={chatLoading}
-                                sendMessage={sendMessage}
-                            />
-                        ) : (
-                            <div className="flex flex-1 items-center justify-center text-zinc-500">
-                                Select a project or create a new one.
-                            </div>
-                        )}
+                        {/* Always render ChatPane; internal logic handles empty state */}
+                        <ChatPane
+                            ref={composerRef}
+                            chatId={selectedId}
+                            onChatCreated={handleSelectChat}
+                            initialPrompt={initialPrompt}
+                            chat={selectedChat}
+                            // Pass messages explicitly
+                            messages={messages}
+                            isLoading={chatLoading}
+                            sendMessage={sendMessage}
+                        />
 
                     </main>
                 </div>

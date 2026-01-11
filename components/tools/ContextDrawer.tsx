@@ -125,7 +125,7 @@ export default function ContextDrawer({ isOpen, onClose, contextData }: ContextD
             {/* Resizable Drawer using Splitter */}
             <div className="fixed inset-0 z-[70] pointer-events-none">
                 <Splitter.Root
-                    className="h-full w-full pointer-events-auto"
+                    className="h-full w-full pointer-events-none"
                     panels={[
                         { id: 'main', minSize: 30 },
                         { id: 'drawer', minSize: 30, maxSize: 70 }

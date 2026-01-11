@@ -2,23 +2,31 @@ import { cn as cls } from "@/lib/utils"
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
+import { parseMessageContent, splitMessageIntoSegments } from "@/lib/parsers"
+import BOMCard from "./BOMCard"
+import { CodeBlock } from "@/components/ui/code-block"
 
 export default function Message({ role, children }) {
     const isUser = role === "user"
 
-    // Convert children to string for ReactMarkdown
-    const content = typeof children === 'string' ? children : String(children || '')
+    // Convert children to string for parsing
+    const rawContent = typeof children === 'string' ? children : String(children || '')
+
+    // For user messages, we just render the text. 
+    // For AI messages, we handle parsing inside the render method to support sequential segments.
+    const cleanedText = isUser ? rawContent : null;
+
 
     return (
-        <div className={cls("flex gap-3", isUser ? "justify-end" : "justify-start")}>
+        <div className={cls("flex gap-3 mb-4", isUser ? "justify-end" : "justify-start")}>
             {!isUser && (
-                <div className="mt-0.5 grid h-7 w-7 place-items-center rounded-full bg-zinc-900 text-[10px] font-bold text-white dark:bg-white dark:text-zinc-900">
+                <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white dark:bg-white dark:text-zinc-900">
                     Ω
                 </div>
             )}
             <div
                 className={cls(
-                    "max-w-[80%] rounded-2xl px-3 py-2 text-sm",
+                    "max-w-[85%] rounded-2xl px-3 py-2 text-sm",
                     isUser
                         ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800/60 dark:text-zinc-100 shadow-sm"
                         : "bg-transparent text-zinc-900 dark:text-zinc-100",
@@ -26,65 +34,103 @@ export default function Message({ role, children }) {
             >
                 {isUser ? (
                     // User messages: render as plain text
-                    content
+                    cleanedText
                 ) : (
-                    // AI messages: render with Markdown
-                    <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:mt-3 prose-headings:mb-2 prose-p:my-1.5 prose-pre:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5">
-                        <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            rehypePlugins={[rehypeRaw]}
-                            components={{
-                                // Customize code blocks
-                                code({ node, inline, className, children, ...props }) {
-                                    return inline ? (
-                                        <code
-                                            className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono text-xs"
-                                            {...props}
-                                        >
-                                            {children}
-                                        </code>
-                                    ) : (
-                                        <code
-                                            className="block px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono text-xs overflow-x-auto"
-                                            {...props}
-                                        >
-                                            {children}
-                                        </code>
-                                    )
-                                },
-                                // Customize links
-                                a({ node, children, ...props }) {
-                                    return (
-                                        <a
-                                            className="text-blue-600 dark:text-blue-400 hover:underline"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            {...props}
-                                        >
-                                            {children}
-                                        </a>
-                                    )
-                                },
-                                // Customize blockquotes
-                                blockquote({ node, children, ...props }) {
-                                    return (
-                                        <blockquote
-                                            className="border-l-4 border-zinc-300 dark:border-zinc-700 pl-3 italic my-2"
-                                            {...props}
-                                        >
-                                            {children}
-                                        </blockquote>
-                                    )
-                                },
-                            }}
-                        >
-                            {content}
-                        </ReactMarkdown>
+                    // AI messages: render with Markdown + BOM Card (Sequential Rendering)
+                    <div className="flex flex-col gap-2">
+                        {(() => {
+                            // 1. First parse artifacts (BOM, Context) and get cleaned text (removes XML containers)
+                            // This preserves Markdown code blocks in the text for the next step.
+                            const { cleanedText: textWithCode, bomData, isStreamingBOM } = parseMessageContent(rawContent);
+
+                            // 2. Split the text into segments (Text vs Code CodeBlocks)
+                            const segments = splitMessageIntoSegments(textWithCode);
+
+                            return (
+                                <>
+                                    {segments.map((segment, index) => {
+                                        if (segment.type === 'text') {
+                                            return (
+                                                <div key={index} className="prose prose-sm dark:prose-invert max-w-none prose-headings:mt-3 prose-headings:mb-2 prose-p:my-1.5 prose-pre:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5">
+                                                    <ReactMarkdown
+                                                        remarkPlugins={[remarkGfm]}
+                                                        rehypePlugins={[rehypeRaw]}
+                                                        components={{
+                                                            // Customize code blocks - inline only (since block code is handled by segment.type === 'code')
+                                                            code({ node, inline, className, children, ...props }) {
+                                                                // If it's a block code block that somehow survived slicing (shouldn't happen if regex matches), 
+                                                                // or just inline code.
+                                                                // Since splitMessageIntoSegments catches ```...```, mostly this will be inline `code`.
+                                                                return (
+                                                                    <code
+                                                                        className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono text-xs"
+                                                                        {...props}
+                                                                    >
+                                                                        {children}
+                                                                    </code>
+                                                                )
+                                                            },
+                                                            a({ node, children, ...props }) {
+                                                                return (
+                                                                    <a
+                                                                        className="text-blue-600 dark:text-blue-400 hover:underline"
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        {...props}
+                                                                    >
+                                                                        {children}
+                                                                    </a>
+                                                                )
+                                                            },
+                                                        }}
+                                                    >
+                                                        {segment.content}
+                                                    </ReactMarkdown>
+                                                </div>
+                                            );
+                                        } else if (segment.type === 'code' && segment.data) {
+                                            return (
+                                                <CodeBlock
+                                                    key={index}
+                                                    files={[segment.data]}
+                                                    projectName="Generated Code"
+                                                    onViewAll={() => {
+                                                        window.dispatchEvent(new CustomEvent('open-code-drawer', {
+                                                            detail: { files: [segment.data], projectName: "Generated Code" }
+                                                        }));
+                                                    }}
+                                                />
+                                            );
+                                        }
+                                        return null;
+                                    })}
+
+                                    {isStreamingBOM && (
+                                        <div className="my-4 overflow-hidden rounded-xl border border-dashed border-zinc-300 bg-zinc-50/50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/30">
+                                            <div className="flex flex-col items-center gap-3">
+                                                <div className="relative h-10 w-10">
+                                                    <div className="absolute inset-0 animate-ping rounded-full bg-zinc-900/10 dark:bg-white/10"></div>
+                                                    <div className="relative flex h-10 w-10 animate-pulse items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900">
+                                                        <div className="h-4 w-4 rounded-sm border-2 border-current border-t-transparent animate-spin"></div>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Building Bill of Materials...</p>
+                                                    <p className="text-xs text-zinc-500">Analyzing components and estimating costs</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {bomData && <BOMCard data={bomData} />}
+                                </>
+                            );
+                        })()}
                     </div>
                 )}
             </div>
             {isUser && (
-                <div className="mt-0.5 grid h-7 w-7 place-items-center rounded-full bg-zinc-900 text-[10px] font-bold text-white dark:bg-white dark:text-zinc-900">
+                <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white dark:bg-white dark:text-zinc-900">
                     U
                 </div>
             )}

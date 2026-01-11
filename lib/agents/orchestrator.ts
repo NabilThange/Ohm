@@ -1,9 +1,10 @@
 import OpenAI from "openai";
-import { AGENTS, type AgentType, getContextualSystemPrompt, type UserContext } from "./config";
+import { AGENTS, type AgentType, getContextualSystemPrompt, getChatAgentType, type UserContext } from "./config";
+import { KeyManager, type KeyRotationEvent } from "./key-manager";
 
 /**
- * BYTEZ Client Singleton
- * Configured to use the unified BYTEZ API endpoint
+ * BYTEZ Client Singleton with Automatic Failover
+ * Configured to use the unified BYTEZ API endpoint with multi-key support
  * 
  * BYTEZ API Documentation:
  * - Supports OpenAI-compatible endpoints at https://api.bytez.com/models/v2/openai/v1
@@ -22,20 +23,36 @@ import { AGENTS, type AgentType, getContextualSystemPrompt, type UserContext } f
  */
 class BytezClient {
     private static instance: OpenAI | null = null;
+    private static currentKey: string | null = null;
+    private static isRefreshing: boolean = false;
 
-    static getInstance(): OpenAI {
-        if (!this.instance) {
-            const apiKey = process.env.BYTEZ_API_KEY || process.env.NEXT_PUBLIC_BYTEZ_API_KEY;
+    /**
+     * Get singleton instance with thread-safety
+     */
+    static async getInstance(forceRefresh: boolean = false): Promise<OpenAI> {
+        // Wait if another request is refreshing
+        let waitCount = 0;
+        while (this.isRefreshing && waitCount < 50) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            waitCount++;
+        }
 
-            if (!apiKey) {
-                throw new Error("BYTEZ_API_KEY is not set in environment variables");
+        const keyManager = KeyManager.getInstance();
+        const activeKey = keyManager.getCurrentKey();
+
+        if (!this.instance || this.currentKey !== activeKey || forceRefresh) {
+            this.isRefreshing = true;
+            try {
+                this.currentKey = activeKey;
+                this.instance = new OpenAI({
+                    apiKey: activeKey,
+                    baseURL: "https://api.bytez.com/models/v2/openai/v1",
+                    dangerouslyAllowBrowser: true // For client-side usage
+                });
+                console.log(`🔌 BytezClient connected: ${keyManager.getStatus().split('\n')[0]}`);
+            } finally {
+                this.isRefreshing = false;
             }
-
-            this.instance = new OpenAI({
-                apiKey,
-                baseURL: "https://api.bytez.com/models/v2/openai/v1",
-                dangerouslyAllowBrowser: true // For client-side usage
-            });
         }
 
         return this.instance;
@@ -43,14 +60,73 @@ class BytezClient {
 }
 
 /**
- * Sequential Agent Runner
- * Executes agents one at a time (respects 1 concurrent request limit)
+ * Sequential Agent Runner with Automatic Failover
+ * Executes agents one at a time with automatic API key rotation on quota errors
  */
 export class AgentRunner {
-    private client: OpenAI;
+    /**
+     * Classify if an error is quota/billing related
+     */
+    private isQuotaError(error: any): boolean {
+        // Check HTTP status codes
+        if (error.status === 429 || error.status === 402) return true;
 
-    constructor() {
-        this.client = BytezClient.getInstance();
+        // Check error message content
+        const message = (error.message || '').toLowerCase();
+        const keywords = ['quota', 'insufficient_quota', 'rate_limit', 'credits', 'billing', 'payment'];
+        return keywords.some(keyword => message.includes(keyword));
+    }
+
+    /**
+     * Execute API call with automatic failover
+     */
+    private async executeWithRetry<T>(
+        operation: (client: OpenAI) => Promise<T>,
+        operationName: string = "API Call"
+    ): Promise<T> {
+        const keyManager = KeyManager.getInstance();
+        const totalKeys = keyManager.getTotalKeys();
+        let attempt = 0;
+
+        while (attempt < totalKeys) {
+            try {
+                const client = await BytezClient.getInstance();
+                const result = await operation(client);
+
+                // Record success
+                keyManager.recordSuccess();
+                return result;
+
+            } catch (error: any) {
+                attempt++;
+
+                if (this.isQuotaError(error)) {
+                    console.warn(`⚠️ ${operationName} failed (attempt ${attempt}/${totalKeys}): ${error.message}`);
+
+                    // Mark key as failed permanently
+                    keyManager.markCurrentKeyAsFailed();
+
+                    // Try to rotate
+                    const rotated = keyManager.rotateKey();
+                    if (!rotated) {
+                        throw new Error(
+                            `❌ All ${totalKeys} API keys exhausted. Please add credits at https://bytez.com/api`
+                        );
+                    }
+
+                    // Force client refresh and retry
+                    await BytezClient.getInstance(true);
+                    console.log(`🔄 Retrying ${operationName} with new key...`);
+                    continue;
+                }
+
+                // Non-quota error - don't retry
+                console.error(`❌ ${operationName} failed with non-quota error:`, error.message);
+                throw error;
+            }
+        }
+
+        throw new Error(`❌ ${operationName} failed after ${totalKeys} attempts`);
     }
 
     /**
@@ -84,22 +160,23 @@ export class AgentRunner {
 
         console.log(`🤖 Running ${agent.name} (${agent.model})...`);
 
-        try {
-            if (options?.stream) {
-                return await this.runStreamingAgent(agent, fullMessages, options.onStream);
-            } else {
-                return await this.runNonStreamingAgent(agent, fullMessages);
-            }
-        } catch (error: any) {
-            console.error(`❌ Error running ${agent.name}:`, error);
-            throw new Error(`Agent ${agent.name} failed: ${error.message}`);
-        }
+        return this.executeWithRetry(
+            async (client) => {
+                if (options?.stream) {
+                    return await this.runStreamingAgentInternal(client, agent, fullMessages, options.onStream);
+                } else {
+                    return await this.runNonStreamingAgentInternal(client, agent, fullMessages);
+                }
+            },
+            agent.name
+        );
     }
 
     /**
-     * Non-streaming agent execution
+     * Internal non-streaming agent execution
      */
-    private async runNonStreamingAgent(
+    private async runNonStreamingAgentInternal(
+        client: OpenAI,
         agent: typeof AGENTS[AgentType],
         messages: Array<{ role: "system" | "user" | "assistant"; content: string }>
     ): Promise<string> {
@@ -117,7 +194,7 @@ export class AgentRunner {
         //     requestParams.max_tokens = agent.maxTokens;
         // }
 
-        const response = await this.client.chat.completions.create(requestParams);
+        const response = await client.chat.completions.create(requestParams);
 
         const content = response.choices[0]?.message?.content || "";
         console.log(`✅ ${agent.name} completed (${content.length} chars)`);
@@ -126,9 +203,10 @@ export class AgentRunner {
     }
 
     /**
-     * Streaming agent execution
+     * Internal streaming agent execution
      */
-    private async runStreamingAgent(
+    private async runStreamingAgentInternal(
+        client: OpenAI,
         agent: typeof AGENTS[AgentType],
         messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
         onStream?: (chunk: string) => void
@@ -147,7 +225,7 @@ export class AgentRunner {
         //     requestParams.max_tokens = agent.maxTokens;
         // }
 
-        const stream = await this.client.chat.completions.create(requestParams) as any;
+        const stream = await client.chat.completions.create(requestParams) as any;
 
         let fullText = "";
 
@@ -164,7 +242,7 @@ export class AgentRunner {
     }
 
     /**
-     * Run vision agent with image
+     * Run vision agent with image and failover protection
      */
     async runVisionAgent(
         agentType: AgentType,
@@ -179,40 +257,45 @@ export class AgentRunner {
 
         console.log(`👁️ Running ${agent.name} with vision...`);
 
-        // Create request params - BYTEZ only supports max_tokens, not max_completion_tokens
-        const requestParams: any = {
-            model: agent.model,
-            messages: [
-                { role: "system", content: agent.systemPrompt },
-                {
-                    role: "user",
-                    content: [
+        return this.executeWithRetry(
+            async (client) => {
+                // Create request params - BYTEZ only supports max_tokens, not max_completion_tokens
+                const requestParams: any = {
+                    model: agent.model,
+                    messages: [
+                        { role: "system", content: agent.systemPrompt },
                         {
-                            type: "text",
-                            text: `Here is the Blueprint for reference:\n\n${blueprintJson}\n\nPlease inspect the circuit image and verify it matches the Blueprint.`
-                        },
-                        {
-                            type: "image_url",
-                            image_url: { url: imageUrl }
+                            role: "user",
+                            content: [
+                                {
+                                    type: "text",
+                                    text: `Here is the Blueprint for reference:\n\n${blueprintJson}\n\nPlease inspect the circuit image and verify it matches the Blueprint.`
+                                },
+                                {
+                                    type: "image_url",
+                                    image_url: { url: imageUrl }
+                                }
+                            ] as any
                         }
-                    ] as any
-                }
-            ],
-            temperature: agent.temperature
-        };
+                    ],
+                    temperature: agent.temperature
+                };
 
-        // Only add max_tokens (BYTEZ doesn't support max_completion_tokens)
-        // Temporarily commented out - BYTEZ API is rejecting this parameter
-        // if (agent.maxTokens) {
-        //     requestParams.max_tokens = agent.maxTokens;
-        // }
+                // Only add max_tokens (BYTEZ doesn't support max_completion_tokens)
+                // Temporarily commented out - BYTEZ API is rejecting this parameter
+                // if (agent.maxTokens) {
+                //     requestParams.max_tokens = agent.maxTokens;
+                // }
 
-        const response = await this.client.chat.completions.create(requestParams);
+                const response = await client.chat.completions.create(requestParams);
 
-        const content = response.choices[0]?.message?.content || "";
-        console.log(`✅ ${agent.name} completed vision analysis`);
+                const content = response.choices[0]?.message?.content || "";
+                console.log(`✅ ${agent.name} completed vision analysis`);
 
-        return content;
+                return content;
+            },
+            `${agent.name} (Vision)`
+        );
     }
 }
 
@@ -253,56 +336,146 @@ export class AssemblyLineOrchestrator {
     }
 
     /**
-     * Step 1: Chat with Conversational Agent
+     * Step 1: Chat with dynamic agent selection based on intent
      */
     async chat(
         userMessage: string,
-        onStream?: (chunk: string) => void
-    ): Promise<{ response: string; isReadyToLock: boolean }> {
-        // 1. Persist User Message
+        onStream?: (chunk: string) => void,
+        forceAgent?: string,
+        onAgentDetermined?: (agent: { type: string; name: string; icon: string; intent: string }) => void
+    ): Promise<{
+        response: string;
+        isReadyToLock: boolean;
+        agentType: string;
+        agentName: string;
+        agentIcon: string;
+        intent: string;
+        keyRotationEvent?: KeyRotationEvent | null;
+    }> {
+        // 1. Get History BEFORE adding new message (to determine if this is first message)
+        const historyBeforeNewMessage = await this.getHistory();
+        const messageCount = historyBeforeNewMessage.length;
+
+        // 2. Determine agent to use
+        let finalAgentType: AgentType;
+        let intent = 'CHAT';
+
+        if (forceAgent) {
+            // User manually selected an agent
+            finalAgentType = forceAgent as AgentType;
+            intent = 'MANUAL';
+            console.log(`👤 User forced agent: ${forceAgent}`);
+        } else if (messageCount === 0) {
+            // First message - use project initializer
+            finalAgentType = 'projectInitializer';
+            intent = 'INIT';
+            console.log(`🚀 First message, using projectInitializer`);
+        } else {
+            // Subsequent messages - classify intent
+            console.log(`🎯 Classifying intent for: "${userMessage.substring(0, 50)}..."`);
+
+            try {
+                // Call orchestrator agent to classify intent
+                const intentResponse = await this.runner.runAgent(
+                    'orchestrator',
+                    [{ role: 'user', content: userMessage }],
+                    { stream: false }
+                );
+
+                intent = intentResponse.trim().toUpperCase();
+                console.log(`🎯 Detected intent: ${intent}`);
+
+                // Map intent to agent
+                const intentAgentMap: Record<string, AgentType> = {
+                    'BOM': 'bomGenerator',
+                    'CODE': 'codeGenerator',
+                    'WIRING': 'wiringDiagram',
+                    'CIRCUIT_VERIFY': 'circuitVerifier',
+                    'DATASHEET': 'datasheetAnalyzer',
+                    'BUDGET': 'budgetOptimizer',
+                    'CHAT': 'conversational'
+                };
+
+                finalAgentType = intentAgentMap[intent] || 'conversational';
+                console.log(`🤖 Routing to agent: ${finalAgentType}`);
+
+            } catch (error) {
+                console.error('Intent classification failed, falling back to conversational:', error);
+                finalAgentType = 'conversational';
+                intent = 'CHAT';
+            }
+        }
+
+        // 2.5 IMMEDIATELY notify client which agent is handling this request
+        const agentConfig = AGENTS[finalAgentType];
+        if (onAgentDetermined) {
+            console.log(`📢 Sending early agent notification: ${agentConfig.name}`);
+            onAgentDetermined({
+                type: finalAgentType,
+                name: agentConfig.name,
+                icon: agentConfig.icon,
+                intent: intent
+            });
+        }
+
+        // 3. Persist User Message
         if (this.chatId) {
             const seq = await ChatService.getNextSequenceNumber(this.chatId);
             await ChatService.addMessage({
                 chat_id: this.chatId,
                 role: "user",
                 content: userMessage,
-                sequence_number: seq
+                sequence_number: seq,
+                intent: intent
             });
         }
 
-        // 2. Get History (inclusive of new message)
+        // 4. Get History (inclusive of new message)
         const history = await this.getHistory();
 
-        // 3. Run Agent with user context
+        // 5. Run Selected Agent
         const response = await this.runner.runAgent(
-            "conversational",
+            finalAgentType,
             history,
             { stream: true, onStream, userContext: this.userContext }
         );
 
-        // 4. Persist Assistant Response
+        // 6. Persist Assistant Response
         if (this.chatId) {
             const seq = await ChatService.getNextSequenceNumber(this.chatId);
             await ChatService.addMessage({
                 chat_id: this.chatId,
                 role: "assistant",
                 content: response,
-                agent_name: "conversational",
-                sequence_number: seq
+                agent_name: finalAgentType,
+                sequence_number: seq,
+                intent: intent
             });
 
             // Update last active
             await ChatService.updateSession(this.chatId, {
-                current_agent: "conversational",
+                current_agent: finalAgentType,
                 last_active_at: new Date().toISOString()
             });
         }
 
-        // Check if visionary is asking to lock the design
+        // Check if ready to lock
         const isReadyToLock = response.toLowerCase().includes("lock this design") ||
             response.toLowerCase().includes("shall we lock");
 
-        return { response, isReadyToLock };
+        // Get any key rotation events that occurred during this request
+        const keyRotationEvent = KeyManager.getInstance().getAndClearLastEvent();
+
+        // Return with agent metadata and rotation event
+        return {
+            response,
+            isReadyToLock,
+            agentType: finalAgentType,
+            agentName: agentConfig.name,
+            agentIcon: agentConfig.icon,
+            intent,
+            keyRotationEvent // Include rotation event for client-side toasts
+        };
     }
 
     /**

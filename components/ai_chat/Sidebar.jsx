@@ -73,10 +73,20 @@ export default function Sidebar({
     const [showSearchModal, setShowSearchModal] = useState(false)
     const [activeTool, setActiveTool] = useState(null)
 
-    // Ensure drawers are closed by default
+    // Ensure drawers are closed by default, but listen for global open events
     useEffect(() => {
-        setActiveTool(null)
-    }, [])
+        const handleOpenCodeDrawer = (event) => {
+            console.log('[Sidebar] Global open-code-drawer event received');
+            setActiveTool('code');
+        };
+
+        window.addEventListener('open-code-drawer', handleOpenCodeDrawer);
+
+        // Initial state
+        if (!activeTool) setActiveTool(null);
+
+        return () => window.removeEventListener('open-code-drawer', handleOpenCodeDrawer);
+    }, []);
 
     const handleSearchClick = () => {
         setShowSearchModal(true)

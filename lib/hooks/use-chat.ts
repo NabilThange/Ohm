@@ -2,15 +2,17 @@ import { useEffect, useState, useCallback } from 'react'
 import { ChatService } from '@/lib/db/chat'
 import { supabase } from '@/lib/supabase/client'
 import { Database } from '@/lib/supabase/types'
+import { showKeyFailureToast, showKeyRotationSuccessToast } from '@/lib/agents/toast-notifications'
 
 type Message = Database['public']['Tables']['messages']['Row']
 type ChatSession = Database['public']['Tables']['chat_sessions']['Row']
 
-export function useChat(chatId: string | null, userContext?: any) {
+export function useChat(chatId: string | null, userContext?: any, onAgentChange?: (agent: any) => void) {
     const [messages, setMessages] = useState<Message[]>([])
     const [session, setSession] = useState<ChatSession | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [forceAgent, setForceAgent] = useState<string | null>(null)
 
     // Load initial history
     useEffect(() => {
@@ -115,49 +117,138 @@ export function useChat(chatId: string | null, userContext?: any) {
                 return [...prev, optimisticMsg]
             })
 
-            // Call API with userContext
+            // Call API with userContext and forceAgent
             const res = await fetch('/api/agents/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: content, chatId, userContext })
+                body: JSON.stringify({
+                    message: content,
+                    chatId,
+                    userContext,
+                    forceAgent
+                })
             })
 
-            const data = await res.json()
-            console.log('[useChat] API response:', data)
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Failed to send message');
+            }
 
-            if (data.error) throw new Error(data.error)
+            // Handle Stream
+            const reader = res.body?.getReader();
+            if (!reader) throw new Error('No response body');
 
-            // Optimistic AI Response (using the API return value)
-            if (data.response) {
-                const aiTempId = crypto.randomUUID()
-                const optimisticAiMsg: Message = {
+            const decoder = new TextDecoder();
+            const aiTempId = crypto.randomUUID();
+            let fullContent = "";
+            let agentInfo: any = null;
+
+            // Add an empty AI message initially
+            setMessages(prev => [
+                ...prev,
+                {
                     id: aiTempId,
                     chat_id: chatId,
                     role: 'assistant',
-                    content: data.response,
-                    sequence_number: Date.now() + 1, // temporary
+                    content: '',
+                    sequence_number: Date.now() + 1,
                     created_at: new Date().toISOString(),
-                    agent_name: 'conversational',
+                    agent_name: 'thinking...',
                     agent_model: null,
-                    intent: null,
+                    intent: 'CHAT',
                     input_tokens: null,
                     output_tokens: null,
                     created_artifact_ids: null,
                     metadata: null,
                     content_search: null
                 }
-                console.log('[useChat] Adding optimistic AI message:', aiTempId, 'content length:', data.response.length)
-                setMessages(prev => {
-                    console.log('[useChat] Current messages before AI add:', prev.length)
-                    const updated = [...prev, optimisticAiMsg]
-                    console.log('[useChat] Messages after AI add:', updated.length)
-                    return updated
-                })
-            } else {
-                console.warn('[useChat] No response in API data:', data)
+            ]);
+
+            console.log('[useChat] Starting to read stream...');
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) {
+                    console.log('[useChat] Stream finished');
+                    break;
+                }
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (!line.trim() || !line.startsWith('data: ')) continue;
+
+                    try {
+                        const data = JSON.parse(line.slice(6));
+                        console.log('[useChat] Received stream data:', data.type, data.type === 'text' ? `(${data.content?.length || 0} chars)` : '');
+
+                        if (data.type === 'text') {
+                            fullContent += data.content;
+                            // Update the AI message content in real-time
+                            setMessages(prev => prev.map(m =>
+                                m.id === aiTempId ? { ...m, content: fullContent } : m
+                            ));
+                        } else if (data.type === 'agent_selected') {
+                            // EARLY agent notification - fires BEFORE response starts streaming
+                            console.log('[useChat] ⚡ EARLY agent selection received:', data.agent);
+                            agentInfo = data.agent;
+
+                            // Immediately notify parent (triggers toast + dropdown update)
+                            if (onAgentChange) {
+                                console.log('[useChat] 🔔 Triggering immediate agent change callback...');
+                                onAgentChange(data.agent);
+                            }
+
+                            // Update the temporary AI message with agent info
+                            setMessages(prev => prev.map(m =>
+                                m.id === aiTempId ? {
+                                    ...m,
+                                    agent_name: data.agent.name,
+                                    intent: data.agent.intent
+                                } : m
+                            ));
+                        } else if (data.type === 'metadata') {
+                            console.log('[useChat] Received final metadata:', data.agent);
+                            // Final metadata - may contain additional info like key rotation
+                            // Only update agent if we didn't get early notification
+                            if (!agentInfo && data.agent && onAgentChange) {
+                                console.log('[useChat] Calling onAgentChange callback (fallback)...');
+                                onAgentChange(data.agent);
+                            }
+
+                            // Update message with final agent info
+                            setMessages(prev => prev.map(m =>
+                                m.id === aiTempId ? {
+                                    ...m,
+                                    agent_name: data.agent.name,
+                                    intent: data.agent.intent
+                                } : m
+                            ));
+
+                            // Handle Key Rotation Events
+                            if (data.keyRotationEvent) {
+                                console.log('[useChat] Key rotation event detected:', data.keyRotationEvent);
+                                const { type, oldKeyIndex, newKeyIndex, totalKeys, error } = data.keyRotationEvent;
+                                if (type === 'failure') {
+                                    console.log('[useChat] Calling showKeyFailureToast...');
+                                    showKeyFailureToast(oldKeyIndex, totalKeys, error || 'Unknown error');
+                                } else if (type === 'success') {
+                                    console.log('[useChat] Calling showKeyRotationSuccessToast...');
+                                    showKeyRotationSuccessToast(newKeyIndex);
+                                }
+                            }
+                        } else if (data.type === 'error') {
+                            console.error('[useChat] Stream error:', data.message);
+                            throw new Error(data.message);
+                        }
+                    } catch (e) {
+                        console.error('[useChat] Error parsing stream chunk:', e, line);
+                    }
+                }
             }
 
-            // Realtime will replace the optimistic message eventually.
+            // Clear force agent after use
+            setForceAgent(null);
 
         } catch (err: any) {
             console.error('[useChat] Send failed:', err)
@@ -165,7 +256,7 @@ export function useChat(chatId: string | null, userContext?: any) {
             // Remove optimistic message on error
             setMessages(prev => prev.filter(m => m.id !== tempId))
         }
-    }, [chatId])
+    }, [chatId, userContext, forceAgent, onAgentChange])
 
-    return { messages, session, isLoading, error, sendMessage }
+    return { messages, session, isLoading, error, sendMessage, setForceAgent }
 }

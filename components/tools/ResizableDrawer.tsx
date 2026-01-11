@@ -49,7 +49,7 @@ export default function ResizableDrawer({
             {/* Resizable Drawer using Splitter */}
             <div className="fixed inset-0 z-[70] pointer-events-none">
                 <Splitter.Root
-                    className="h-full w-full pointer-events-auto"
+                    className="h-full w-full pointer-events-none"
                     panels={[
                         { id: 'main', minSize: 100 - maxSize },
                         { id: 'drawer', minSize, maxSize }

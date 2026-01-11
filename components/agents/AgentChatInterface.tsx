@@ -5,6 +5,14 @@ import { Send, Paperclip, Download, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AssemblyLineProgress, type AssemblyLineStep } from "./AssemblyLineProgress";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+    showKeyFailureToast,
+    showKeyRotationSuccessToast,
+    showAllKeysExhaustedToast
+} from "@/lib/agents/toast-notifications";
+import { extractCodeBlocksFromMessage, type CodeData } from "@/lib/parsers";
+import { CodeBlock } from "@/components/ui/code-block";
+import CodeDrawer from "@/components/tools/CodeDrawer";
 
 interface Message {
     role: "user" | "assistant";
@@ -25,6 +33,10 @@ export function AgentChatInterface({ initialPrompt }: AgentChatInterfaceProps) {
     const [showLockButton, setShowLockButton] = useState(false);
     const [sessionId] = useState(() => `session-${Date.now()}`);
 
+    // Code Drawer State
+    const [isCodeDrawerOpen, setIsCodeDrawerOpen] = useState(false);
+    const [drawerCodeData, setDrawerCodeData] = useState<CodeData | null>(null);
+
     // Blueprint and Code storage
     const [blueprint, setBlueprint] = useState<any>(null);
     const [blueprintJson, setBlueprintJson] = useState<string>("");
@@ -36,6 +48,17 @@ export function AgentChatInterface({ initialPrompt }: AgentChatInterfaceProps) {
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
+
+    // Update drawer when new code arrives
+    useEffect(() => {
+        const lastMsg = messages[messages.length - 1];
+        if (lastMsg && lastMsg.role === 'assistant') {
+            const extracted = extractCodeBlocksFromMessage(lastMsg.content);
+            if (extracted && extracted.files.length > 0) {
+                setDrawerCodeData({ files: extracted.files.map(f => ({ path: f.filename, content: f.content })) });
+            }
+        }
     }, [messages]);
 
     // Send initial prompt
@@ -71,6 +94,23 @@ export function AgentChatInterface({ initialPrompt }: AgentChatInterfaceProps) {
 
             if (data.error) {
                 throw new Error(data.error);
+            }
+
+            // Check for key rotation events and show toasts
+            if (data.keyRotationEvent) {
+                const event = data.keyRotationEvent;
+
+                if (event.type === 'key_failed') {
+                    showKeyFailureToast(
+                        event.failedKeyIndex || 0,
+                        event.totalKeys || 0,
+                        `${event.remainingKeys} backup keys available`
+                    );
+                } else if (event.type === 'key_rotated') {
+                    showKeyRotationSuccessToast(event.newKeyIndex || 0);
+                } else if (event.type === 'all_keys_exhausted') {
+                    showAllKeysExhaustedToast(event.totalKeys || 0);
+                }
             }
 
             const assistantMessage: Message = {
@@ -198,30 +238,54 @@ export function AgentChatInterface({ initialPrompt }: AgentChatInterfaceProps) {
                     {/* Messages */}
                     <div className="flex-1 overflow-y-auto p-6 space-y-4">
                         <AnimatePresence>
-                            {messages.map((message, index) => (
-                                <motion.div
-                                    key={index}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                                >
-                                    <div
-                                        className={`max-w-2xl px-4 py-3 rounded-lg font-mono text-sm ${message.role === "user"
+                            {messages.map((message, index) => {
+                                const extractedCode = message.role === "assistant" ? extractCodeBlocksFromMessage(message.content) : null;
+                                const displayText = extractedCode
+                                    ? message.content.replace(/```[\s\S]*?```/g, '').trim()
+                                    : message.content;
+
+                                return (
+                                    <motion.div
+                                        key={index}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -20 }}
+                                        className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                                    >
+                                        <div
+                                            className={`max-w-2xl px-4 py-3 rounded-lg font-mono text-sm ${message.role === "user"
                                                 ? "bg-primary text-primary-foreground"
                                                 : "bg-muted text-foreground"
-                                            }`}
-                                    >
-                                        <div className="whitespace-pre-wrap">{message.content}</div>
-                                        <div className="text-xs opacity-50 mt-1">
-                                            {message.timestamp.toLocaleTimeString()}
+                                                } ${message.role === "assistant" ? "w-full max-w-3xl" : ""}`}
+                                        >
+                                            <div className="whitespace-pre-wrap">{displayText}</div>
+
+                                            {/* Render Code Blocks if present */}
+                                            {extractedCode && (
+                                                <CodeBlock
+                                                    files={extractedCode.files}
+                                                    projectName={extractedCode.projectName}
+                                                    onViewAll={() => setIsCodeDrawerOpen(true)}
+                                                />
+                                            )}
+
+                                            <div className="text-xs opacity-50 mt-1">
+                                                {message.timestamp.toLocaleTimeString()}
+                                            </div>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            ))}
+                                    </motion.div>
+                                )
+                            })}
                         </AnimatePresence>
                         <div ref={messagesEndRef} />
                     </div>
+
+                    {/* Code Drawer */}
+                    <CodeDrawer
+                        isOpen={isCodeDrawerOpen}
+                        onClose={() => setIsCodeDrawerOpen(false)}
+                        codeData={drawerCodeData}
+                    />
 
                     {/* Input Area */}
                     <div className="border-t border-border p-4">

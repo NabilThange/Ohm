@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Calendar, LayoutGrid, MoreHorizontal, FileText, Cpu, Code } from "lucide-react"
 import Sidebar from "./Sidebar"
@@ -12,7 +12,8 @@ import { INITIAL_TEMPLATES, INITIAL_FOLDERS } from "./mockData"
 import { useChatList } from "@/lib/hooks/use-chat-list"
 import { ChatService } from "@/lib/db/chat"
 import { useChat } from "@/lib/hooks/use-chat"
-import { extractBOMFromMessage, extractCodeFromMessage, extractContextFromMessage } from "@/lib/parsers"
+import { extractBOMFromMessage, extractCodeFromMessage, extractContextFromMessage, extractCodeBlocksFromMessage } from "@/lib/parsers"
+import { showAgentChangeToast } from "@/lib/agents/toast-notifications"
 
 // Import Drawers
 import BOMDrawer from "@/components/tools/BOMDrawer"
@@ -92,8 +93,42 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
     const [query, setQuery] = useState("")
     const searchRef = useRef(null)
 
-    // Lifted useChat Hook - pass userContext
-    const { messages, isLoading: chatLoading, sendMessage } = useChat(selectedId, userContext)
+    // Current Agent State
+    const [currentAgent, setCurrentAgent] = useState({
+        type: 'conversational',
+        name: 'Conversational Agent',
+        icon: '💡',
+        intent: 'CHAT'
+    });
+
+    // Callback for agent changes - IMMEDIATELY called when orchestrator detects intent
+    const handleAgentChange = useCallback((agent) => {
+        console.log('[AIAssistantUI] ⚡ Agent change callback triggered:', {
+            newAgent: agent?.name,
+            newAgentType: agent?.type,
+            previousAgent: currentAgent?.name,
+            previousAgentType: currentAgent?.type,
+            intent: agent?.intent
+        });
+
+        // Show toast for ANY agent notification (not just when switching)
+        if (agent && agent.name) {
+            console.log('[AIAssistantUI] 🔔 Showing agent change toast NOW...');
+            showAgentChangeToast(agent.name, agent.icon);
+        }
+
+        // Update state - this triggers Header dropdown update
+        console.log('[AIAssistantUI] 📝 Updating currentAgent state...');
+        setCurrentAgent(agent);
+        console.log('[AIAssistantUI] ✅ Agent change complete');
+    }, [currentAgent?.type]);
+
+    // Lifted useChat Hook - pass userContext and agent change callback
+    const { messages, isLoading: chatLoading, sendMessage, setForceAgent } = useChat(
+        selectedId,
+        userContext,
+        handleAgentChange
+    )
 
     // Artifact Parsing State
     const [bomData, setBomData] = useState(null)
@@ -102,6 +137,27 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
     const [showArtifacts, setShowArtifacts] = useState(false)
     const [activeTool, setActiveTool] = useState(null) // 'context', 'bom', 'code'
 
+    // Event Listener for "View All Files" from Chat
+    useEffect(() => {
+        const handleOpenCodeDrawer = (event) => {
+            const extracted = event.detail;
+            if (extracted && extracted.files) {
+                // Adapt to CodeData format
+                const adaptedData = {
+                    files: extracted.files.map(f => ({
+                        path: f.filename,
+                        content: f.content
+                    }))
+                };
+                console.log('[AIAssistantUI] 📨 Received open-code-drawer event', adaptedData);
+                setCodeData(adaptedData);
+            }
+        };
+
+        window.addEventListener('open-code-drawer', handleOpenCodeDrawer);
+        return () => window.removeEventListener('open-code-drawer', handleOpenCodeDrawer);
+    }, []);
+
     // Parser Logic (Ported from BuildInterface)
     useEffect(() => {
         if (messages.length === 0) return;
@@ -109,7 +165,8 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
         // console.log(`[Parser STATUS: ON] 🟢 Scanning ${messages.length} messages for artifacts (AIAssistantUI)...`);
 
         let foundBom = null;
-        let foundCode = null;
+        // Accumulate code files to handle multiple messages and updates
+        const codeFilesMap = new Map();
         let accumulatedContext = { context: null, mvp: null, prd: null };
 
         messages.forEach((msg, index) => {
@@ -123,9 +180,22 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
                     hits.push("BOM");
                 }
 
-                const code = extractCodeFromMessage(msg.content);
-                if (code) {
-                    foundCode = code;
+                let code = extractCodeFromMessage(msg.content);
+                if (!code) {
+                    // Try markdown extraction fallback
+                    const extracted = extractCodeBlocksFromMessage(msg.content);
+                    if (extracted && extracted.files.length > 0) {
+                        code = {
+                            files: extracted.files.map(f => ({
+                                path: f.filename,
+                                content: f.content
+                            }))
+                        };
+                    }
+                }
+
+                if (code && code.files) {
+                    code.files.forEach(f => codeFilesMap.set(f.path, f));
                     hits.push("Code");
                 }
 
@@ -158,9 +228,10 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
             setBomData(prev => JSON.stringify(prev) !== JSON.stringify(foundBom) ? foundBom : prev);
         }
 
-        if (foundCode) {
-            // console.log("[AIAssistantUI] Restoring Code");
-            setCodeData(prev => JSON.stringify(prev) !== JSON.stringify(foundCode) ? foundCode : prev);
+        if (codeFilesMap.size > 0) {
+            // console.log("[AIAssistantUI] Restoring Code (Accumulated)");
+            const accumulatedCode = { files: Array.from(codeFilesMap.values()) };
+            setCodeData(prev => JSON.stringify(prev) !== JSON.stringify(accumulatedCode) ? accumulatedCode : prev);
         }
 
         if (accumulatedContext.context || accumulatedContext.mvp || accumulatedContext.prd) {
@@ -249,6 +320,7 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
 
             // Send initial message before navigating, to avoid aborting the fetch
             if (promptText && promptText !== "New Project") {
+                console.log('[AIAssistantUI] Sending initial message via streaming API...');
                 const res = await fetch('/api/agents/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -260,12 +332,26 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
                 })
 
                 if (!res.ok) {
-                    throw new Error(`API error: ${res.status}`)
+                    // Try to get error message from non-streaming error response
+                    try {
+                        const errorData = await res.json();
+                        throw new Error(errorData.error || `API error: ${res.status}`);
+                    } catch {
+                        throw new Error(`API error: ${res.status}`);
+                    }
                 }
 
-                const data = await res.json()
-                if (data.error) {
-                    throw new Error(data.error)
+                // Handle SSE stream - consume it but don't need to parse here
+                // The useChat hook will update messages via realtime subscription
+                const reader = res.body?.getReader();
+                if (reader) {
+                    console.log('[AIAssistantUI] Consuming stream for initial message...');
+                    // Just consume the stream, the realtime subscription will update messages
+                    while (true) {
+                        const { done } = await reader.read();
+                        if (done) break;
+                    }
+                    console.log('[AIAssistantUI] Stream consumed successfully');
                 }
             }
 
@@ -349,7 +435,39 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
                     />
 
                     <main className="relative flex min-w-0 flex-1 flex-col h-full">
-                        <Header createNewChat={() => router.push('/build')} sidebarCollapsed={sidebarCollapsed} setSidebarOpen={setSidebarOpen} />
+                        <Header
+                            createNewChat={() => router.push('/build')}
+                            sidebarCollapsed={sidebarCollapsed}
+                            setSidebarOpen={setSidebarOpen}
+                            currentAgent={currentAgent}
+                            onAgentChange={(agentId) => {
+                                // Manual agent selection
+                                setForceAgent(agentId);
+                                // Find agent data from agents list
+                                const agents = [
+                                    { id: "projectInitializer", name: "Project Initializer", icon: "🚀" },
+                                    { id: "conversational", name: "Conversational Agent", icon: "💡" },
+                                    { id: "orchestrator", name: "Orchestrator", icon: "🎯" },
+                                    { id: "bomGenerator", name: "BOM Generator", icon: "📦" },
+                                    { id: "codeGenerator", name: "Code Generator", icon: "⚡" },
+                                    { id: "wiringDiagram", name: "Wiring Specialist", icon: "🔌" },
+                                    { id: "circuitVerifier", name: "Circuit Inspector", icon: "👁️" },
+                                    { id: "datasheetAnalyzer", name: "Datasheet Analyst", icon: "📄" },
+                                    { id: "budgetOptimizer", name: "Budget Optimizer", icon: "💰" }
+                                ];
+                                const agentData = agents.find(a => a.id === agentId);
+                                if (agentData) {
+                                    setCurrentAgent({
+                                        type: agentId,
+                                        name: agentData.name,
+                                        icon: agentData.icon,
+                                        intent: 'MANUAL'
+                                    });
+                                    // Show toast for manual selection
+                                    showAgentChangeToast(agentData.name, agentData.icon);
+                                }
+                            }}
+                        />
 
                         {/* Always render ChatPane; internal logic handles empty state */}
                         <ChatPane

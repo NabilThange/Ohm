@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { ChatService } from '@/lib/db/chat'
 import { supabase } from '@/lib/supabase/client'
 import { Database } from '@/lib/supabase/types'
-import { showKeyFailureToast, showKeyRotationSuccessToast } from '@/lib/agents/toast-notifications'
+import { showKeyFailureToast, showKeyRotationSuccessToast, showToolCallToast } from '@/lib/agents/toast-notifications'
 
 type Message = Database['public']['Tables']['messages']['Row']
 type ChatSession = Database['public']['Tables']['chat_sessions']['Row']
@@ -207,6 +207,32 @@ export function useChat(chatId: string | null, userContext?: any, onAgentChange?
                                     intent: data.agent.intent
                                 } : m
                             ));
+                        } else if (data.type === 'tool_call') {
+                            // NEW: Tool call notification - fires BEFORE tool execution
+                            console.log('[useChat] 🔧 Tool call notification received:', data.toolCall);
+                            const toolName = data.toolCall.name;
+
+                            // 1. Show Toast
+                            showToolCallToast(toolName);
+
+                            // 2. Map tool to drawer and dispatch open event
+                            const toolDrawerMap: Record<string, string> = {
+                                'update_context': 'context',
+                                'update_mvp': 'context',
+                                'update_prd': 'context',
+                                'update_bom': 'bom',
+                                'add_code_file': 'code',
+                                'update_wiring': 'wiring',
+                                'update_budget': 'budget'
+                            };
+
+                            const drawer = toolDrawerMap[toolName];
+                            if (drawer) {
+                                console.log(`[useChat] 🔓 Auto-opening drawer for tool ${toolName}: ${drawer}`);
+                                window.dispatchEvent(new CustomEvent('open-drawer', {
+                                    detail: { drawer }
+                                }));
+                            }
                         } else if (data.type === 'metadata') {
                             console.log('[useChat] Received final metadata:', data.agent);
                             // Final metadata - may contain additional info like key rotation
@@ -216,25 +242,56 @@ export function useChat(chatId: string | null, userContext?: any, onAgentChange?
                                 onAgentChange(data.agent);
                             }
 
-                            // Update message with final agent info
+                            // Update message with final agent info and tool calls
                             setMessages(prev => prev.map(m =>
                                 m.id === aiTempId ? {
                                     ...m,
                                     agent_name: data.agent.name,
-                                    intent: data.agent.intent
+                                    intent: data.agent.intent,
+                                    metadata: data.toolCalls && data.toolCalls.length > 0 ? { toolCalls: data.toolCalls } : null
                                 } : m
                             ));
+
+                            // Handle Tool Calls - show toast notifications
+                            if (data.toolCalls && data.toolCalls.length > 0) {
+                                console.log('[useChat] Tool calls detected:', data.toolCalls);
+                                data.toolCalls.forEach((toolCall: any) => {
+                                    console.log('[useChat] Showing toast for tool:', toolCall.function.name);
+                                    showToolCallToast(toolCall.function.name);
+                                });
+
+                                // Dispatch custom event for ChatPane to add drawer link buttons
+                                window.dispatchEvent(new CustomEvent('tool-calls-executed', {
+                                    detail: {
+                                        toolCalls: data.toolCalls,
+                                        messageId: aiTempId
+                                    }
+                                }));
+                            }
 
                             // Handle Key Rotation Events
                             if (data.keyRotationEvent) {
                                 console.log('[useChat] Key rotation event detected:', data.keyRotationEvent);
-                                const { type, oldKeyIndex, newKeyIndex, totalKeys, error } = data.keyRotationEvent;
-                                if (type === 'failure') {
+                                const event = data.keyRotationEvent;
+
+                                if (event.type === 'key_failed') {
                                     console.log('[useChat] Calling showKeyFailureToast...');
-                                    showKeyFailureToast(oldKeyIndex, totalKeys, error || 'Unknown error');
-                                } else if (type === 'success') {
+                                    showKeyFailureToast(
+                                        event.failedKeyIndex ?? 0,
+                                        event.totalKeys ?? 1,
+                                        event.message || 'Key exhausted'
+                                    );
+                                } else if (event.type === 'key_rotated') {
                                     console.log('[useChat] Calling showKeyRotationSuccessToast...');
-                                    showKeyRotationSuccessToast(newKeyIndex);
+                                    showKeyRotationSuccessToast(event.newKeyIndex ?? 0);
+                                } else if (event.type === 'all_keys_exhausted') {
+                                    console.log('[useChat] All keys exhausted!');
+                                    // Could show a different toast or error state
+                                    showKeyFailureToast(
+                                        event.totalKeys ?? 1,
+                                        event.totalKeys ?? 1,
+                                        'All API keys exhausted'
+                                    );
                                 }
                             }
                         } else if (data.type === 'error') {

@@ -66,12 +66,16 @@ export default function Sidebar({
     contextData = null,
     bomData = null,
     codeData = null,
+    // NEW: Full artifacts object from database
+    artifacts = null,
+    // Controlled state for tools
+    activeTool = null,
+    setActiveTool = () => { },
 }) {
     const [showCreateFolderModal, setShowCreateFolderModal] = useState(false)
     const [showCreateTemplateModal, setShowCreateTemplateModal] = useState(false)
     const [editingTemplate, setEditingTemplate] = useState(null)
     const [showSearchModal, setShowSearchModal] = useState(false)
-    const [activeTool, setActiveTool] = useState(null)
 
     // Ensure drawers are closed by default, but listen for global open events
     useEffect(() => {
@@ -82,11 +86,11 @@ export default function Sidebar({
 
         window.addEventListener('open-code-drawer', handleOpenCodeDrawer);
 
-        // Initial state
-        if (!activeTool) setActiveTool(null);
+        // Initial state - NO, controlled by parent now
+        // if (!activeTool) setActiveTool(null);
 
         return () => window.removeEventListener('open-code-drawer', handleOpenCodeDrawer);
-    }, []);
+    }, [setActiveTool]);
 
     const handleSearchClick = () => {
         setShowSearchModal(true)
@@ -585,12 +589,12 @@ export default function Sidebar({
                 createNewChat={createNewChat}
             />
 
-            {activeTool === 'budget' && <BudgetDrawer isOpen={true} onClose={() => setActiveTool(null)} />}
+            {activeTool === 'budget' && <BudgetDrawer isOpen={true} onClose={() => setActiveTool(null)} budgetData={artifacts?.budget?.version?.content_json} />}
             {activeTool === 'components' && <ComponentDrawer isOpen={true} onClose={() => setActiveTool(null)} />}
-            {activeTool === 'bom' && <BOMDrawer isOpen={true} onClose={() => setActiveTool(null)} bomData={bomData} />}
-            {activeTool === 'wiring' && <WiringDrawer isOpen={true} onClose={() => setActiveTool(null)} />}
-            {activeTool === 'code' && <CodeDrawer isOpen={true} onClose={() => setActiveTool(null)} codeData={codeData} />}
-            {activeTool === 'context' && <ContextDrawer isOpen={true} onClose={() => setActiveTool(null)} contextData={contextData} />}
+            {activeTool === 'bom' && <BOMDrawer isOpen={true} onClose={() => setActiveTool(null)} bomData={artifacts?.bom?.version?.content_json || bomData} />}
+            {activeTool === 'wiring' && <WiringDrawer isOpen={true} onClose={() => setActiveTool(null)} wiringData={artifacts?.wiring?.version?.content_json} />}
+            {activeTool === 'code' && <CodeDrawer isOpen={true} onClose={() => setActiveTool(null)} codeData={artifacts?.code?.version?.content_json || codeData} />}
+            {activeTool === 'context' && <ContextDrawer isOpen={true} onClose={() => setActiveTool(null)} contextData={contextData || { context: artifacts?.context?.version?.content, mvp: artifacts?.mvp?.version?.content, prd: artifacts?.prd?.version?.content }} />}
         </>
     )
 }

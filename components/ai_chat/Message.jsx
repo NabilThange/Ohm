@@ -6,11 +6,19 @@ import { parseMessageContent, splitMessageIntoSegments } from "@/lib/parsers"
 import BOMCard from "./BOMCard"
 import { CodeBlock } from "@/components/ui/code-block"
 
-export default function Message({ role, children }) {
+export default function Message({ role, children, metadata }) {
     const isUser = role === "user"
 
     // Convert children to string for parsing
     const rawContent = typeof children === 'string' ? children : String(children || '')
+
+    // Extract tool calls from metadata
+    const toolCalls = metadata?.toolCalls || []
+
+    // Debug logging
+    if (!isUser && toolCalls.length > 0) {
+        console.log('[Message] 📦 Message has tool calls:', toolCalls.length, toolCalls);
+    }
 
     // For user messages, we just render the text. 
     // For AI messages, we handle parsing inside the render method to support sequential segments.
@@ -123,6 +131,73 @@ export default function Message({ role, children }) {
                                     )}
 
                                     {bomData && <BOMCard data={bomData} />}
+
+                                    {/* BOM Card - shown inline when update_bom tool call is present */}
+                                    {toolCalls.length > 0 && (() => {
+                                        const bomToolCall = toolCalls.find(tc =>
+                                            (tc.function?.name || tc.name) === 'update_bom'
+                                        );
+                                        if (bomToolCall) {
+                                            try {
+                                                const bomArgs = bomToolCall.function?.arguments || bomToolCall.arguments;
+                                                // Parse if it's a string (OpenAI format returns stringified JSON)
+                                                const parsedBomData = typeof bomArgs === 'string' ? JSON.parse(bomArgs) : bomArgs;
+                                                if (parsedBomData && parsedBomData.components) {
+                                                    console.log('[Message] 📦 Rendering BOMCard from tool call:', parsedBomData.project_name);
+                                                    return <BOMCard data={parsedBomData} />;
+                                                }
+                                            } catch (e) {
+                                                console.error('[Message] Failed to parse BOM data from tool call:', e);
+                                            }
+                                        }
+                                        return null;
+                                    })()}
+
+                                    {/* Drawer Link Buttons - shown after AI responses with tool calls */}
+                                    {toolCalls.length > 0 && (() => {
+                                        const renderedDrawers = new Set();
+                                        return (
+                                            <div className="mt-4 flex flex-wrap gap-2">
+                                                {toolCalls.map((toolCall, idx) => {
+                                                    const toolName = toolCall.function?.name || toolCall.name;
+                                                    const drawerMap = {
+                                                        'update_context': { label: 'Open Context Drawer', drawer: 'context' },
+                                                        'update_mvp': { label: 'Open Context Drawer', drawer: 'context' },
+                                                        'update_prd': { label: 'Open Context Drawer', drawer: 'context' },
+                                                        'update_bom': { label: 'Open BOM Drawer', drawer: 'bom' },
+                                                        'add_code_file': { label: 'Open Code Drawer', drawer: 'code' },
+                                                        'update_wiring': { label: 'Open Wiring Drawer', drawer: 'wiring' },
+                                                        'update_budget': { label: 'Open Budget Drawer', drawer: 'budget' },
+                                                    };
+
+                                                    const config = drawerMap[toolName];
+                                                    if (!config) return null;
+
+                                                    // Deduplicate by drawer type
+                                                    if (renderedDrawers.has(config.drawer)) return null;
+                                                    renderedDrawers.add(config.drawer);
+
+                                                    return (
+                                                        <button
+                                                            key={idx}
+                                                            onClick={() => {
+                                                                console.log('[Message] 💆 Button clicked! Opening drawer:', config.drawer, 'for tool:', toolName);
+                                                                const event = new CustomEvent('open-drawer', {
+                                                                    detail: { drawer: config.drawer }
+                                                                });
+                                                                console.log('[Message] 📤 Dispatching event:', event);
+                                                                window.dispatchEvent(event);
+                                                                console.log('[Message] ✅ Event dispatched successfully');
+                                                            }}
+                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-300 transition-colors border border-blue-200 dark:border-blue-800 cursor-pointer"
+                                                        >
+                                                            {config.label} →
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        );
+                                    })()}
                                 </>
                             );
                         })()}

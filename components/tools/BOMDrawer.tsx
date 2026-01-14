@@ -61,8 +61,13 @@ export default function BOMDrawer({ isOpen, onClose, bomData }: BOMDrawerProps) 
                             <tbody className="divide-y divide-border bg-card">
                                 {components.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                                            No components generated yet.
+                                        <td colSpan={4} className="px-4 py-8">
+                                            <div className="flex flex-col items-center justify-center gap-3">
+                                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                                                <span className="text-muted-foreground text-xs italic">
+                                                    BOM will appear here when generated...
+                                                </span>
+                                            </div>
                                         </td>
                                     </tr>
                                 ) : (

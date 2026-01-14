@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { AGENTS, type AgentType, getContextualSystemPrompt, getChatAgentType, type UserContext } from "./config";
 import { KeyManager, type KeyRotationEvent } from "./key-manager";
+import { getToolsForAgent, type ToolCall } from "./tools";
 
 /**
  * BYTEZ Client Singleton with Automatic Failover
@@ -12,14 +13,14 @@ import { KeyManager, type KeyRotationEvent } from "./key-manager";
  * - Supports streaming for all models
  * 
  * Agent Model Mapping (Ultimate God Mode):
- * - Orchestrator: openai/gpt-4o (fast routing)
+ * - Orchestrator: anthropic/claude-sonnet-4-5 (fast routing)
  * - Conversational: anthropic/claude-opus-4-5 (best conversational quality)
- * - BOM Generator: openai/o1 (elite reasoning)
+ * - BOM Generator: anthropic/claude-opus-4-5 (elite reasoning)
  * - Code Generator: anthropic/claude-sonnet-4-5 (SOTA code generation)
- * - Wiring Diagram: openai/gpt-4o (spatial reasoning)
+ * - Wiring Diagram: anthropic/claude-sonnet-4-5 (spatial reasoning)
  * - Circuit Verifier: google/gemini-2.5-flash (native multimodal vision)
  * - Datasheet Analyzer: anthropic/claude-opus-4-5 (document comprehension)
- * - Budget Optimizer: openai/o1 (multi-constraint optimization)
+ * - Budget Optimizer: anthropic/claude-sonnet-4-5 (multi-constraint optimization)
  */
 class BytezClient {
     private static instance: OpenAI | null = null;
@@ -130,7 +131,7 @@ export class AgentRunner {
     }
 
     /**
-     * Run a single agent with the given messages
+     * Run a single agent with the given messages (with tool support)
      */
     async runAgent(
         agentType: AgentType,
@@ -139,8 +140,9 @@ export class AgentRunner {
             onStream?: (chunk: string) => void;
             stream?: boolean;
             userContext?: UserContext;
+            onToolCall?: (toolCall: ToolCall) => Promise<any>;
         }
-    ): Promise<string> {
+    ): Promise<{ response: string; toolCalls: ToolCall[] }> {
         const agent = AGENTS[agentType];
 
         if (!agent) {
@@ -160,12 +162,15 @@ export class AgentRunner {
 
         console.log(`🤖 Running ${agent.name} (${agent.model})...`);
 
+        // Get tools for this agent
+        const tools = getToolsForAgent(agentType);
+
         return this.executeWithRetry(
             async (client) => {
                 if (options?.stream) {
-                    return await this.runStreamingAgentInternal(client, agent, fullMessages, options.onStream);
+                    return await this.runStreamingAgentWithTools(client, agent, fullMessages, tools, options.onStream, options.onToolCall);
                 } else {
-                    return await this.runNonStreamingAgentInternal(client, agent, fullMessages);
+                    return await this.runNonStreamingAgentWithTools(client, agent, fullMessages, tools, options.onToolCall);
                 }
             },
             agent.name
@@ -173,14 +178,15 @@ export class AgentRunner {
     }
 
     /**
-     * Internal non-streaming agent execution
+     * Internal non-streaming agent execution (with tool support)
      */
-    private async runNonStreamingAgentInternal(
+    private async runNonStreamingAgentWithTools(
         client: OpenAI,
         agent: typeof AGENTS[AgentType],
-        messages: Array<{ role: "system" | "user" | "assistant"; content: string }>
-    ): Promise<string> {
-        // Create request params - BYTEZ only supports max_tokens, not max_completion_tokens
+        messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
+        tools: any[],
+        onToolCall?: (toolCall: ToolCall) => Promise<any>
+    ): Promise<{ response: string; toolCalls: ToolCall[] }> {
         const requestParams: any = {
             model: agent.model,
             messages,
@@ -188,30 +194,52 @@ export class AgentRunner {
             stream: false
         };
 
-        // Only add max_tokens (BYTEZ doesn't support max_completion_tokens)
-        // Temporarily commented out - BYTEZ API is rejecting this parameter
-        // if (agent.maxTokens) {
-        //     requestParams.max_tokens = agent.maxTokens;
-        // }
+        // Add tools if available
+        if (tools.length > 0) {
+            requestParams.tools = tools.map(t => ({
+                type: "function",
+                function: t
+            }));
+        }
 
         const response = await client.chat.completions.create(requestParams);
+        const message = response.choices[0]?.message;
 
-        const content = response.choices[0]?.message?.content || "";
-        console.log(`✅ ${agent.name} completed (${content.length} chars)`);
+        const toolCalls: ToolCall[] = [];
+        let content = message?.content || "";
 
-        return content;
+        // Handle tool calls
+        if (message?.tool_calls) {
+            for (const tc of message.tool_calls) {
+                const toolCall: ToolCall = {
+                    name: tc.function.name,
+                    arguments: JSON.parse(tc.function.arguments)
+                };
+                toolCalls.push(toolCall);
+
+                // Execute tool call if callback provided
+                if (onToolCall) {
+                    console.log(`🔧 Executing tool call: ${toolCall.name}`);
+                    await onToolCall(toolCall);
+                }
+            }
+        }
+
+        console.log(`✅ ${agent.name} completed (${content.length} chars, ${toolCalls.length} tool calls)`);
+        return { response: content, toolCalls };
     }
 
     /**
-     * Internal streaming agent execution
+     * Internal streaming agent execution (with tool support)
      */
-    private async runStreamingAgentInternal(
+    private async runStreamingAgentWithTools(
         client: OpenAI,
         agent: typeof AGENTS[AgentType],
         messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
-        onStream?: (chunk: string) => void
-    ): Promise<string> {
-        // Create request params - BYTEZ only supports max_tokens, not max_completion_tokens
+        tools: any[],
+        onStream?: (chunk: string) => void,
+        onToolCall?: (toolCall: ToolCall) => Promise<any>
+    ): Promise<{ response: string; toolCalls: ToolCall[] }> {
         const requestParams: any = {
             model: agent.model,
             messages,
@@ -219,26 +247,72 @@ export class AgentRunner {
             stream: true
         };
 
-        // Only add max_tokens (BYTEZ doesn't support max_completion_tokens)
-        // Temporarily commented out - BYTEZ API is rejecting this parameter
-        // if (agent.maxTokens) {
-        //     requestParams.max_tokens = agent.maxTokens;
-        // }
+        // Add tools if available
+        if (tools.length > 0) {
+            requestParams.tools = tools.map(t => ({
+                type: "function",
+                function: t
+            }));
+        }
 
         const stream = await client.chat.completions.create(requestParams) as any;
 
         let fullText = "";
+        const toolCalls: ToolCall[] = [];
+        const toolCallBuffers: Map<number, { name: string; args: string }> = new Map();
 
         for await (const chunk of stream) {
-            const content = chunk.choices[0]?.delta?.content || "";
-            if (content) {
-                fullText += content;
-                onStream?.(content);
+            const delta = chunk.choices[0]?.delta;
+
+            // Handle text content
+            if (delta?.content) {
+                fullText += delta.content;
+                onStream?.(delta.content);
+            }
+
+            // Handle tool calls (buffering)
+            if (delta?.tool_calls) {
+                for (const tc of delta.tool_calls) {
+                    const index = tc.index;
+
+                    if (!toolCallBuffers.has(index)) {
+                        toolCallBuffers.set(index, { name: "", args: "" });
+                    }
+
+                    const buffer = toolCallBuffers.get(index)!;
+
+                    if (tc.function?.name) {
+                        buffer.name = tc.function.name;
+                    }
+                    if (tc.function?.arguments) {
+                        buffer.args += tc.function.arguments;
+                    }
+                }
             }
         }
 
-        console.log(`✅ ${agent.name} completed (${fullText.length} chars)`);
-        return fullText;
+        // Process completed tool calls
+        for (const buffer of toolCallBuffers.values()) {
+            if (buffer.name && buffer.args) {
+                try {
+                    const toolCall: ToolCall = {
+                        name: buffer.name,
+                        arguments: JSON.parse(buffer.args)
+                    };
+                    toolCalls.push(toolCall);
+
+                    if (onToolCall) {
+                        console.log(`🔧 Executing tool call: ${toolCall.name}`);
+                        await onToolCall(toolCall);
+                    }
+                } catch (error) {
+                    console.error(`❌ Failed to parse tool call ${buffer.name}:`, error);
+                }
+            }
+        }
+
+        console.log(`✅ ${agent.name} completed (${fullText.length} chars, ${toolCalls.length} tool calls)`);
+        return { response: fullText, toolCalls };
     }
 
     /**
@@ -312,6 +386,7 @@ export class AgentRunner {
 import { ChatService } from "@/lib/db/chat";
 import { ArtifactService } from "@/lib/db/artifacts";
 import { ComponentService } from "@/lib/db/components";
+import { ToolExecutor } from "./tool-executor";
 
 export class AssemblyLineOrchestrator {
     private runner: AgentRunner;
@@ -336,13 +411,56 @@ export class AssemblyLineOrchestrator {
     }
 
     /**
+     * Generate a concise chat title based on the first message
+     */
+    async generateTitle(userMessage: string): Promise<string> {
+        console.log(`🏷️ Generating title for: "${userMessage.substring(0, 50)}..."`);
+
+        try {
+            const result = await this.runner.runAgent(
+                'orchestrator',
+                [
+                    {
+                        role: 'system',
+                        content: `You are a project title generator for a hardware/IoT development platform.
+                        
+Generate a concise, descriptive title (3-6 words) that captures the essence of the user's project.
+
+Guidelines:
+- Focus on the main purpose or function (e.g., "Smart Home Temperature Monitor")  
+- Include the key technology if relevant (e.g., "Arduino LED Matrix Display")
+- Make it specific and descriptive, not generic
+- Do NOT use quotes in your response
+- Return ONLY the title, nothing else
+
+Examples:
+- "I want to build something to monitor my plants" → Plant Watering Monitor System
+- "help me create a device that tracks my fitness" → Wearable Fitness Tracker
+- "build an iot thermostat" → Smart WiFi Thermostat Controller`
+                    },
+                    { role: 'user', content: userMessage }
+                ],
+                { stream: false }
+            );
+
+            const title = result.response.trim().replace(/^["']|["']$/g, ''); // Remove quotes if present
+            console.log(`🏷️ Generated title: ${title}`);
+            return title;
+        } catch (error) {
+            console.error('❌ Title generation failed:', error);
+            return 'New Hardware Project';
+        }
+    }
+
+    /**
      * Step 1: Chat with dynamic agent selection based on intent
      */
     async chat(
         userMessage: string,
         onStream?: (chunk: string) => void,
         forceAgent?: string,
-        onAgentDetermined?: (agent: { type: string; name: string; icon: string; intent: string }) => void
+        onAgentDetermined?: (agent: { type: string; name: string; icon: string; intent: string }) => void,
+        onToolCall?: (toolCall: ToolCall) => void
     ): Promise<{
         response: string;
         isReadyToLock: boolean;
@@ -350,6 +468,7 @@ export class AssemblyLineOrchestrator {
         agentName: string;
         agentIcon: string;
         intent: string;
+        toolCalls?: ToolCall[];
         keyRotationEvent?: KeyRotationEvent | null;
     }> {
         // 1. Get History BEFORE adding new message (to determine if this is first message)
@@ -376,13 +495,13 @@ export class AssemblyLineOrchestrator {
 
             try {
                 // Call orchestrator agent to classify intent
-                const intentResponse = await this.runner.runAgent(
+                const intentResult = await this.runner.runAgent(
                     'orchestrator',
                     [{ role: 'user', content: userMessage }],
                     { stream: false }
                 );
 
-                intent = intentResponse.trim().toUpperCase();
+                intent = intentResult.response.trim().toUpperCase();
                 console.log(`🎯 Detected intent: ${intent}`);
 
                 // Map intent to agent
@@ -433,14 +552,35 @@ export class AssemblyLineOrchestrator {
         // 4. Get History (inclusive of new message)
         const history = await this.getHistory();
 
-        // 5. Run Selected Agent
-        const response = await this.runner.runAgent(
+        // 5. Create ToolExecutor for this chat
+        const toolExecutor = this.chatId ? new ToolExecutor(this.chatId) : null;
+
+        // 6. Run Selected Agent with tool support
+        const result = await this.runner.runAgent(
             finalAgentType,
             history,
-            { stream: true, onStream, userContext: this.userContext }
+            {
+                stream: true,
+                onStream,
+                userContext: this.userContext,
+                onToolCall: async (toolCall) => {
+                    // Notify client about tool call via callback
+                    if (onToolCall) {
+                        console.log(`📢 Sending tool call notification: ${toolCall.name}`);
+                        onToolCall(toolCall);
+                    }
+
+                    if (toolExecutor) {
+                        await toolExecutor.executeToolCall(toolCall);
+                    }
+                }
+            }
         );
 
-        // 6. Persist Assistant Response
+        const response = result.response;
+        const toolCalls = result.toolCalls;
+
+        // 7. Persist Assistant Response
         if (this.chatId) {
             const seq = await ChatService.getNextSequenceNumber(this.chatId);
             await ChatService.addMessage({
@@ -466,7 +606,7 @@ export class AssemblyLineOrchestrator {
         // Get any key rotation events that occurred during this request
         const keyRotationEvent = KeyManager.getInstance().getAndClearLastEvent();
 
-        // Return with agent metadata and rotation event
+        // Return with agent metadata, tool calls, and rotation event
         return {
             response,
             isReadyToLock,
@@ -474,6 +614,7 @@ export class AssemblyLineOrchestrator {
             agentName: agentConfig.name,
             agentIcon: agentConfig.icon,
             intent,
+            toolCalls, // NEW: Include tool calls for frontend
             keyRotationEvent // Include rotation event for client-side toasts
         };
     }
@@ -489,9 +630,11 @@ export class AssemblyLineOrchestrator {
             .map(msg => `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`)
             .join("\n\n");
 
-        const blueprintJson = await this.runner.runAgent("bomGenerator", [
+        const result = await this.runner.runAgent("bomGenerator", [
             { role: "user", content: `Based on this conversation, create the comprehensive BOM and Blueprint:\n\n${summary}` }
         ]);
+
+        const blueprintJson = result.response;
 
         if (this.chatId) {
             // Persist Artifact
@@ -518,11 +661,13 @@ export class AssemblyLineOrchestrator {
      * Step 3: Generate Code (Code Generator)
      */
     async generateCode(blueprintJson: string, onStream?: (chunk: string) => void): Promise<string> {
-        const code = await this.runner.runAgent(
+        const result = await this.runner.runAgent(
             "codeGenerator",
             [{ role: "user", content: `Here is the authorized Blueprint:\n\n${blueprintJson}\n\nGenerate the firmware code.` }],
             { stream: true, onStream }
         );
+
+        const code = result.response;
 
         if (this.chatId) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars

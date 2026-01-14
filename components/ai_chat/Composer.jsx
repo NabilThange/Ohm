@@ -8,6 +8,9 @@ import { cn as cls } from "@/lib/utils"
 
 const COMMANDS = [
     { command: "/update-context", description: "Refresh MVP, PRD, and Context from chat history" },
+    { command: "/update-bom", description: "Regenerate the Bill of Materials from current design" },
+    { command: "/recheck-wiring", description: "Validate and update wiring connections" },
+    { command: "/update-code", description: "Regenerate code based on latest specifications" },
 ]
 
 const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
@@ -125,12 +128,13 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
             {/* Command Menu / Tooltip */}
             {showCommands && (
                 <div
-                    className="absolute w-72 overflow-hidden rounded-lg border border-red-300 shadow-xl animate-in fade-in zoom-in-95 origin-bottom-left z-50 transition-all duration-75"
+                    className="absolute w-72 overflow-hidden rounded-lg border shadow-xl animate-in fade-in zoom-in-95 origin-bottom-left z-50 transition-all duration-75"
                     style={{
                         top: menuPosition.top,
                         left: menuPosition.left + 150, // Add left padding offset
                         transform: 'translateY(-100%) translateY(-12px)', // Move above line
-                        backgroundColor: 'tomato'
+                        backgroundColor: '#4a4a4a',
+                        borderColor: '#6b6b6b'
                     }}
                 >
                     <div className="p-1">
@@ -178,7 +182,7 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
                         <div className="space-y-4">
                             {COMMANDS.map(cmd => (
                                 <div key={cmd.command} className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800/50">
-                                    <code className="text-sm font-bold text-tomato dark:text-red-400">{cmd.command}</code>
+                                    <code className="text-sm font-bold text-zinc-600 dark:text-zinc-300">{cmd.command}</code>
                                     <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{cmd.description}</p>
                                 </div>
                             ))}

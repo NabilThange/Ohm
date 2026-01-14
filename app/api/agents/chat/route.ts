@@ -7,8 +7,8 @@ export async function POST(req: NextRequest) {
 
         const effectiveChatId = chatId || "default_ephemeral_session";
 
-        if (!message) {
-            return new Response(JSON.stringify({ error: "Message is required" }), {
+        if (!message || typeof message !== 'string' || !message.trim()) {
+            return new Response(JSON.stringify({ error: "Valid non-empty message is required" }), {
                 status: 400,
                 headers: { "Content-Type": "application/json" }
             });
@@ -35,10 +35,18 @@ export async function POST(req: NextRequest) {
                                 type: 'agent_selected',
                                 agent: agent
                             })}\n\n`));
+                        },
+                        // NEW: Tool call notification - fires when tool is ABOUT to be executed
+                        (toolCall) => {
+                            console.log('[API Route] 🔧 Sending tool call notification:', toolCall.name);
+                            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                                type: 'tool_call',
+                                toolCall: toolCall
+                            })}\n\n`));
                         }
                     );
 
-                    // Send final metadata (with any additional info like key rotation)
+                    // Send final metadata (with any additional info like key rotation and tool calls)
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({
                         type: 'metadata',
                         agent: {
@@ -48,6 +56,7 @@ export async function POST(req: NextRequest) {
                             intent: result.intent
                         },
                         isReadyToLock: result.isReadyToLock,
+                        toolCalls: result.toolCalls || [], // NEW: Include tool calls
                         keyRotationEvent: result.keyRotationEvent
                     })}\n\n`));
 

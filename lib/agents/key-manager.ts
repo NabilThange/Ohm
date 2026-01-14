@@ -52,24 +52,45 @@ export class KeyManager {
 
     /**
      * Load keys from environment with fallback support
+     * Supports new numbered format: BYTEZ_API_KEY_1, BYTEZ_API_KEY_2, etc.
+     * Also supports legacy comma-separated format for backwards compatibility
      */
     private loadKeys() {
-        const keysString = process.env.BYTEZ_API_KEYS || "";
-        const legacyKey = process.env.BYTEZ_API_KEY || process.env.NEXT_PUBLIC_BYTEZ_API_KEY;
+        const keys: string[] = [];
 
-        const parsedKeys = keysString
-            .split(",")
-            .map(k => k.trim())
-            .filter(k => k.length > 0);
-
-        if (parsedKeys.length > 0) {
-            this.keys = parsedKeys;
-        } else if (legacyKey) {
-            this.keys = [legacyKey];
-        } else {
-            throw new Error("❌ CRITICAL: No BYTEZ_API_KEYS found in environment");
+        // Try new numbered format first: BYTEZ_API_KEY_1, BYTEZ_API_KEY_2, etc.
+        for (let i = 1; i <= 20; i++) { // Support up to 20 keys
+            const key = process.env[`BYTEZ_API_KEY_${i}`] || process.env[`NEXT_PUBLIC_BYTEZ_API_KEY_${i}`];
+            if (key && key.trim().length > 0) {
+                keys.push(key.trim());
+            } else {
+                // Stop at first gap (no more sequential keys)
+                break;
+            }
         }
 
+        // Fallback to legacy comma-separated format
+        if (keys.length === 0) {
+            const keysString = process.env.BYTEZ_API_KEYS || "";
+            const legacyKey = process.env.BYTEZ_API_KEY || process.env.NEXT_PUBLIC_BYTEZ_API_KEY;
+
+            const parsedKeys = keysString
+                .split(",")
+                .map(k => k.trim())
+                .filter(k => k.length > 0);
+
+            if (parsedKeys.length > 0) {
+                keys.push(...parsedKeys);
+            } else if (legacyKey) {
+                keys.push(legacyKey);
+            }
+        }
+
+        if (keys.length === 0) {
+            throw new Error("❌ CRITICAL: No BYTEZ_API_KEY_* found in environment. Please set BYTEZ_API_KEY_1, BYTEZ_API_KEY_2, etc.");
+        }
+
+        this.keys = keys;
         console.log(`🔑 KeyManager initialized with ${this.keys.length} keys`);
 
         // Show toast notification if running in browser

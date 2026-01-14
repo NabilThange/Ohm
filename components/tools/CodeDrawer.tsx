@@ -194,7 +194,12 @@ export default function CodeDrawer({ isOpen, onClose, codeData }: CodeDrawerProp
                                 {codeData && codeData.files.length > 0 ? (
                                     <TreeNode node={fileTree} />
                                 ) : (
-                                    <div className="px-4 text-xs text-zinc-500 mt-2">No code generated yet.</div>
+                                    <div className="px-4 py-8 flex flex-col items-center justify-center gap-3">
+                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
+                                        <span className="text-zinc-500 text-xs italic">
+                                            Code files will appear here when generated...
+                                        </span>
+                                    </div>
                                 )}
                             </div>
                         </Splitter.Panel>

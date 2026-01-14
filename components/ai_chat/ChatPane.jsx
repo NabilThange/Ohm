@@ -134,7 +134,7 @@ Reflect any changes made during the chat in these documents.`;
                             
                             {messages.map((m) => (
                                 <div key={m.id} className="space-y-2">
-                                    <Message role={m.role}>
+                                    <Message role={m.role} metadata={m.metadata}>
                                         {m.content}
                                     </Message>
                                 </div>

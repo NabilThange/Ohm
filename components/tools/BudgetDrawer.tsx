@@ -11,11 +11,27 @@ import { DollarSign, PieChart, TrendingUp } from 'lucide-react'
 interface BudgetDrawerProps {
     isOpen: boolean
     onClose: () => void
+    budgetData?: {
+        originalCost: number
+        optimizedCost: number
+        savings?: string
+        recommendations: Array<{
+            component: string
+            original: string
+            alternative: string
+            costSavings: number
+            reasoning: string
+            tradeoff: string
+        }>
+        bulkOpportunities?: string[]
+        qualityWarnings?: string[]
+    } | null
 }
 
-export default function BudgetDrawer({ isOpen, onClose }: BudgetDrawerProps) {
-    const [budget, setBudget] = useState([50])
-    const [estimatedCost, setEstimatedCost] = useState(35.50)
+export default function BudgetDrawer({ isOpen, onClose, budgetData }: BudgetDrawerProps) {
+    const [budget, setBudget] = useState([budgetData?.originalCost || 50])
+    const estimatedCost = budgetData?.optimizedCost || 35.50
+    const originalCost = budgetData?.originalCost || 50
 
     return (
         <ToolDrawer
@@ -25,79 +41,88 @@ export default function BudgetDrawer({ isOpen, onClose }: BudgetDrawerProps) {
             description="Set your project budget and track estimated costs."
         >
             <div className="space-y-8">
-                {/* Budget Overview Card */}
-                <div className="p-4 rounded-xl bg-card border border-border shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Target Budget</span>
-                        <span className="text-2xl font-bold font-mono text-primary">${budget[0]}</span>
-                    </div>
-
-                    <RadixSlider.Root
-                        className="relative flex items-center select-none touch-none w-full h-5"
-                        value={budget}
-                        onValueChange={setBudget}
-                        max={200}
-                        step={1}
-                    >
-                        <RadixSlider.Track className="bg-muted relative grow rounded-full h-[3px]">
-                            <RadixSlider.Range className="absolute bg-primary rounded-full h-full" />
-                        </RadixSlider.Track>
-                        <RadixSlider.Thumb
-                            className="block w-5 h-5 bg-background border-2 border-primary shadow-[0_2px_10px] shadow-black/20 rounded-[10px] hover:bg-violet-300 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-transform hover:scale-110"
-                            aria-label="Budget"
-                        />
-                    </RadixSlider.Root>
-                    <div className="flex justify-between text-xs text-muted-foreground font-mono">
-                        <span>$0</span>
-                        <span>$200+</span>
-                    </div>
-                </div>
-
-                {/* Cost Analysis */}
-                <div className="space-y-4">
-                    <h3 className="text-sm font-medium flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-primary" />
-                        Cost Analysis
-                    </h3>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="p-3 rounded-lg bg-accent/50 border border-border">
-                            <div className="text-xs text-muted-foreground mb-1">Estimated</div>
-                            <div className={`text-lg font-mono font-semibold ${estimatedCost > budget[0] ? 'text-red-500' : 'text-green-500'}`}>
-                                ${estimatedCost.toFixed(2)}
-                            </div>
-                        </div>
-                        <div className="p-3 rounded-lg bg-accent/50 border border-border">
-                            <div className="text-xs text-muted-foreground mb-1">Remaining</div>
-                            <div className="text-lg font-mono font-semibold">
-                                ${(budget[0] - estimatedCost).toFixed(2)}
-                            </div>
+                {!budgetData && (
+                    <div className="flex items-center justify-center py-12">
+                        <div className="text-center space-y-2">
+                            <p className="text-sm text-muted-foreground">No budget optimization generated yet.</p>
+                            <p className="text-xs text-muted-foreground">Ask the agent to optimize your BOM costs.</p>
                         </div>
                     </div>
-                </div>
+                )}
 
-                {/* Breakdown */}
-                <div className="space-y-3">
-                    <h3 className="text-sm font-medium flex items-center gap-2">
-                        <PieChart className="w-4 h-4 text-primary" />
-                        Breakdown
-                    </h3>
-                    <div className="space-y-2">
-                        {[
-                            { name: 'Microcontroller', cost: 12.00, percent: 34 },
-                            { name: 'Sensors', cost: 15.50, percent: 43 },
-                            { name: 'Power', cost: 8.00, percent: 23 },
-                        ].map((item) => (
-                            <div key={item.name} className="flex items-center text-sm">
-                                <div className="w-24 text-muted-foreground">{item.name}</div>
-                                <div className="flex-1 mx-2 h-2 bg-muted rounded-full overflow-hidden">
-                                    <div className="h-full bg-primary/60" style={{ width: `${item.percent}%` }} />
+                {budgetData && (
+                    <>
+                        {/* Cost Comparison Card */}
+                        <div className="p-4 rounded-xl bg-card border border-border shadow-sm space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span className="text-xs text-muted-foreground">Original Cost</span>
+                                    <div className="text-2xl font-bold font-mono text-zinc-500">${originalCost.toFixed(2)}</div>
                                 </div>
-                                <div className="w-16 text-right font-mono">${item.cost.toFixed(2)}</div>
+                                <div>
+                                    <span className="text-xs text-muted-foreground">Optimized Cost</span>
+                                    <div className="text-2xl font-bold font-mono text-green-600">${estimatedCost.toFixed(2)}</div>
+                                </div>
                             </div>
-                        ))}
-                    </div>
-                </div>
+                            <div className="pt-3 border-t border-border">
+                                <div className="flex items-baseline justify-between">
+                                    <span className="text-sm font-medium">Total Savings</span>
+                                    <span className="text-lg font-bold text-green-600">{budgetData.savings || `$${(originalCost - estimatedCost).toFixed(2)}`}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Recommendations */}
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-medium flex items-center gap-2">
+                                <TrendingUp className="w-4 h-4 text-primary" />
+                                Optimization Recommendations ({budgetData.recommendations?.length || 0})
+                            </h3>
+                            {budgetData.recommendations?.map((rec, idx) => (
+                                <div key={idx} className="p-4 rounded-lg bg-muted/30 border border-border space-y-2">
+                                    <div className="flex items-start justify-between">
+                                        <div className="font-medium text-sm">{rec.component}</div>
+                                        <div className="text-sm font-bold text-green-600">-${rec.costSavings.toFixed(2)}</div>
+                                    </div>
+                                    <div className="text-xs space-y-1">
+                                        <div><span className="text-muted-foreground">Original:</span> {rec.original}</div>
+                                        <div><span className="text-muted-foreground">Alternative:</span> {rec.alternative}</div>
+                                        <div className="text-muted-foreground">{rec.reasoning}</div>
+                                        <div className="mt-2">
+                                            <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-medium ${
+                                                rec.tradeoff.toUpperCase().includes('LOW') ? 'bg-green-500/10 text-green-600' :
+                                                rec.tradeoff.toUpperCase().includes('MEDIUM') ? 'bg-yellow-500/10 text-yellow-600' :
+                                                'bg-red-500/10 text-red-600'
+                                            }`}>
+                                                Risk: {rec.tradeoff}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Bulk Opportunities */}
+                        {budgetData.bulkOpportunities && budgetData.bulkOpportunities.length > 0 && (
+                            <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                                <h4 className="text-sm font-semibold text-blue-600 mb-2">📦 Bulk Purchase Opportunities</h4>
+                                <ul className="text-xs text-blue-600/80 space-y-1">
+                                    {budgetData.bulkOpportunities.map((opp, i) => <li key={i}>• {opp}</li>)}
+                                </ul>
+                            </div>
+                        )}
+
+                        {/* Quality Warnings */}
+                        {budgetData.qualityWarnings && budgetData.qualityWarnings.length > 0 && (
+                            <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                                <h4 className="text-sm font-semibold text-yellow-600 mb-2">⚠️ Don't Cheap Out On</h4>
+                                <ul className="text-xs text-yellow-600/80 space-y-1">
+                                    {budgetData.qualityWarnings.map((warn, i) => <li key={i}>• {warn}</li>)}
+                                </ul>
+                            </div>
+                        )}
+                    </>
+                )}
             </div>
         </ToolDrawer>
     )

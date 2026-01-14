@@ -211,9 +211,12 @@ export default function ContextDrawer({ isOpen, onClose, contextData }: ContextD
                                                         {activeContent}
                                                     </ReactMarkdown>
                                                 ) : (
-                                                    <span className="text-muted-foreground italic">
-                                                        Waiting for generated content. The AI will create this document during the conversation.
-                                                    </span>
+                                                    <div className="flex flex-col items-center justify-center gap-3 py-8">
+                                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                                        <span className="text-muted-foreground italic text-sm">
+                                                            Content is being generated during the conversation...
+                                                        </span>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

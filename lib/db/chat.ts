@@ -105,6 +105,21 @@ export const ChatService = {
     },
 
     /**
+     * Update chat properties (e.g. title)
+     */
+    async updateChat(chatId: string, updates: Partial<Database['public']['Tables']['chats']['Update']>) {
+        const { data, error } = await supabase
+            .from('chats')
+            .update(updates)
+            .eq('id', chatId)
+            .select()
+            .single()
+
+        if (error) throw error
+        return data
+    },
+
+    /**
      * Get the next sequence number for a chat
      */
     async getNextSequenceNumber(chatId: string) {

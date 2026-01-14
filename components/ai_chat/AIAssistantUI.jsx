@@ -14,6 +14,8 @@ import { ChatService } from "@/lib/db/chat"
 import { useChat } from "@/lib/hooks/use-chat"
 import { extractBOMFromMessage, extractCodeFromMessage, extractContextFromMessage, extractCodeBlocksFromMessage } from "@/lib/parsers"
 import { showAgentChangeToast } from "@/lib/agents/toast-notifications"
+import { ArtifactService } from "@/lib/db/artifacts"
+import { supabase } from "@/lib/supabase/client"
 
 // Import Drawers
 import BOMDrawer from "@/components/tools/BOMDrawer"
@@ -130,12 +132,31 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
         handleAgentChange
     )
 
-    // Artifact Parsing State
+    // Artifact State - now loaded from database instead of parsing
+    const [artifacts, setArtifacts] = useState({
+        context: null,
+        mvp: null,
+        prd: null,
+        bom: null,
+        code: null,
+        wiring: null,
+        budget: null
+    })
+    const [showArtifacts, setShowArtifacts] = useState(false)
+    const [activeTool, setActiveTool] = useState(null) // 'context', 'bom', 'code', 'wiring', 'budget'
+    
+    // NEW: Track user-closed drawers to prevent auto-reopening
+    const [closedDrawers, setClosedDrawers] = useState(new Set());
+
+    // Reset closed drawers when switching chats
+    useEffect(() => {
+        setClosedDrawers(new Set());
+    }, [selectedId]);
+
+    // Legacy parsed data for backwards compatibility (keep for now)
     const [bomData, setBomData] = useState(null)
     const [codeData, setCodeData] = useState(null)
     const [contextData, setContextData] = useState(null)
-    const [showArtifacts, setShowArtifacts] = useState(false)
-    const [activeTool, setActiveTool] = useState(null) // 'context', 'bom', 'code'
 
     // Event Listener for "View All Files" from Chat
     useEffect(() => {
@@ -154,106 +175,187 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
             }
         };
 
-        window.addEventListener('open-code-drawer', handleOpenCodeDrawer);
-        return () => window.removeEventListener('open-code-drawer', handleOpenCodeDrawer);
-    }, []);
-
-    // Parser Logic (Ported from BuildInterface)
-    useEffect(() => {
-        if (messages.length === 0) return;
-
-        // console.log(`[Parser STATUS: ON] 🟢 Scanning ${messages.length} messages for artifacts (AIAssistantUI)...`);
-
-        let foundBom = null;
-        // Accumulate code files to handle multiple messages and updates
-        const codeFilesMap = new Map();
-        let accumulatedContext = { context: null, mvp: null, prd: null };
-
-        messages.forEach((msg, index) => {
-            const i = index + 1; // 1-based index for logs
-            // Parse both Assistant and User messages so user can paste context/artifacts
-            if (msg.role === 'assistant' || msg.role === 'user') {
-                let hits = [];
-                const bom = extractBOMFromMessage(msg.content);
-                if (bom) {
-                    foundBom = bom;
-                    hits.push("BOM");
+        // Event listener for drawer link buttons in AI messages (and new tool call events)
+        const handleOpenDrawer = (event) => {
+            const { drawer } = event.detail || {};
+            console.log('[AIAssistantUI] 📨 Received open-drawer event:', drawer);
+            if (drawer) {
+                // If opening via tool/button, remove from closed set if present (force open)
+                if (closedDrawers.has(drawer)) {
+                    console.log(`[AIAssistantUI] 🔓 Removing ${drawer} from closed set (forced open)`);
+                    setClosedDrawers(prev => {
+                        const next = new Set(prev);
+                        next.delete(drawer);
+                        return next;
+                    });
                 }
-
-                let code = extractCodeFromMessage(msg.content);
-                if (!code) {
-                    // Try markdown extraction fallback
-                    const extracted = extractCodeBlocksFromMessage(msg.content);
-                    if (extracted && extracted.files.length > 0) {
-                        code = {
-                            files: extracted.files.map(f => ({
-                                path: f.filename,
-                                content: f.content
-                            }))
-                        };
-                    }
-                }
-
-                if (code && code.files) {
-                    code.files.forEach(f => codeFilesMap.set(f.path, f));
-                    hits.push("Code");
-                }
-
-                const ctx = extractContextFromMessage(msg.content);
-                if (ctx.context || ctx.mvp || ctx.prd) {
-                    accumulatedContext = {
-                        context: ctx.context || accumulatedContext.context,
-                        mvp: ctx.mvp || accumulatedContext.mvp,
-                        prd: ctx.prd || accumulatedContext.prd
-                    };
-                    hits.push(`Context(${[
-                        ctx.context ? 'Ctx' : '',
-                        ctx.mvp ? 'MVP' : '',
-                        ctx.prd ? 'PRD' : ''
-                    ].filter(Boolean).join(',')})`);
-                }
-
-                /*
-                if (hits.length > 0) {
-                     console.log(`[Parser] Parsed message ${i}: Found ${hits.join(', ')}`);
-                } else {
-                    // console.log(`[Parser] Parsed message ${i}: No artifacts`);
-                }
-                */
+                
+                console.log('[AIAssistantUI] ✅ Opening drawer:', drawer);
+                setActiveTool(drawer);
+                setShowArtifacts(true);
+            } else {
+                console.error('[AIAssistantUI] ❌ No drawer specified in event');
             }
-        });
+        };
 
-        if (foundBom) {
-            // console.log("[AIAssistantUI] Restoring BOM");
-            setBomData(prev => JSON.stringify(prev) !== JSON.stringify(foundBom) ? foundBom : prev);
-        }
+        window.addEventListener('open-code-drawer', handleOpenCodeDrawer);
+        window.addEventListener('open-drawer', handleOpenDrawer);
+        
+        console.log('[AIAssistantUI] 🎯 Event listeners registered');
+        
+        return () => {
+            window.removeEventListener('open-code-drawer', handleOpenCodeDrawer);
+            window.removeEventListener('open-drawer', handleOpenDrawer);
+        };
+    }, [closedDrawers]); // Depend on closedDrawers to access latest state
 
-        if (codeFilesMap.size > 0) {
-            // console.log("[AIAssistantUI] Restoring Code (Accumulated)");
-            const accumulatedCode = { files: Array.from(codeFilesMap.values()) };
-            setCodeData(prev => JSON.stringify(prev) !== JSON.stringify(accumulatedCode) ? accumulatedCode : prev);
-        }
+    // NEW: Load artifacts from database instead of parsing
+    useEffect(() => {
+        if (!selectedId) return;
 
-        if (accumulatedContext.context || accumulatedContext.mvp || accumulatedContext.prd) {
-            // console.log("[AIAssistantUI] Restoring Context");
-            setContextData(prev => {
-                const isDifferent = !prev ||
-                    prev.context !== accumulatedContext.context ||
-                    prev.mvp !== accumulatedContext.mvp ||
-                    prev.prd !== accumulatedContext.prd;
-                if (isDifferent) {
-                    // Auto-open context drawer if not open and we have new context?
-                    // Maybe don't force it, just let user know.
-                    // For now, if no tool active, maybe default to context?
+        const loadArtifacts = async () => {
+            console.log('[AIAssistantUI] 📦 Loading artifacts from database for chat:', selectedId);
+            
+            try {
+                const types = ['context', 'mvp', 'prd', 'bom', 'code', 'wiring', 'budget'];
+                const results = await Promise.all(
+                    types.map(type => ArtifactService.getLatestArtifact(selectedId, type))
+                );
+
+                const newArtifacts = {};
+                types.forEach((type, index) => {
+                    newArtifacts[type] = results[index];
+                });
+
+                setArtifacts(newArtifacts);
+
+                // Set legacy state for backwards compatibility
+                if (newArtifacts.bom?.version?.content_json) {
+                    setBomData(newArtifacts.bom.version.content_json);
+                }
+                if (newArtifacts.code?.version?.content_json) {
+                    setCodeData(newArtifacts.code.version.content_json);
+                }
+                if (newArtifacts.context || newArtifacts.mvp || newArtifacts.prd) {
+                    setContextData({
+                        context: newArtifacts.context?.version?.content || null,
+                        mvp: newArtifacts.mvp?.version?.content || null,
+                        prd: newArtifacts.prd?.version?.content || null
+                    });
+                }
+
+                console.log('[AIAssistantUI] ✅ Artifacts loaded:', {
+                    context: !!newArtifacts.context,
+                    mvp: !!newArtifacts.mvp,
+                    prd: !!newArtifacts.prd,
+                    bom: !!newArtifacts.bom,
+                    code: !!newArtifacts.code,
+                    wiring: !!newArtifacts.wiring,
+                    budget: !!newArtifacts.budget
+                });
+
+                // Auto-open drawer if we have new artifacts
+                if (newArtifacts.context || newArtifacts.mvp || newArtifacts.prd) {
                     if (!activeTool) setActiveTool('context');
                     if (!showArtifacts) setShowArtifacts(true);
-                    return accumulatedContext;
                 }
-                return prev;
-            });
-        }
+            } catch (error) {
+                console.error('[AIAssistantUI] ❌ Failed to load artifacts:', error);
+            }
+        };
 
-    }, [messages, activeTool, showArtifacts]);
+        loadArtifacts();
+    }, [selectedId, messages]); // Reload when messages change (indicates tool calls may have run)
+
+    // NEW: Subscribe to realtime artifact updates via Supabase
+    useEffect(() => {
+        if (!selectedId) return;
+
+        console.log('[AIAssistantUI] 🔴 Setting up realtime subscription for chat:', selectedId);
+
+        // Subscribe to artifact_versions table changes
+        const channel = supabase
+            .channel(`artifacts:${selectedId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'artifact_versions'
+                },
+                async (payload) => {
+                    console.log('[AIAssistantUI] 🔔 Realtime artifact update received:', payload);
+                    
+                    // Get the artifact_id from the new version
+                    const artifactId = payload.new.artifact_id;
+                    
+                    // Find which artifact this belongs to by querying artifacts table
+                    const { data: artifact } = await supabase
+                        .from('artifacts')
+                        .select('type, chat_id')
+                        .eq('id', artifactId)
+                        .single();
+                    
+                    if (artifact && artifact.chat_id === selectedId) {
+                        console.log(`[AIAssistantUI] ⭐ Refreshing ${artifact.type} artifact`);
+                        
+                        // Reload just this artifact type
+                        const updated = await ArtifactService.getLatestArtifact(selectedId, artifact.type);
+                        
+                        setArtifacts(prev => ({
+                            ...prev,
+                            [artifact.type]: updated
+                        }));
+
+                        // Update legacy state
+                        if (artifact.type === 'bom' && updated?.version?.content_json) {
+                            setBomData(updated.version.content_json);
+                        } else if (artifact.type === 'code' && updated?.version?.content_json) {
+                            setCodeData(updated.version.content_json);
+                        } else if (['context', 'mvp', 'prd'].includes(artifact.type)) {
+                            setContextData(prev => ({
+                                ...prev,
+                                [artifact.type]: updated?.version?.content || null
+                            }));
+                        }
+
+                        // Auto-open drawer for new artifacts - ONLY if not closed by user
+                        // Note: Immediate opening is now handled by stream events in useChat.
+                        // This serves as a backup/fallback for artifact updates that didn't trigger stream event
+                        console.log(`[AIAssistantUI] 🔓 Checking auto-open for ${artifact.type}`);
+                        
+                        let drawerToOpen = null;
+                        if (artifact.type === 'bom') drawerToOpen = 'bom';
+                        else if (artifact.type === 'code') drawerToOpen = 'code';
+                        else if (artifact.type === 'wiring') drawerToOpen = 'wiring';
+                        else if (artifact.type === 'budget') drawerToOpen = 'budget';
+                        else if (['context', 'mvp', 'prd'].includes(artifact.type)) drawerToOpen = 'context';
+
+                        if (drawerToOpen) {
+                            if (closedDrawers.has(drawerToOpen)) {
+                                console.log(`[AIAssistantUI] 🛑 Drawer ${drawerToOpen} is in closed set. Ignoring auto-open.`);
+                            } else {
+                                // Only open if we aren't already viewing another tool (or if it's this one)
+                                // Actually, let's be less aggressive here since stream event handles immediate open.
+                                // We'll only open if it matches current active, to update data? No, activeTool handles data.
+                                // Just open if not closed.
+                                console.log(`[AIAssistantUI] ✅ Auto-opening drawer (fallback): ${drawerToOpen}`);
+                                setActiveTool(drawerToOpen);
+                                setShowArtifacts(true);
+                            }
+                        }
+                    }
+                }
+            )
+            .subscribe((status) => {
+                console.log('[AIAssistantUI] 🔌 Subscription status:', status);
+            });
+
+        return () => {
+            console.log('[AIAssistantUI] 🔴 Unsubscribing from realtime');
+            supabase.removeChannel(channel);
+        };
+    }, [selectedId, activeTool, closedDrawers]);
 
     useEffect(() => {
         if (initialChatId) setSelectedId(initialChatId)
@@ -357,6 +459,27 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
 
             // After the message has been accepted, update the URL for deep-linking
             router.push(`/build/${newChat.id}`)
+
+            // Trigger title generation in background
+            if (promptText && promptText !== "New Project") {
+                console.log('[AIAssistantUI] 🏷️ Triggering title generation...');
+                fetch('/api/agents/title', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chatId: newChat.id,
+                        message: promptText
+                    })
+                }).then(res => res.json())
+                  .then(data => {
+                      console.log('[AIAssistantUI] 🏷️ Title generated:', data.title);
+                      // Force refresh chat list or update local state if needed
+                      // The Sidebar uses dbChats which comes from useChatList
+                      // We might need to refresh that list.
+                      // For now, assuming realtime or next fetch will update it.
+                  })
+                  .catch(err => console.error('Title generation failed:', err));
+            }
         } catch (e) {
             console.error("Failed to create chat or send initial message:", e)
             alert(`Could not create chat: ${e.message}`)
@@ -428,10 +551,22 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
                         templates={templates}
                         setTemplates={setTemplates}
                         onUseTemplate={(t) => composerRef.current?.insertTemplate(t.content)}
-                        // Pass Artifact Data
+                        // Pass Artifact Data (legacy format for backwards compat)
                         contextData={contextData}
                         bomData={bomData}
                         codeData={codeData}
+                        // NEW: Pass full artifacts object
+                        artifacts={artifacts}
+                        // Pass controlled tool state
+                        activeTool={activeTool}
+                        setActiveTool={(tool) => {
+                            if (tool === null && activeTool) {
+                                // User is closing the drawer
+                                console.log(`[AIAssistantUI] 🔒 User closed drawer: ${activeTool}`);
+                                setClosedDrawers(prev => new Set(prev).add(activeTool));
+                            }
+                            setActiveTool(tool);
+                        }}
                     />
 
                     <main className="relative flex min-w-0 flex-1 flex-col h-full">

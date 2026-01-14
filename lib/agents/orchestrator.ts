@@ -168,9 +168,9 @@ export class AgentRunner {
         return this.executeWithRetry(
             async (client) => {
                 if (options?.stream) {
-                    return await this.runStreamingAgentWithTools(client, agent, fullMessages, tools, options.onStream, options.onToolCall);
+                    return await this.runStreamingAgentWithTools(client, agent, fullMessages, tools, options?.onStream, options?.onToolCall);
                 } else {
-                    return await this.runNonStreamingAgentWithTools(client, agent, fullMessages, tools, options.onToolCall);
+                    return await this.runNonStreamingAgentWithTools(client, agent, fullMessages, tools, options?.onToolCall);
                 }
             },
             agent.name
@@ -211,16 +211,19 @@ export class AgentRunner {
         // Handle tool calls
         if (message?.tool_calls) {
             for (const tc of message.tool_calls) {
-                const toolCall: ToolCall = {
-                    name: tc.function.name,
-                    arguments: JSON.parse(tc.function.arguments)
-                };
-                toolCalls.push(toolCall);
+                // Type guard: only process function-type tool calls
+                if (tc.type === 'function' && 'function' in tc) {
+                    const toolCall: ToolCall = {
+                        name: tc.function.name,
+                        arguments: JSON.parse(tc.function.arguments)
+                    };
+                    toolCalls.push(toolCall);
 
-                // Execute tool call if callback provided
-                if (onToolCall) {
-                    console.log(`🔧 Executing tool call: ${toolCall.name}`);
-                    await onToolCall(toolCall);
+                    // Execute tool call if callback provided
+                    if (onToolCall) {
+                        console.log(`🔧 Executing tool call: ${toolCall.name}`);
+                        await onToolCall(toolCall);
+                    }
                 }
             }
         }

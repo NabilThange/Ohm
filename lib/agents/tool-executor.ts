@@ -1,5 +1,8 @@
 import { ArtifactService } from '@/lib/db/artifacts';
 import type { ToolCall } from './tools';
+import { Database } from '@/lib/supabase/types';
+
+type ArtifactType = Database['public']['Tables']['artifacts']['Row']['type'];
 
 /**
  * ToolExecutor - Handles execution of tool calls and persists data to database
@@ -10,6 +13,39 @@ export class ToolExecutor {
 
     constructor(chatId: string) {
         this.chatId = chatId;
+    }
+
+    /**
+     * Helper to get or create an artifact, returning consistent { id, currentVersion, existingVersion } structure
+     */
+    private async getOrCreateArtifact(type: ArtifactType, title: string): Promise<{
+        id: string;
+        currentVersion: number;
+        existingVersion: any | null;
+    }> {
+        const existing = await ArtifactService.getLatestArtifact(this.chatId, type);
+
+        if (existing && existing.artifact) {
+            return {
+                id: existing.artifact.id,
+                currentVersion: existing.artifact.current_version || 0,
+                existingVersion: existing.version
+            };
+        }
+
+        // Create new artifact
+        console.log(`[ToolExecutor] Creating new ${type} artifact`);
+        const created = await ArtifactService.createArtifact("system", {
+            chat_id: this.chatId,
+            type: type,
+            title: title
+        });
+
+        return {
+            id: created.id,
+            currentVersion: 0,
+            existingVersion: null
+        };
     }
 
     /**
@@ -33,13 +69,13 @@ export class ToolExecutor {
                     return await this.updateBOM(toolCall.arguments);
 
                 case 'add_code_file':
-                    return await this.addCodeFile(toolCall.arguments);
+                    return await this.addCodeFile(toolCall.arguments as { filename: string; language: string; content: string; description?: string });
 
                 case 'update_wiring':
-                    return await this.updateWiring(toolCall.arguments);
+                    return await this.updateWiring(toolCall.arguments as { connections: any[]; instructions: string; warnings?: string[] });
 
                 case 'update_budget':
-                    return await this.updateBudget(toolCall.arguments);
+                    return await this.updateBudget(toolCall.arguments as { originalCost: number; optimizedCost: number; savings?: string; recommendations: any[]; bulkOpportunities?: string[]; qualityWarnings?: string[] });
 
                 default:
                     throw new Error(`Unknown tool: ${toolCall.name}`);
@@ -54,19 +90,7 @@ export class ToolExecutor {
      * Update project context artifact
      */
     private async updateContext(context: string) {
-        let artifact = await ArtifactService.getLatestArtifact(this.chatId, 'context');
-
-        if (!artifact) {
-            console.log('[ToolExecutor] Creating new context artifact');
-            artifact = await ArtifactService.createArtifact("system", {
-                chat_id: this.chatId,
-                type: 'context',
-                title: 'Project Context'
-            });
-        }
-
-        const artifactId = artifact.artifact?.id || artifact.id;
-        const currentVersion = artifact.artifact?.current_version || artifact.current_version || 0;
+        const { id: artifactId, currentVersion } = await this.getOrCreateArtifact('context', 'Project Context');
 
         const version = await ArtifactService.createVersion({
             artifact_id: artifactId,
@@ -83,19 +107,7 @@ export class ToolExecutor {
      * Update MVP specification artifact
      */
     private async updateMVP(mvp: string) {
-        let artifact = await ArtifactService.getLatestArtifact(this.chatId, 'mvp');
-
-        if (!artifact) {
-            console.log('[ToolExecutor] Creating new MVP artifact');
-            artifact = await ArtifactService.createArtifact("system", {
-                chat_id: this.chatId,
-                type: 'mvp',
-                title: 'MVP Specification'
-            });
-        }
-
-        const artifactId = artifact.artifact?.id || artifact.id;
-        const currentVersion = artifact.artifact?.current_version || artifact.current_version || 0;
+        const { id: artifactId, currentVersion } = await this.getOrCreateArtifact('mvp', 'MVP Specification');
 
         const version = await ArtifactService.createVersion({
             artifact_id: artifactId,
@@ -112,19 +124,7 @@ export class ToolExecutor {
      * Update PRD artifact
      */
     private async updatePRD(prd: string) {
-        let artifact = await ArtifactService.getLatestArtifact(this.chatId, 'prd');
-
-        if (!artifact) {
-            console.log('[ToolExecutor] Creating new PRD artifact');
-            artifact = await ArtifactService.createArtifact("system", {
-                chat_id: this.chatId,
-                type: 'prd',
-                title: 'Product Requirements'
-            });
-        }
-
-        const artifactId = artifact.artifact?.id || artifact.id;
-        const currentVersion = artifact.artifact?.current_version || artifact.current_version || 0;
+        const { id: artifactId, currentVersion } = await this.getOrCreateArtifact('prd', 'Product Requirements');
 
         const version = await ArtifactService.createVersion({
             artifact_id: artifactId,
@@ -141,19 +141,7 @@ export class ToolExecutor {
      * Update BOM artifact with structured JSON data
      */
     private async updateBOM(bomData: any) {
-        let artifact = await ArtifactService.getLatestArtifact(this.chatId, 'bom');
-
-        if (!artifact) {
-            console.log('[ToolExecutor] Creating new BOM artifact');
-            artifact = await ArtifactService.createArtifact("system", {
-                chat_id: this.chatId,
-                type: 'bom',
-                title: bomData.project_name || 'Bill of Materials'
-            });
-        }
-
-        const artifactId = artifact.artifact?.id || artifact.id;
-        const currentVersion = artifact.artifact?.current_version || artifact.current_version || 0;
+        const { id: artifactId, currentVersion } = await this.getOrCreateArtifact('bom', bomData.project_name || 'Bill of Materials');
 
         const version = await ArtifactService.createVersion({
             artifact_id: artifactId,
@@ -171,22 +159,11 @@ export class ToolExecutor {
      * Multiple files are accumulated in the same artifact's content_json.files array
      */
     private async addCodeFile(fileData: { filename: string; language: string; content: string; description?: string }) {
-        let artifact = await ArtifactService.getLatestArtifact(this.chatId, 'code');
-
-        if (!artifact) {
-            console.log('[ToolExecutor] Creating new code artifact');
-            artifact = await ArtifactService.createArtifact("system", {
-                chat_id: this.chatId,
-                type: 'code',
-                title: 'Generated Code'
-            });
-        }
-
-        const artifactId = artifact.artifact?.id || artifact.id;
-        const currentVersion = artifact.artifact?.current_version || artifact.current_version || 0;
+        const { id: artifactId, currentVersion, existingVersion } = await this.getOrCreateArtifact('code', 'Generated Code');
 
         // Get existing files from the latest version
-        const existingFiles = artifact.version?.content_json?.files || [];
+        const contentJson = existingVersion?.content_json as { files?: any[] } | null;
+        const existingFiles = contentJson?.files || [];
 
         // Add or update the file
         const fileIndex = existingFiles.findIndex((f: any) => f.path === fileData.filename);
@@ -221,19 +198,7 @@ export class ToolExecutor {
      * Update wiring diagram artifact
      */
     private async updateWiring(wiringData: { connections: any[]; instructions: string; warnings?: string[] }) {
-        let artifact = await ArtifactService.getLatestArtifact(this.chatId, 'wiring');
-
-        if (!artifact) {
-            console.log('[ToolExecutor] Creating new wiring artifact');
-            artifact = await ArtifactService.createArtifact("system", {
-                chat_id: this.chatId,
-                type: 'wiring',
-                title: 'Wiring Diagram'
-            });
-        }
-
-        const artifactId = artifact.artifact?.id || artifact.id;
-        const currentVersion = artifact.artifact?.current_version || artifact.current_version || 0;
+        const { id: artifactId, currentVersion } = await this.getOrCreateArtifact('wiring', 'Wiring Diagram');
 
         const version = await ArtifactService.createVersion({
             artifact_id: artifactId,
@@ -251,19 +216,7 @@ export class ToolExecutor {
      * Update budget optimization artifact
      */
     private async updateBudget(budgetData: { originalCost: number; optimizedCost: number; savings?: string; recommendations: any[]; bulkOpportunities?: string[]; qualityWarnings?: string[] }) {
-        let artifact = await ArtifactService.getLatestArtifact(this.chatId, 'budget');
-
-        if (!artifact) {
-            console.log('[ToolExecutor] Creating new budget artifact');
-            artifact = await ArtifactService.createArtifact("system", {
-                chat_id: this.chatId,
-                type: 'budget',
-                title: 'Budget Optimization'
-            });
-        }
-
-        const artifactId = artifact.artifact?.id || artifact.id;
-        const currentVersion = artifact.artifact?.current_version || artifact.current_version || 0;
+        const { id: artifactId, currentVersion } = await this.getOrCreateArtifact('budget', 'Budget Optimization');
 
         const version = await ArtifactService.createVersion({
             artifact_id: artifactId,

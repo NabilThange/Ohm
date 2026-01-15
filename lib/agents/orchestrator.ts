@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { AGENTS, type AgentType, getContextualSystemPrompt, getChatAgentType, type UserContext } from "./config";
 import { KeyManager, type KeyRotationEvent } from "./key-manager";
 import { getToolsForAgent, type ToolCall } from "./tools";
+import { ConversationSummarizer } from "./summarizer";
 
 /**
  * BYTEZ Client Singleton with Automatic Failover
@@ -599,6 +600,13 @@ Examples:
             await ChatService.updateSession(this.chatId, {
                 current_agent: finalAgentType,
                 last_active_at: new Date().toISOString()
+            });
+
+            // 8. Trigger conversation summarization (non-blocking)
+            // This runs in background and doesn't affect response time
+            const summarizer = new ConversationSummarizer(this.chatId);
+            summarizer.updateSummary('system').catch(err => {
+                console.error('[Orchestrator] Background summarization failed:', err);
             });
         }
 

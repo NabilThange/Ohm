@@ -152,7 +152,7 @@ export class ConversationSummarizer {
 
       return {
         artifactId: artifact.id,
-        summary: version.content as ConversationSummary
+        summary: version.content as unknown as ConversationSummary
       };
     } catch (error) {
       console.error('[Summarizer] Failed to get current summary:', error);
@@ -181,7 +181,13 @@ export class ConversationSummarizer {
       if (error) throw error;
 
       // Filter out system messages
-      return (data || []).filter(m => m.role !== 'system');
+      return (data || []).filter(m => m.role !== 'system') as Array<{
+        id: string;
+        sequence_number: number;
+        role: 'user' | 'assistant';
+        content: string;
+        agent_name: string | null;
+      }>;
     } catch (error) {
       console.error('[Summarizer] Failed to get new messages:', error);
       return [];

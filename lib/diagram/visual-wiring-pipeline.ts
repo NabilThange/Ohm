@@ -180,7 +180,7 @@ export class VisualWiringPipeline {
         content_json: {
           ...wiringData,
           ai_images: imageStatus
-        },
+        } as any,
         diagram_svg: currentVersion?.diagram_svg || null, // Preserve existing SVG
         change_summary: `AI image status: ${imageStatus.status} (${imageStatus.progress}%)`
       });

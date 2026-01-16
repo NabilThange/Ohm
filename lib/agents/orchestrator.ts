@@ -594,7 +594,6 @@ Examples:
                 role: "assistant",
                 content: response,
                 agent_name: finalAgentType,
-                agent_id: finalAgentType,  // Track which agent generated this message
                 sequence_number: seq,
                 intent: intent,
                 metadata: (toolCalls.length > 0 ? { toolCalls } : null) as any // Persist tool calls in metadata

@@ -189,30 +189,34 @@ export class SVGSchematicGenerator {
     connections: Connection[],
     components: PositionedComponent[]
   ): RoutedConnection[] {
-    return connections.map(conn => {
-      const fromComp = components.find(c => c.id === conn.from_component);
-      const toComp = components.find(c => c.id === conn.to_component);
+    const routed = connections
+      .map(conn => {
+        const fromComp = components.find(c => c.id === conn.from_component);
+        const toComp = components.find(c => c.id === conn.to_component);
 
-      if (!fromComp || !toComp) {
-        return null;
-      }
+        if (!fromComp || !toComp) {
+          return null;
+        }
 
-      const color = this.getWireColor(conn.wire_color);
-      const label = `${conn.from_pin} → ${conn.to_pin}`;
-      const isPower = conn.wire_color?.toLowerCase() === 'red';
-      const isGround = conn.wire_color?.toLowerCase() === 'black';
+        const color = this.getWireColor(conn.wire_color);
+        const label = `${conn.from_pin} → ${conn.to_pin}`;
+        const isPower = conn.wire_color?.toLowerCase() === 'red';
+        const isGround = conn.wire_color?.toLowerCase() === 'black';
 
-      return {
-        x1: fromComp.x + fromComp.width / 2,
-        y1: fromComp.y + fromComp.height,
-        x2: toComp.x + toComp.width / 2,
-        y2: toComp.y,
-        color,
-        label,
-        isPower,
-        isGround
-      };
-    }).filter((conn): conn is RoutedConnection => conn !== null);
+        return {
+          x1: fromComp.x + fromComp.width / 2,
+          y1: fromComp.y + fromComp.height,
+          x2: toComp.x + toComp.width / 2,
+          y2: toComp.y,
+          color,
+          label,
+          isPower,
+          isGround
+        } as RoutedConnection;
+      })
+      .filter((conn): conn is RoutedConnection => conn !== null);
+    
+    return routed;
   }
 
   /**

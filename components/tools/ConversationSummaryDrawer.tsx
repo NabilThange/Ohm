@@ -73,7 +73,9 @@ export default function ConversationSummaryDrawer({
                 if (versionError) throw versionError
 
                 // Parse JSON content - it's stored as JSONB
-                setSummary(version.content as ConversationSummary)
+                if (version?.content) {
+                    setSummary(version.content as unknown as ConversationSummary)
+                }
                 setLoading(false)
             } catch (err) {
                 console.error('[SummaryDrawer] Failed to fetch summary:', err)

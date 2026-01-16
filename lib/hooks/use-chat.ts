@@ -233,7 +233,7 @@ export function useChat(chatId: string | null, onAgentChange?: (agent: any) => v
                             setMessages(prev => prev.map(m =>
                                 m.id === aiTempId ? {
                                     ...m,
-                                    metadata: { ...m.metadata, toolCalls: accumulatedToolCalls }
+                                    metadata: { ...(m.metadata as any || {}), toolCalls: accumulatedToolCalls }
                                 } : m
                             ));
 

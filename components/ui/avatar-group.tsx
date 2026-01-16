@@ -97,7 +97,8 @@ const AvatarGroup = React.forwardRef<HTMLDivElement, AvatarGroupProps>(
                             let tooltip = null
                             let otherChildren: React.ReactNode[] = []
 
-                            React.Children.forEach(child.props.children, (c: any) => {
+                            const childProps = (child as React.ReactElement).props as any
+                            React.Children.forEach(childProps.children, (c: any) => {
                                 if (React.isValidElement(c) && c.type === AvatarGroupTooltip) {
                                     tooltip = c
                                 } else {
@@ -107,7 +108,7 @@ const AvatarGroup = React.forwardRef<HTMLDivElement, AvatarGroupProps>(
 
                             // Clone the child without the tooltip
                             const childWithoutTooltip = React.cloneElement(child, {
-                                ...child.props,
+                                ...(childProps as any),
                                 children: otherChildren
                             })
 

@@ -174,14 +174,14 @@ export default function Sidebar({
                     initial={{ width: 320 }}
                     animate={{ width: 64 }}
                     transition={{ type: "spring", stiffness: 260, damping: 28 }}
-                    className="z-50 flex h-full shrink-0 flex-col border-r border-zinc-200/60 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+                    className="z-50 flex h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar"
                 >
-                    <div className="flex items-center justify-center border-b border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
+                    <div className="flex items-center justify-center border-b border-sidebar-border px-3 py-3">
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <button
                                     onClick={() => setSidebarCollapsed(false)}
-                                    className="rounded-xl p-2 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:bg-zinc-800"
+                                    className="rounded-xl p-2 hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     aria-label="Open sidebar"
                                 >
                                     <PanelLeftOpen className="h-5 w-5" />
@@ -198,7 +198,7 @@ export default function Sidebar({
                             <TooltipTrigger asChild>
                                 <button
                                     onClick={handleNewChatClick}
-                                    className="rounded-xl p-2.5 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:bg-zinc-800 transition-colors"
+                                    className="rounded-xl p-2.5 hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
                                 >
                                     <Plus className="h-5 w-5" />
                                 </button>
@@ -211,8 +211,22 @@ export default function Sidebar({
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <button
+                                    onClick={() => window.location.href = '/marketplace'}
+                                    className="rounded-xl p-2.5 bg-secondary text-secondary-foreground hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+                                >
+                                    <FileText className="h-5 w-5" />
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">
+                                <p>Marketplace</p>
+                            </TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <button
                                     onClick={handleSearchClick}
-                                    className="rounded-xl p-2.5 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:bg-zinc-800 transition-colors"
+                                    className="rounded-xl p-2.5 hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
                                 >
                                     <SearchIcon className="h-5 w-5" />
                                 </button>
@@ -226,7 +240,7 @@ export default function Sidebar({
                             <TooltipTrigger asChild>
                                 <button
                                     onClick={handleFoldersClick}
-                                    className="rounded-xl p-2.5 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:bg-zinc-800 transition-colors"
+                                    className="rounded-xl p-2.5 hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
                                 >
                                     <FolderIcon className="h-5 w-5" />
                                 </button>
@@ -238,8 +252,8 @@ export default function Sidebar({
                     </div>
 
                     {/* Project Tools Section */}
-                    <div className="flex flex-col items-center gap-2 border-t border-zinc-200/60 pt-4 dark:border-zinc-800">
-                        <div className="mb-1 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">TOOLS</div>
+                    <div className="flex flex-col items-center gap-2 border-t border-sidebar-border pt-4">
+                        <div className="mb-1 text-[10px] font-semibold text-muted-foreground">TOOLS</div>
                         {[
                             { id: 'budget', icon: Wallet, label: 'Budget' },
                             { id: 'components', icon: Cpu, label: 'Parts' },
@@ -253,10 +267,10 @@ export default function Sidebar({
                                     <button
                                         onClick={() => setActiveTool(activeTool === tool.id ? null : tool.id)}
                                         className={cls(
-                                            "rounded-xl p-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                                            "rounded-xl p-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                                             activeTool === tool.id
-                                                ? "bg-blue-500 text-white shadow-sm"
-                                                : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                                ? "bg-primary text-primary-foreground shadow-sm"
+                                                : "hover:bg-sidebar-accent"
                                         )}
                                     >
                                         <tool.icon className="h-5 w-5" />
@@ -275,7 +289,7 @@ export default function Sidebar({
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <button
-                                        className="rounded-xl p-2.5 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:bg-zinc-800 transition-colors"
+                                        className="rounded-xl p-2.5 hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
                                     >
                                         <Settings className="h-5 w-5" />
                                     </button>
@@ -302,7 +316,7 @@ export default function Sidebar({
                 {activeTool === 'budget' && <BudgetDrawer isOpen={true} onClose={() => setActiveTool(null)} />}
                 {activeTool === 'components' && <ComponentDrawer isOpen={true} onClose={() => setActiveTool(null)} />}
                 {activeTool === 'bom' && <BOMDrawer isOpen={true} onClose={() => setActiveTool(null)} bomData={bomData} />}
-                {activeTool === 'wiring' && <WiringDrawer isOpen={true} onClose={() => setActiveTool(null)} />}
+                {activeTool === 'wiring' && <WiringDrawer isOpen={true} onClose={() => setActiveTool(null)} wiringData={artifacts?.wiring?.version?.content_json} diagramSvg={artifacts?.wiring?.version?.diagram_svg} />}
                 {activeTool === 'code' && <CodeDrawer isOpen={true} onClose={() => setActiveTool(null)} codeData={codeData} />}
                 {activeTool === 'context' && <ContextDrawer isOpen={true} onClose={() => setActiveTool(null)} contextData={contextData} />}
             </>
@@ -318,7 +332,7 @@ export default function Sidebar({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 0.5 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-40 bg-black/60 md:hidden"
+                        className="fixed inset-0 z-40 bg-foreground/60 md:hidden"
                         onClick={onClose}
                     />
                 )}
@@ -333,13 +347,13 @@ export default function Sidebar({
                         exit={{ x: -340 }}
                         transition={{ type: "spring", stiffness: 260, damping: 28 }}
                         className={cls(
-                            "z-50 flex h-full w-80 shrink-0 flex-col border-r border-zinc-200/60 bg-white dark:border-zinc-800 dark:bg-zinc-900",
+                            "z-50 flex h-full w-80 shrink-0 flex-col border-r border-sidebar-border bg-sidebar",
                             "fixed inset-y-0 left-0 md:static md:translate-x-0",
                         )}
                     >
-                        <div className="flex items-center gap-2 border-b border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
+                        <div className="flex items-center gap-2 border-b border-sidebar-border px-3 py-3">
                             <div className="flex items-center gap-2">
-                                <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-sm dark:from-zinc-200 dark:to-zinc-300 dark:text-zinc-900">
+                                <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary text-primary-foreground shadow-sm">
                                     <Asterisk className="h-4 w-4" />
                                 </div>
                                 <div className="text-sm font-semibold tracking-tight">Ohm Assistant</div>
@@ -347,7 +361,7 @@ export default function Sidebar({
                             <div className="ml-auto flex items-center gap-1">
                                 <button
                                     onClick={() => setSidebarCollapsed(true)}
-                                    className="hidden md:block rounded-xl p-2 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:bg-zinc-800"
+                                    className="hidden md:block rounded-xl p-2 hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     aria-label="Close sidebar"
                                     title="Close sidebar"
                                 >
@@ -356,7 +370,7 @@ export default function Sidebar({
 
                                 <button
                                     onClick={onClose}
-                                    className="md:hidden rounded-xl p-2 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:bg-zinc-800"
+                                    className="md:hidden rounded-xl p-2 hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     aria-label="Close sidebar"
                                 >
                                     <PanelLeftClose className="h-5 w-5" />
@@ -369,7 +383,7 @@ export default function Sidebar({
                                 Search conversations
                             </label>
                             <div className="relative">
-                                <SearchIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                                <SearchIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <input
                                     id="search"
                                     ref={searchRef}
@@ -379,24 +393,31 @@ export default function Sidebar({
                                     placeholder="Search…"
                                     onClick={() => setShowSearchModal(true)}
                                     onFocus={() => setShowSearchModal(true)}
-                                    className="w-full rounded-full border border-zinc-200 bg-white py-2 pl-9 pr-3 text-sm outline-none ring-0 placeholder:text-zinc-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-zinc-800 dark:bg-zinc-950/50"
+                                    className="w-full rounded-full border border-input bg-background py-2 pl-9 pr-3 text-sm outline-none ring-0 placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring"
                                 />
                             </div>
                         </div>
 
-                        <div className="px-3 pt-3">
+                        <div className="px-3 pt-3 space-y-2">
                             <button
                                 onClick={createNewChat}
-                                className="flex w-full items-center justify-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-white dark:text-zinc-900"
+                                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                 title="New Chat (⌘N)"
                             >
                                 <Plus className="h-4 w-4" /> Start New Chat
+                            </button>
+                            <button
+                                onClick={() => window.location.href = '/marketplace'}
+                                className="flex w-full items-center justify-center gap-2 rounded-full bg-secondary text-secondary-foreground px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                title="Browse Marketplace"
+                            >
+                                <FileText className="h-4 w-4" /> Marketplace
                             </button>
                         </div>
 
                         <nav className="mt-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pb-4">
                             <div className="px-2">
-                                <div className="mb-2 text-xs font-semibold text-zinc-500 dark:text-zinc-400">PROJECT TOOLS</div>
+                                <div className="mb-2 text-xs font-semibold text-muted-foreground">PROJECT TOOLS</div>
                                 <div className="grid grid-cols-5 gap-2">
                                     {[
                                         { id: 'budget', icon: Wallet, label: 'Budget' },
@@ -413,8 +434,8 @@ export default function Sidebar({
                                                     className={cls(
                                                         "flex items-center justify-center rounded-lg p-2 transition-colors",
                                                         activeTool === tool.id
-                                                            ? "bg-blue-500 text-white shadow-sm"
-                                                            : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                                                            ? "bg-primary text-primary-foreground shadow-sm"
+                                                            : "bg-muted text-muted-foreground hover:bg-accent"
                                                     )}
                                                 >
                                                     <tool.icon className="h-4 w-4" />
@@ -434,7 +455,7 @@ export default function Sidebar({
                                 onToggle={() => setCollapsed((s) => ({ ...s, pinned: !s.pinned }))}
                             >
                                 {pinned.length === 0 ? (
-                                    <div className="select-none rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+                                    <div className="select-none rounded-lg border border-dashed border-border px-3 py-3 text-center text-xs text-muted-foreground">
                                         Pin important threads for quick access.
                                     </div>
                                 ) : (
@@ -457,7 +478,7 @@ export default function Sidebar({
                                 onToggle={() => setCollapsed((s) => ({ ...s, recent: !s.recent }))}
                             >
                                 {recent.length === 0 ? (
-                                    <div className="select-none rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+                                    <div className="select-none rounded-lg border border-dashed border-border px-3 py-3 text-center text-xs text-muted-foreground">
                                         No conversations yet. Start a new one!
                                     </div>
                                 ) : (
@@ -483,7 +504,7 @@ export default function Sidebar({
                                 <div className="-mx-1">
                                     <button
                                         onClick={() => setShowCreateFolderModal(true)}
-                                        className="mb-2 inline-flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                                        className="mb-2 inline-flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-muted-foreground hover:bg-accent"
                                     >
                                         <Plus className="h-4 w-4" /> Create folder
                                     </button>
@@ -513,7 +534,7 @@ export default function Sidebar({
                                 <div className="-mx-1">
                                     <button
                                         onClick={() => setShowCreateTemplateModal(true)}
-                                        className="mb-2 inline-flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                                        className="mb-2 inline-flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-foreground hover:bg-accent"
                                     >
                                         <Plus className="h-4 w-4" /> Create template
                                     </button>
@@ -530,7 +551,7 @@ export default function Sidebar({
                                     ))}
 
                                     {(!templates || templates.length === 0) && (
-                                        <div className="select-none rounded-lg border border-dashed border-zinc-200 px-3 py-3 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+                                        <div className="select-none rounded-lg border border-dashed border-border px-3 py-3 text-center text-xs text-muted-foreground">
                                             No templates yet. Create your first prompt template.
                                         </div>
                                     )}
@@ -538,10 +559,10 @@ export default function Sidebar({
                             </SidebarSection>
                         </nav>
 
-                        <div className="mt-auto border-t border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
+                        <div className="mt-auto border-t border-sidebar-border px-3 py-3">
                             <div className="flex items-center gap-2">
                                 <SettingsPopover>
-                                    <button className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:bg-zinc-800">
+                                    <button className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-sm hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                                         <Settings className="h-4 w-4" /> Settings
                                     </button>
                                 </SettingsPopover>
@@ -549,13 +570,13 @@ export default function Sidebar({
                                     <ThemeToggle theme={theme} setTheme={setTheme} />
                                 </div>
                             </div>
-                            <div className="mt-2 flex items-center gap-2 rounded-xl bg-zinc-50 p-2 dark:bg-zinc-800/60">
-                                <div className="grid h-8 w-8 place-items-center rounded-full bg-zinc-900 text-xs font-bold text-white dark:bg-white dark:text-zinc-900">
+                            <div className="mt-2 flex items-center gap-2 rounded-xl bg-muted p-2">
+                                <div className="grid h-8 w-8 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                                     U
                                 </div>
                                 <div className="min-w-0">
                                     <div className="truncate text-sm font-medium">Create User</div>
-                                    <div className="truncate text-xs text-zinc-500 dark:text-zinc-400">Pro workspace</div>
+                                    <div className="truncate text-xs text-muted-foreground">Pro workspace</div>
                                 </div>
                             </div>
                         </div>
@@ -592,7 +613,7 @@ export default function Sidebar({
             {activeTool === 'budget' && <BudgetDrawer isOpen={true} onClose={() => setActiveTool(null)} budgetData={artifacts?.budget?.version?.content_json} />}
             {activeTool === 'components' && <ComponentDrawer isOpen={true} onClose={() => setActiveTool(null)} />}
             {activeTool === 'bom' && <BOMDrawer isOpen={true} onClose={() => setActiveTool(null)} bomData={artifacts?.bom?.version?.content_json || bomData} />}
-            {activeTool === 'wiring' && <WiringDrawer isOpen={true} onClose={() => setActiveTool(null)} wiringData={artifacts?.wiring?.version?.content_json} />}
+            {activeTool === 'wiring' && <WiringDrawer isOpen={true} onClose={() => setActiveTool(null)} wiringData={artifacts?.wiring?.version?.content_json} diagramSvg={artifacts?.wiring?.version?.diagram_svg} />}
             {activeTool === 'code' && <CodeDrawer isOpen={true} onClose={() => setActiveTool(null)} codeData={artifacts?.code?.version?.content_json || codeData} />}
             {activeTool === 'context' && <ContextDrawer isOpen={true} onClose={() => setActiveTool(null)} contextData={contextData || { context: artifacts?.context?.version?.content, mvp: artifacts?.mvp?.version?.content, prd: artifacts?.prd?.version?.content }} />}
         </>

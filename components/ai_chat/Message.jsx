@@ -1,10 +1,12 @@
-import { cn as cls } from "@/lib/utils"
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
 import { parseMessageContent, splitMessageIntoSegments } from "@/lib/parsers"
 import BOMCard from "./BOMCard"
+import InlineCodeCard from "./InlineCodeCard"
 import { CodeBlock } from "@/components/ui/code-block"
+import { Message as UIMessage, MessageContent, MessageAvatar } from "@/components/ui/message"
+import { getAgentIdentity, findAgentIdByName, AGENT_IDENTITIES } from "@/lib/agents/agent-identities"
 
 export default function Message({ role, children, metadata }) {
     const isUser = role === "user"
@@ -12,8 +14,27 @@ export default function Message({ role, children, metadata }) {
     // Convert children to string for parsing
     const rawContent = typeof children === 'string' ? children : String(children || '')
 
-    // Extract tool calls from metadata
+    // Extract tool calls and agent info from metadata
     const toolCalls = metadata?.toolCalls || []
+
+    // Try to get agentId from multiple sources
+    // Priority: metadata.agentId > metadata.agent_id > agent_name (from message object)
+    let agentId = metadata?.agentId || metadata?.agent_id
+
+    // If no agentId in metadata, try to infer from agent_name
+    // This handles messages that have agent_name but no explicit agentId
+    if (!agentId && metadata?.agent_name && metadata.agent_name !== 'thinking...') {
+        // Try direct match first (if agent_name is already an ID like "conversational")
+        if (metadata.agent_name in AGENT_IDENTITIES) {
+            agentId = metadata.agent_name
+        } else {
+            // Try reverse lookup by display name
+            agentId = findAgentIdByName(metadata.agent_name)
+        }
+    }
+
+    // Get agent identity for avatar and name
+    const agentIdentity = getAgentIdentity(agentId)
 
     // Debug logging
     if (!isUser && toolCalls.length > 0) {
@@ -26,20 +47,15 @@ export default function Message({ role, children, metadata }) {
 
 
     return (
-        <div className={cls("flex gap-3 mb-4", isUser ? "justify-end" : "justify-start")}>
+        <UIMessage from={isUser ? "user" : "assistant"} className="mb-4">
             {!isUser && (
-                <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white dark:bg-white dark:text-zinc-900">
-                    Ω
-                </div>
+                <MessageAvatar
+                    src={agentIdentity.avatar}
+                    name={agentIdentity.name}
+                    fallback={agentIdentity.icon}
+                />
             )}
-            <div
-                className={cls(
-                    "max-w-[85%] rounded-2xl px-3 py-2 text-sm",
-                    isUser
-                        ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800/60 dark:text-zinc-100 shadow-sm"
-                        : "bg-transparent text-zinc-900 dark:text-zinc-100",
-                )}
-            >
+            <MessageContent variant={isUser ? "contained" : "flat"}>
                 {isUser ? (
                     // User messages: render as plain text
                     cleanedText
@@ -59,7 +75,7 @@ export default function Message({ role, children, metadata }) {
                                     {segments.map((segment, index) => {
                                         if (segment.type === 'text') {
                                             return (
-                                                <div key={index} className="prose prose-sm dark:prose-invert max-w-none prose-headings:mt-3 prose-headings:mb-2 prose-p:my-1.5 prose-pre:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5">
+                                                <div key={index} className="prose prose-sm prose-invert max-w-none prose-headings:mt-3 prose-headings:mb-2 prose-p:my-1.5 prose-pre:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 text-white [&_*]:text-white">
                                                     <ReactMarkdown
                                                         remarkPlugins={[remarkGfm]}
                                                         rehypePlugins={[rehypeRaw]}
@@ -71,7 +87,7 @@ export default function Message({ role, children, metadata }) {
                                                                 // Since splitMessageIntoSegments catches ```...```, mostly this will be inline `code`.
                                                                 return (
                                                                     <code
-                                                                        className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-mono text-xs"
+                                                                        className="px-1.5 py-0.5 rounded bg-gray-700 text-white font-mono text-xs"
                                                                         {...props}
                                                                     >
                                                                         {children}
@@ -81,7 +97,7 @@ export default function Message({ role, children, metadata }) {
                                                             a({ node, children, ...props }) {
                                                                 return (
                                                                     <a
-                                                                        className="text-blue-600 dark:text-blue-400 hover:underline"
+                                                                        className="text-blue-400 hover:text-blue-300 hover:underline"
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                         {...props}
@@ -114,17 +130,17 @@ export default function Message({ role, children, metadata }) {
                                     })}
 
                                     {isStreamingBOM && (
-                                        <div className="my-4 overflow-hidden rounded-xl border border-dashed border-zinc-300 bg-zinc-50/50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/30">
+                                        <div className="my-4 overflow-hidden rounded-xl border border-dashed border-border bg-muted/50 p-8 text-center">
                                             <div className="flex flex-col items-center gap-3">
                                                 <div className="relative h-10 w-10">
-                                                    <div className="absolute inset-0 animate-ping rounded-full bg-zinc-900/10 dark:bg-white/10"></div>
-                                                    <div className="relative flex h-10 w-10 animate-pulse items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900">
+                                                    <div className="absolute inset-0 animate-ping rounded-full bg-primary/10"></div>
+                                                    <div className="relative flex h-10 w-10 animate-pulse items-center justify-center rounded-full bg-primary text-primary-foreground">
                                                         <div className="h-4 w-4 rounded-sm border-2 border-current border-t-transparent animate-spin"></div>
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Building Bill of Materials...</p>
-                                                    <p className="text-xs text-zinc-500">Analyzing components and estimating costs</p>
+                                                    <p className="text-sm font-medium text-foreground">Building Bill of Materials...</p>
+                                                    <p className="text-xs text-muted-foreground">Analyzing components and estimating costs</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -134,20 +150,68 @@ export default function Message({ role, children, metadata }) {
 
                                     {/* BOM Card - shown inline when update_bom tool call is present */}
                                     {toolCalls.length > 0 && (() => {
+                                        // Find BOM tool call (check both name and function.name)
                                         const bomToolCall = toolCalls.find(tc =>
-                                            (tc.function?.name || tc.name) === 'update_bom'
+                                            (tc.function?.name === 'update_bom') || (tc.name === 'update_bom')
                                         );
+
                                         if (bomToolCall) {
                                             try {
-                                                const bomArgs = bomToolCall.function?.arguments || bomToolCall.arguments;
-                                                // Parse if it's a string (OpenAI format returns stringified JSON)
-                                                const parsedBomData = typeof bomArgs === 'string' ? JSON.parse(bomArgs) : bomArgs;
+                                                console.log('[Message] 🔍 Found update_bom tool call:', bomToolCall);
+
+                                                // Extract arguments - support multiple formats
+                                                // 1. function.arguments (OpenAI standard)
+                                                // 2. arguments (Direct object)
+                                                let bomArgs = bomToolCall.function?.arguments || bomToolCall.arguments;
+
+                                                // Parse if string, otherwise use as is
+                                                let parsedBomData = bomArgs;
+                                                if (typeof bomArgs === 'string') {
+                                                    try {
+                                                        parsedBomData = JSON.parse(bomArgs);
+                                                    } catch (err) {
+                                                        console.error('[Message] ❌ Failed to parse BOM arguments string:', err);
+                                                        return null;
+                                                    }
+                                                }
+
+                                                console.log('[Message] 📄 Parsed BOM Data:', parsedBomData ? 'Object' : 'Null');
+
                                                 if (parsedBomData && parsedBomData.components) {
-                                                    console.log('[Message] 📦 Rendering BOMCard from tool call:', parsedBomData.project_name);
+                                                    console.log('[Message] 📦 Rendering BOMCard with', parsedBomData.components.length, 'components');
                                                     return <BOMCard data={parsedBomData} />;
+                                                } else {
+                                                    console.warn('[Message] ⚠️ BOM data missing "components" array:', parsedBomData);
                                                 }
                                             } catch (e) {
-                                                console.error('[Message] Failed to parse BOM data from tool call:', e);
+                                                console.error('[Message] 💥 Unexpected error rendering BOM card:', e);
+                                            }
+                                        }
+                                        return null;
+                                    })()}
+
+                                    {/* Code Card - shown inline when add_code_file tool calls are present */}
+                                    {toolCalls.length > 0 && (() => {
+                                        const codeToolCalls = toolCalls.filter(tc =>
+                                            (tc.function?.name || tc.name) === 'add_code_file'
+                                        );
+                                        if (codeToolCalls.length > 0) {
+                                            try {
+                                                const codeFiles = codeToolCalls.map(tc => {
+                                                    const args = tc.function?.arguments || tc.arguments;
+                                                    const parsedArgs = typeof args === 'string' ? JSON.parse(args) : args;
+                                                    return {
+                                                        filename: parsedArgs.filename,
+                                                        content: parsedArgs.content
+                                                    };
+                                                }).filter(f => f.filename && f.content);
+
+                                                if (codeFiles.length > 0) {
+                                                    console.log('[Message] 💻 Rendering InlineCodeCard from tool calls:', codeFiles.length, 'files');
+                                                    return <InlineCodeCard files={codeFiles} projectName="Generated Code" />;
+                                                }
+                                            } catch (e) {
+                                                console.error('[Message] Failed to parse code data from tool calls:', e);
                                             }
                                         }
                                         return null;
@@ -189,7 +253,7 @@ export default function Message({ role, children, metadata }) {
                                                                 window.dispatchEvent(event);
                                                                 console.log('[Message] ✅ Event dispatched successfully');
                                                             }}
-                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 dark:text-blue-300 transition-colors border border-blue-200 dark:border-blue-800 cursor-pointer"
+                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-accent hover:bg-accent/80 text-accent-foreground transition-colors border border-border cursor-pointer"
                                                         >
                                                             {config.label} →
                                                         </button>
@@ -203,12 +267,7 @@ export default function Message({ role, children, metadata }) {
                         })()}
                     </div>
                 )}
-            </div>
-            {isUser && (
-                <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white dark:bg-white dark:text-zinc-900">
-                    U
-                </div>
-            )}
-        </div>
+            </MessageContent>
+        </UIMessage>
     )
 }

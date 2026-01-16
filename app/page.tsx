@@ -53,7 +53,7 @@ export default function Home() {
                 <header className="">
                     <div className="px-6 py-6 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-black flex items-center justify-center text-white font-bold rounded">
+                            <div className="w-8 h-8 bg-primary flex items-center justify-center text-primary-foreground font-bold rounded">
                                 Ω
                             </div>
                         </div>
@@ -67,6 +67,9 @@ export default function Home() {
                             <a href="#" className="text-sm font-mono text-foreground hover:opacity-75 transition">
                                 Developers
                             </a>
+                            <Link href="/marketplace" className="text-sm font-mono text-foreground hover:opacity-75 transition">
+                                Marketplace
+                            </Link>
                             <a href="#" className="text-sm font-mono text-foreground hover:opacity-75 transition">
                                 Resources
                             </a>
@@ -79,7 +82,7 @@ export default function Home() {
                                 Login
                             </button>
                             <Link href="/build">
-                                <Button className="bg-white text-black hover:bg-white/90 text-sm font-mono rounded-full px-6 py-2">
+                                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-mono rounded-full px-6 py-2">
                                     Start Building
                                 </Button>
                             </Link>
@@ -96,7 +99,7 @@ export default function Home() {
                                 <span className="text-sm font-mono text-foreground">Introducing Ohm</span>
                             </div>
                             <Link href="/build">
-                                <button className="bg-black text-white px-3 py-1 flex items-center gap-2 hover:bg-black/90 transition text-sm font-mono">
+                                <button className="bg-primary text-primary-foreground px-3 py-1 flex items-center gap-2 hover:bg-primary/90 transition text-sm font-mono">
                                     Try now <ArrowRight size={14} />
                                 </button>
                             </Link>
@@ -122,25 +125,25 @@ export default function Home() {
                         </div>
 
                         {/* Input Box */}
-                        <div className="bg-black p-6 mb-12 w-full cursor-pointer hover:ring-2 hover:ring-zinc-400 transition-all max-w-4xl mx-auto">
+                        <div className="bg-card border border-border p-6 mb-12 w-full cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all max-w-4xl mx-auto">
                             <Link href="/build" className="block w-full">
-                                <div className="text-gray-400 text-sm font-mono mb-6 h-6 overflow-hidden relative">
+                                <div className="text-muted-foreground text-sm font-mono mb-6 h-6 overflow-hidden relative">
                                     <TypingEffect text="I want to build a smart weather station with ESP32 and e-ink display." />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <button className="text-gray-500 hover:text-gray-400 transition">
+                                        <button className="text-muted-foreground hover:text-foreground transition">
                                             <Paperclip size={18} />
                                         </button>
-                                        <button className="text-gray-500 hover:text-gray-400 transition">
+                                        <button className="text-muted-foreground hover:text-foreground transition">
                                             <div className="w-5 h-5 bg-gradient-to-br from-purple-400 to-pink-400" />
                                         </button>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <button className="text-gray-500 hover:text-gray-400 transition">
+                                        <button className="text-muted-foreground hover:text-foreground transition">
                                             <Info size={18} />
                                         </button>
-                                        <button className="text-gray-400 hover:text-gray-200 transition">
+                                        <button className="text-muted-foreground hover:text-foreground transition">
                                             <Send size={18} />
                                         </button>
                                     </div>
@@ -214,7 +217,7 @@ function TypingEffect({ text }: { text: string }) {
             <motion.span
                 animate={{ opacity: [0, 1, 0] }}
                 transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-                className="inline-block w-2.5 h-4 bg-gray-400 ml-1 align-middle"
+                className="inline-block w-2.5 h-4 bg-muted-foreground ml-1 align-middle"
             />
         </span>
     );

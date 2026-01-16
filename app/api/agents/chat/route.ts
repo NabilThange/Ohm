@@ -3,7 +3,7 @@ import { AssemblyLineOrchestrator } from "@/lib/agents/orchestrator";
 
 export async function POST(req: NextRequest) {
     try {
-        const { message, chatId, userContext, forceAgent } = await req.json();
+        const { message, chatId, forceAgent } = await req.json();
 
         const effectiveChatId = chatId || "default_ephemeral_session";
 
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        const orchestrator = new AssemblyLineOrchestrator(effectiveChatId, userContext);
+        const orchestrator = new AssemblyLineOrchestrator(effectiveChatId);
         const encoder = new TextEncoder();
 
         const stream = new ReadableStream({
@@ -42,6 +42,14 @@ export async function POST(req: NextRequest) {
                             controller.enqueue(encoder.encode(`data: ${JSON.stringify({
                                 type: 'tool_call',
                                 toolCall: toolCall
+                            })}\n\n`));
+                        },
+                        // NEW: Key rotation notification - fires when API key is rotated
+                        (keyRotationEvent) => {
+                            console.log('[API Route] 🔑 Sending key rotation event:', keyRotationEvent.type);
+                            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                                type: 'key_rotation',
+                                event: keyRotationEvent
                             })}\n\n`));
                         }
                     );

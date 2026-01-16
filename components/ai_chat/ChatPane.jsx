@@ -105,7 +105,7 @@ Reflect any changes made during the chat in these documents.`;
                 </div>
                 */}
 
-                <div className="mb-6 flex flex-wrap gap-2 border-b border-zinc-200 pb-5 dark:border-zinc-800">
+                <div className="mb-6 flex flex-wrap gap-2 border-b border-border pb-5">
                     {/* Tags could be passed as prop or fetched */}
                 </div>
 
@@ -121,20 +121,20 @@ Reflect any changes made during the chat in these documents.`;
                     return (
                         <>
                             {messages.length === 0 && !showFakeInitial && (
-                                <div className="rounded-xl border border-dashed border-zinc-300 p-6 text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+                                <div className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">
                                     {isLoading ? "Loading history..." : "No messages yet. Say hello to start."}
                                 </div>
                             )}
-                            
+
                             {showFakeInitial && (
                                 <div className="space-y-2 fade-in">
                                     <Message role="user">{initialPrompt}</Message>
                                 </div>
                             )}
-                            
+
                             {messages.map((m) => (
                                 <div key={m.id} className="space-y-2">
-                                    <Message role={m.role} metadata={m.metadata}>
+                                    <Message role={m.role} metadata={{ agent_name: m.agent_name, agentId: m.agent_id, ...m.metadata }}>
                                         {m.content}
                                     </Message>
                                 </div>

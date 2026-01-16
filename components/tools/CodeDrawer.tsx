@@ -139,10 +139,10 @@ export default function CodeDrawer({ isOpen, onClose, codeData }: CodeDrawerProp
         <Drawer.Root open={!!isOpen} onOpenChange={(details: { open: boolean }) => !details.open && onClose()}>
             <Drawer.Backdrop className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
             <Drawer.Positioner className="fixed inset-0 z-[70] flex justify-end">
-                <Drawer.Content className="h-full w-full max-w-[90vw] md:max-w-5xl bg-[#1e1e1e] border-l border-border shadow-2xl flex flex-col gap-0 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right duration-300">
+                <Drawer.Content className="h-full w-full max-w-[90vw] md:max-w-5xl bg-card border-l border-border shadow-2xl flex flex-col gap-0 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right duration-300">
 
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 bg-[#252526]">
+                    <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-muted">
                         <div className="flex items-center gap-3">
                             <div className="p-1.5 bg-blue-500/10 rounded-md">
                                 <Hash className="w-4 h-4 text-blue-400" />
@@ -174,7 +174,7 @@ export default function CodeDrawer({ isOpen, onClose, codeData }: CodeDrawerProp
                         panels={[{ id: 'tree', minSize: 15 }, { id: 'code', minSize: 30 }]}
                     >
                         {/* Left: Tree View */}
-                        <Splitter.Panel id="tree" className="bg-[#252526] flex flex-col min-w-[200px]">
+                        <Splitter.Panel id="tree" className="bg-muted flex flex-col min-w-[200px]">
                             {/* Search Bar */}
                             <div className="p-3 border-b border-white/5">
                                 <div className="relative">
@@ -184,7 +184,7 @@ export default function CodeDrawer({ isOpen, onClose, codeData }: CodeDrawerProp
                                         placeholder="Search files..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full bg-[#3c3c3c] text-white text-xs rounded-md pl-8 pr-3 py-1.5 border border-transparent focus:border-blue-500/50 focus:outline-none placeholder:text-zinc-500"
+                                        className="w-full bg-muted text-foreground text-xs rounded-md pl-8 pr-3 py-1.5 border border-transparent focus:border-primary/50 focus:outline-none placeholder:text-muted-foreground"
                                     />
                                 </div>
                             </div>

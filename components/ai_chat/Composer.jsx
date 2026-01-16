@@ -2,7 +2,7 @@
 
 import { useRef, useState, forwardRef, useImperativeHandle, useEffect } from "react"
 import { flushSync } from "react-dom"
-import { Send, Loader2, Plus, Mic, X } from "lucide-react"
+import { Send, Loader2, Plus, Mic, X, Paperclip } from "lucide-react"
 import ComposerActionsPopover from "./ComposerActionsPopover"
 import { cn as cls } from "@/lib/utils"
 
@@ -20,7 +20,6 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
     const [showCommands, setShowCommands] = useState(false)
     const [helpOpen, setHelpOpen] = useState(false)
     const [activeIndex, setActiveIndex] = useState(0)
-    const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
     const inputRef = useRef(null)
 
     const filteredCommands = COMMANDS.filter(c =>
@@ -29,12 +28,7 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
 
     useEffect(() => {
         const isCommand = value.trim().startsWith("/")
-        if (isCommand && filteredCommands.length > 0 && inputRef.current) {
-            const coords = getCaretCoordinates(inputRef.current, inputRef.current.selectionEnd)
-            setMenuPosition({
-                top: coords.top,
-                left: coords.left
-            })
+        if (isCommand && filteredCommands.length > 0) {
             setShowCommands(true)
         } else {
             setShowCommands(false)
@@ -124,165 +118,171 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
     const hasContent = value.trim().length > 0
 
     return (
-        <div className="border-t border-zinc-200/60 p-4 dark:border-zinc-800 relative">
-            {/* Command Menu / Tooltip */}
-            {showCommands && (
-                <div
-                    className="absolute w-72 overflow-hidden rounded-lg border shadow-xl animate-in fade-in zoom-in-95 origin-bottom-left z-50 transition-all duration-75"
-                    style={{
-                        top: menuPosition.top,
-                        left: menuPosition.left + 150, // Add left padding offset
-                        transform: 'translateY(-100%) translateY(-12px)', // Move above line
-                        backgroundColor: '#4a4a4a',
-                        borderColor: '#6b6b6b'
-                    }}
-                >
-                    <div className="p-1">
-                        {filteredCommands.map((cmd, i) => (
-                            <button
-                                key={cmd.command}
-                                onClick={() => selectCommand(cmd.command)}
-                                className={cls(
-                                    "flex w-full flex-col px-3 py-2 text-left text-sm rounded-md transition-colors",
-                                    i === activeIndex
-                                        ? "bg-white/20 text-white"
-                                        : "hover:bg-white/10 text-white/90"
-                                )}
-                            >
-                                <span className="font-semibold">{cmd.command}</span>
-                                <span className="text-xs text-white/70">{cmd.description}</span>
-                            </button>
-                        ))}
-                        <div className="mt-1 border-t border-white/20 pt-1 text-right px-2">
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault()
-                                    e.stopPropagation()
-                                    setHelpOpen(true)
-                                    setShowCommands(false)
-                                }}
-                                className="text-[10px] text-white/80 hover:text-white underline cursor-pointer"
-                            >
-                                More about commands
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {helpOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 animate-in fade-in" onClick={() => setHelpOpen(false)}>
-                    <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Command Guide</h3>
-                            <button onClick={() => setHelpOpen(false)} className="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300">
-                                <X className="h-5 w-5" />
-                            </button>
-                        </div>
-                        <div className="space-y-4">
-                            {COMMANDS.map(cmd => (
-                                <div key={cmd.command} className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800/50">
-                                    <code className="text-sm font-bold text-zinc-600 dark:text-zinc-300">{cmd.command}</code>
-                                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{cmd.description}</p>
-                                </div>
+        <div className="border-t border-border bg-background">
+            <div className="mx-auto max-w-3xl p-4 relative">
+                {/* Command Menu / Tooltip */}
+                {showCommands && (
+                    <div
+                        className="absolute w-72 overflow-hidden rounded-lg border shadow-xl animate-in fade-in zoom-in-95 z-50 transition-all duration-75 bg-[#4a4a4a] border-[#6b6b6b]"
+                        style={{
+                            bottom: '100%',
+                            left: '1rem',
+                            marginBottom: '0.5rem',
+                        }}
+                    >
+                        <div className="p-1">
+                            {filteredCommands.map((cmd, i) => (
+                                <button
+                                    key={cmd.command}
+                                    onClick={() => selectCommand(cmd.command)}
+                                    className={cls(
+                                        "flex w-full flex-col px-3 py-2 text-left text-sm rounded-md transition-colors",
+                                        i === activeIndex
+                                            ? "bg-white/20 text-white"
+                                            : "hover:bg-white/10 text-white/90"
+                                    )}
+                                >
+                                    <span className="font-semibold">{cmd.command}</span>
+                                    <span className="text-xs text-white/70">{cmd.description}</span>
+                                </button>
                             ))}
-                        </div>
-                        <div className="mt-6 flex justify-end">
-                            <button
-                                onClick={() => setHelpOpen(false)}
-                                className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-                            >
-                                Got it
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <div className="mx-auto max-w-3xl">
-                {/* Textarea with direct border styling - no wrapper */}
-                <div className="relative flex items-end gap-2">
-                    <div className="flex-1 relative">
-                        <textarea
-                            ref={inputRef}
-                            value={value}
-                            onChange={(e) => setValue(e.target.value)}
-                            placeholder="How can Ohm help you today? (Type / for commands)"
-                            rows={1}
-                            className={cls(
-                                "w-full resize-none rounded-2xl border px-4 py-3 text-sm outline-none transition-all duration-200",
-                                "border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-900",
-                                "placeholder:text-zinc-400 dark:placeholder:text-zinc-500",
-                                "focus:border-zinc-400 focus:ring-2 focus:ring-zinc-200 dark:focus:border-zinc-600 dark:focus:ring-zinc-800",
-                                "shadow-sm hover:shadow-md focus:shadow-md",
-                                "min-h-[48px] leading-6",
-                            )}
-                            onKeyDown={(e) => {
-                                if (showCommands) {
-                                    if (e.key === "ArrowDown") {
+                            <div className="mt-1 border-t border-white/20 pt-1 text-right px-2">
+                                <button
+                                    onClick={(e) => {
                                         e.preventDefault()
-                                        setActiveIndex(i => (i + 1) % filteredCommands.length)
-                                        return
-                                    }
-                                    if (e.key === "ArrowUp") {
-                                        e.preventDefault()
-                                        setActiveIndex(i => (i - 1 + filteredCommands.length) % filteredCommands.length)
-                                        return
-                                    }
-                                    if (e.key === "Tab" || e.key === "Enter") {
-                                        e.preventDefault()
-                                        selectCommand(filteredCommands[activeIndex].command)
-                                        return
-                                    }
-                                    if (e.key === "Escape") {
-                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        setHelpOpen(true)
                                         setShowCommands(false)
-                                        return
-                                    }
-                                }
-
-                                if (e.key === "Enter" && !e.shiftKey) {
-                                    e.preventDefault()
-                                    handleSend()
-                                }
-                            }}
-                        />
+                                    }}
+                                    className="text-[10px] text-white/80 hover:text-white underline cursor-pointer"
+                                >
+                                    More about commands
+                                </button>
+                            </div>
+                        </div>
                     </div>
+                )}
 
-                    {/* Action buttons beside textarea */}
-                    <div className="flex items-center gap-1 shrink-0 mb-1">
-                        <ComposerActionsPopover>
+                {helpOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/50 p-4 animate-in fade-in" onClick={() => setHelpOpen(false)}>
+                        <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-2xl border border-border" onClick={e => e.stopPropagation()}>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-card-foreground">Command Guide</h3>
+                                <button onClick={() => setHelpOpen(false)} className="text-muted-foreground hover:text-foreground">
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                {COMMANDS.map(cmd => (
+                                    <div key={cmd.command} className="rounded-lg bg-muted p-3">
+                                        <code className="text-sm font-bold text-foreground">{cmd.command}</code>
+                                        <p className="mt-1 text-sm text-muted-foreground">{cmd.description}</p>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-6 flex justify-end">
+                                <button
+                                    onClick={() => setHelpOpen(false)}
+                                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                                >
+                                    Got it
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modern Prompt Input Container */}
+                <div className="relative rounded-2xl border border-input bg-background shadow-sm hover:shadow-md focus-within:shadow-md focus-within:border-primary focus-within:ring-2 focus-within:ring-ring transition-all">
+                    {/* Textarea */}
+                    <textarea
+                        ref={inputRef}
+                        value={value}
+                        onChange={(e) => setValue(e.target.value)}
+                        placeholder="How can Ohm help you today? (Type / for commands)"
+                        rows={1}
+                        className={cls(
+                            "w-full resize-none bg-transparent px-4 py-3 text-sm outline-none",
+                            "placeholder:text-muted-foreground",
+                            "min-h-[48px] leading-6",
+                        )}
+                        onKeyDown={(e) => {
+                            if (showCommands) {
+                                if (e.key === "ArrowDown") {
+                                    e.preventDefault()
+                                    setActiveIndex(i => (i + 1) % filteredCommands.length)
+                                    return
+                                }
+                                if (e.key === "ArrowUp") {
+                                    e.preventDefault()
+                                    setActiveIndex(i => (i - 1 + filteredCommands.length) % filteredCommands.length)
+                                    return
+                                }
+                                if (e.key === "Tab" || e.key === "Enter") {
+                                    e.preventDefault()
+                                    selectCommand(filteredCommands[activeIndex].command)
+                                    return
+                                }
+                                if (e.key === "Escape") {
+                                    e.preventDefault()
+                                    setShowCommands(false)
+                                    return
+                                }
+                            }
+
+                            if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault()
+                                handleSend()
+                            }
+                        }}
+                    />
+
+                    {/* Footer with Tools and Submit */}
+                    <div className="flex items-center justify-between gap-2 px-3 pb-2">
+                        {/* Left side tools */}
+                        <div className="flex items-center gap-1">
+                            <ComposerActionsPopover>
+                                <button
+                                    className="inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                                    title="Add attachment"
+                                >
+                                    <Paperclip className="h-4 w-4" />
+                                </button>
+                            </ComposerActionsPopover>
+
                             <button
-                                className="inline-flex shrink-0 items-center justify-center rounded-full p-2.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
-                                title="Add attachment"
+                                className="inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                                title="Voice input"
                             >
-                                <Plus className="h-5 w-5" />
+                                <Mic className="h-4 w-4" />
                             </button>
-                        </ComposerActionsPopover>
+                        </div>
 
-                        <button
-                            className="inline-flex items-center justify-center rounded-full p-2.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
-                            title="Voice input"
-                        >
-                            <Mic className="h-5 w-5" />
-                        </button>
-
+                        {/* Right side submit */}
                         <button
                             onClick={handleSend}
                             disabled={sending || busy || !hasContent}
                             className={cls(
-                                "inline-flex shrink-0 items-center justify-center rounded-full p-2.5 transition-all shadow-sm",
+                                "inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium transition-all",
                                 hasContent
-                                    ? "bg-zinc-900 text-white hover:bg-zinc-800 hover:shadow-md dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-                                    : "bg-zinc-200 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600 cursor-not-allowed",
+                                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                    : "bg-muted text-muted-foreground cursor-not-allowed",
                             )}
                         >
-                            {sending || busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                            {sending || busy ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <>
+                                    <Send className="h-4 w-4 mr-1.5" />
+                                    Send
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>
 
-                <div className="mt-2 px-1 text-center text-[11px] text-zinc-400 dark:text-zinc-500">
+                {/* Footer text */}
+                <div className="mt-2 px-1 text-center text-[11px] text-muted-foreground">
                     AI can make mistakes. Check important info.
                 </div>
             </div>
@@ -291,44 +291,3 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
 })
 
 export default Composer
-
-// Helper to find caret coordinates
-function getCaretCoordinates(element, position) {
-    const div = document.createElement('div');
-    const style = window.getComputedStyle(element);
-
-    // Copy all font properties and sizing
-    ['direction', 'boxSizing', 'width', 'height', 'overflowX', 'overflowY',
-        'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
-        'fontStyle', 'fontVariant', 'fontWeight', 'fontStretch', 'fontSize', 'fontSizeAdjust', 'lineHeight', 'fontFamily',
-        'textAlign', 'textTransform', 'textIndent', 'textDecoration', 'letterSpacing', 'wordSpacing', 'tabSize', 'MozTabSize']
-        .forEach(prop => {
-            div.style[prop] = style[prop];
-        });
-
-    div.style.position = 'absolute';
-    div.style.visibility = 'hidden';
-    div.style.top = '0';
-    div.style.left = '-9999px';
-    div.style.whiteSpace = 'pre-wrap';
-    div.style.wordWrap = 'break-word';
-
-    // Mirror text content
-    div.textContent = element.value.substring(0, position);
-
-    const span = document.createElement('span');
-    span.textContent = element.value.substring(position) || '.';
-    div.appendChild(span);
-
-    document.body.appendChild(div);
-
-    const coordinates = {
-        top: span.offsetTop + parseInt(style.borderTopWidth),
-        left: span.offsetLeft + parseInt(style.borderLeftWidth),
-        height: parseInt(style.lineHeight)
-    };
-
-    document.body.removeChild(div);
-
-    return coordinates;
-}

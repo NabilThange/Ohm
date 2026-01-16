@@ -92,20 +92,20 @@ export default function SearchModal({
                         initial={{ opacity: 0, scale: 0.95, y: -20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -20 }}
-                        className="fixed left-1/2 top-[20%] z-50 w-full max-w-2xl -translate-x-1/2 rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900"
+                        className="fixed left-1/2 top-[20%] z-50 w-full max-w-2xl -translate-x-1/2 rounded-2xl border border-border bg-popover shadow-2xl"
                     >
                         {/* Search Header */}
-                        <div className="flex items-center gap-3 border-b border-zinc-200 p-4 dark:border-zinc-800">
-                            <SearchIcon className="h-5 w-5 text-zinc-400" />
+                        <div className="flex items-center gap-3 border-b border-border p-4">
+                            <SearchIcon className="h-5 w-5 text-muted-foreground" />
                             <input
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Search chats..."
-                                className="flex-1 bg-transparent text-lg outline-none placeholder:text-zinc-400"
+                                className="flex-1 bg-transparent text-lg outline-none placeholder:text-muted-foreground"
                                 autoFocus
                             />
-                            <button onClick={handleClose} className="rounded-lg p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                            <button onClick={handleClose} className="rounded-lg p-1.5 hover:bg-accent">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
@@ -113,12 +113,12 @@ export default function SearchModal({
                         {/* Search Results */}
                         <div className="max-h-[60vh] overflow-y-auto">
                             {/* New Chat Option */}
-                            <div className="border-b border-zinc-200 p-2 dark:border-zinc-800">
+                            <div className="border-b border-border p-2">
                                 <button
                                     onClick={handleNewChat}
-                                    className="flex w-full items-center gap-3 rounded-lg p-3 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                    className="flex w-full items-center gap-3 rounded-lg p-3 text-left hover:bg-accent"
                                 >
-                                    <Plus className="h-5 w-5 text-zinc-500" />
+                                    <Plus className="h-5 w-5 text-muted-foreground" />
                                     <span className="font-medium">New chat</span>
                                 </button>
                             </div>
@@ -128,8 +128,8 @@ export default function SearchModal({
                                 if (convs.length === 0) return null
 
                                 return (
-                                    <div key={groupName} className="border-b border-zinc-200 p-2 last:border-b-0 dark:border-zinc-800">
-                                        <div className="px-3 py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">{groupName}</div>
+                                    <div key={groupName} className="border-b border-border p-2 last:border-b-0">
+                                        <div className="px-3 py-2 text-xs font-medium text-muted-foreground">{groupName}</div>
                                         <div className="space-y-1">
                                             {convs.map((conv) => (
                                                 <button

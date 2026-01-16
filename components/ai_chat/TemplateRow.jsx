@@ -57,15 +57,15 @@ export default function TemplateRow({ template, onUseTemplate, onEditTemplate, o
                     className="flex items-center gap-2 flex-1 text-left min-w-0"
                     title={`Use template: ${template.snippet}`}
                 >
-                    <FileText className="h-4 w-4 text-zinc-500 shrink-0" />
+                    <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                     <div className="min-w-0 flex-1">
                         <div className="truncate font-medium">{template.name}</div>
-                        <div className="truncate text-xs text-zinc-500 dark:text-zinc-400">{template.snippet}</div>
+                        <div className="truncate text-xs text-muted-foreground">{template.snippet}</div>
                     </div>
                 </button>
 
                 <div className="flex items-center gap-1">
-                    <span className="hidden group-hover:inline text-xs text-zinc-500 dark:text-zinc-400 px-1">Use</span>
+                    <span className="hidden group-hover:inline text-xs text-muted-foreground px-1">Use</span>
 
                     <div className="relative" ref={menuRef}>
                         <button
@@ -84,7 +84,7 @@ export default function TemplateRow({ template, onUseTemplate, onEditTemplate, o
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
-                                    className="absolute right-0 top-full mt-1 w-36 rounded-lg border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-800 dark:bg-zinc-900 z-[100]"
+                                    className="absolute right-0 top-full mt-1 w-36 rounded-lg border border-border bg-popover py-1 shadow-lg z-[100]"
                                 >
                                     <button
                                         onClick={handleUse}

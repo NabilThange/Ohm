@@ -13,7 +13,7 @@ export default function ThemeToggle({ theme, setTheme }) {
     if (!mounted) {
         return (
             <button
-                className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-2.5 py-1.5 text-sm hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800"
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-2.5 py-1.5 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 aria-label="Toggle theme"
                 title="Toggle theme"
                 disabled
@@ -28,7 +28,7 @@ export default function ThemeToggle({ theme, setTheme }) {
     // After mount, render the actual theme toggle
     return (
         <button
-            className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-2.5 py-1.5 text-sm hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-2.5 py-1.5 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
             aria-label="Toggle theme"
             title="Toggle theme"

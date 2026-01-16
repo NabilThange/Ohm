@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { AGENTS, type AgentType, getContextualSystemPrompt, getChatAgentType, type UserContext } from "./config";
+import { AGENTS, type AgentType, getChatAgentType } from "./config";
 import { KeyManager, type KeyRotationEvent } from "./key-manager";
 import { getToolsForAgent, type ToolCall } from "./tools";
 import { ConversationSummarizer } from "./summarizer";
@@ -140,7 +140,6 @@ export class AgentRunner {
         options?: {
             onStream?: (chunk: string) => void;
             stream?: boolean;
-            userContext?: UserContext;
             onToolCall?: (toolCall: ToolCall) => Promise<any>;
         }
     ): Promise<{ response: string; toolCalls: ToolCall[] }> {
@@ -150,10 +149,8 @@ export class AgentRunner {
             throw new Error(`Unknown agent type: ${agentType}`);
         }
 
-        // Apply user context to system prompt if available
-        const systemPrompt = options?.userContext
-            ? getContextualSystemPrompt(agent.systemPrompt, options.userContext)
-            : agent.systemPrompt;
+        // Use agent's system prompt directly (no context modification needed)
+        const systemPrompt = agent.systemPrompt;
 
         // Prepend system prompt
         const fullMessages = [
@@ -395,12 +392,10 @@ import { ToolExecutor } from "./tool-executor";
 export class AssemblyLineOrchestrator {
     private runner: AgentRunner;
     private chatId: string | null = null;
-    private userContext?: UserContext;
 
-    constructor(chatId?: string, userContext?: UserContext) {
+    constructor(chatId?: string) {
         this.runner = new AgentRunner();
         this.chatId = chatId || null;
-        this.userContext = userContext;
     }
 
     private async getHistory() {
@@ -464,7 +459,8 @@ Examples:
         onStream?: (chunk: string) => void,
         forceAgent?: string,
         onAgentDetermined?: (agent: { type: string; name: string; icon: string; intent: string }) => void,
-        onToolCall?: (toolCall: ToolCall) => void
+        onToolCall?: (toolCall: ToolCall) => void,
+        onKeyRotation?: (event: KeyRotationEvent) => void
     ): Promise<{
         response: string;
         isReadyToLock: boolean;
@@ -566,7 +562,6 @@ Examples:
             {
                 stream: true,
                 onStream,
-                userContext: this.userContext,
                 onToolCall: async (toolCall) => {
                     // Notify client about tool call via callback
                     if (onToolCall) {
@@ -584,6 +579,13 @@ Examples:
         const response = result.response;
         const toolCalls = result.toolCalls;
 
+        // 6.5 Check for key rotation events and notify immediately
+        const keyRotationEvent = KeyManager.getInstance().getAndClearLastEvent();
+        if (keyRotationEvent && onKeyRotation) {
+            console.log(`📢 Sending key rotation event: ${keyRotationEvent.type}`);
+            onKeyRotation(keyRotationEvent);
+        }
+
         // 7. Persist Assistant Response
         if (this.chatId) {
             const seq = await ChatService.getNextSequenceNumber(this.chatId);
@@ -592,8 +594,10 @@ Examples:
                 role: "assistant",
                 content: response,
                 agent_name: finalAgentType,
+                agent_id: finalAgentType,  // Track which agent generated this message
                 sequence_number: seq,
-                intent: intent
+                intent: intent,
+                metadata: (toolCalls.length > 0 ? { toolCalls } : null) as any // Persist tool calls in metadata
             });
 
             // Update last active
@@ -614,9 +618,6 @@ Examples:
         const isReadyToLock = response.toLowerCase().includes("lock this design") ||
             response.toLowerCase().includes("shall we lock");
 
-        // Get any key rotation events that occurred during this request
-        const keyRotationEvent = KeyManager.getInstance().getAndClearLastEvent();
-
         // Return with agent metadata, tool calls, and rotation event
         return {
             response,
@@ -626,7 +627,7 @@ Examples:
             agentIcon: agentConfig.icon,
             intent,
             toolCalls, // NEW: Include tool calls for frontend
-            keyRotationEvent // Include rotation event for client-side toasts
+            keyRotationEvent // Include rotation event for client-side toasts (also sent via callback)
         };
     }
 

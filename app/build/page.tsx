@@ -12,16 +12,14 @@ export default function BuildPage() {
     // If chatId exists in URL, start in chat mode
     const [mode, setMode] = useState(chatId ? "chat" : "input")
     const [initialPrompt, setInitialPrompt] = useState("")
-    const [userContext, setUserContext] = useState({ userLevel: "", projectComplexity: "" })
 
     useEffect(() => {
         if (chatId) setMode("chat")
     }, [chatId])
 
     const handleProjectSubmit = (prompt: string, style: string, userLevel: string, projectComplexity: string) => {
-        const fullPrompt = `I want to build a ${style} project. ${prompt}`
-        setInitialPrompt(fullPrompt)
-        setUserContext({ userLevel, projectComplexity })
+        // Since we removed the options, just use the prompt directly
+        setInitialPrompt(prompt)
         setMode("chat")
     }
 
@@ -30,5 +28,5 @@ export default function BuildPage() {
     }
 
     // @ts-ignore
-    return <AIAssistantUI initialPrompt={initialPrompt} initialChatId={chatId} userContext={userContext} />
+    return <AIAssistantUI initialPrompt={initialPrompt} initialChatId={chatId} />
 }

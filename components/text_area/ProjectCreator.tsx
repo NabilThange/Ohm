@@ -2,21 +2,53 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { X } from "lucide-react"
 import MeshGradient from "./mesh-gradient"
 import FaultyTerminal from "../mage-ui/faulty-terminal"
+import { AvatarGroup, AvatarGroupTooltip } from "@/components/animate-ui/components/animate/avatar-group"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { TypingAnimation } from "@/components/ui/typing-animation"
 
 interface ProjectCreatorProps {
     onSubmit: (prompt: string, style: string, userLevel: string, projectComplexity: string) => void
 }
 
+const AVATARS = [
+    {
+        src: "/avatar/1GWRMnhKM0cOW-4U3AAp.svg",
+        fallback: "EN",
+        tooltip: "Electronics Engineer",
+        className: "w-12 h-12 border-2 border-border bg-gradient-to-br from-blue-500 to-cyan-500"
+    },
+    {
+        src: "/avatar/6ghHj9wt308Ia6VxSSfX.svg",
+        fallback: "RB",
+        tooltip: "Robotics Builder",
+        className: "w-12 h-12 border-2 border-border bg-gradient-to-br from-purple-500 to-pink-500"
+    },
+    {
+        src: "/avatar/K6Yg63HPckCgnwEYxxnY.svg",
+        fallback: "IT",
+        tooltip: "IoT Developer",
+        className: "w-12 h-12 border-2 border-border bg-gradient-to-br from-orange-500 to-red-500"
+    },
+    {
+        src: "/avatar/Qga5M5EYD6Tbt4GDvHzf.svg",
+        fallback: "ME",
+        tooltip: "Mechatronics Expert",
+        className: "w-12 h-12 border-2 border-border bg-gradient-to-br from-green-500 to-emerald-500"
+    },
+    {
+        src: "",
+        fallback: "+5",
+        tooltip: "More Agents",
+        className: "w-12 h-12 border-2 border-border bg-card text-foreground"
+    }
+]
+
 export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
     const [prompt, setPrompt] = useState("")
-    const [selectedStyle, setSelectedStyle] = useState("")
-    const [userLevel, setUserLevel] = useState("")
-    const [projectComplexity, setProjectComplexity] = useState("")
     const promptRef = useRef<HTMLTextAreaElement>(null)
     const [showHowItWorks, setShowHowItWorks] = useState(false)
 
@@ -26,29 +58,10 @@ export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
         }
     }, [])
 
-    const styles = [
-        { value: "robotics", label: "Robotics", description: "Motors, sensors, control loops" },
-        { value: "iot", label: "IoT", description: "Connected devices, cloud integration" },
-        { value: "wearable", label: "Wearable", description: "Low power, compact, sensors" },
-        { value: "automation", label: "Automation", description: "Home automation, industrial" },
-        { value: "embedded", label: "Embedded", description: "Microcontrollers, RTOS, bare metal" },
-    ]
-
-    const userLevels = [
-        { value: "beginner", label: "Beginner", description: "New to hardware/electronics" },
-        { value: "intermediate", label: "Intermediate", description: "Some experience with projects" },
-        { value: "advanced", label: "Advanced", description: "Experienced engineer" },
-    ]
-
-    const projectComplexities = [
-        { value: "simple", label: "Simple", description: "Basic functionality, few components" },
-        { value: "moderate", label: "Moderate", description: "Multiple features, standard complexity" },
-        { value: "complex", label: "Complex", description: "Advanced features, many components" },
-    ]
-
     const handleSubmit = () => {
-        if (prompt.trim() && selectedStyle && userLevel && projectComplexity) {
-            onSubmit(prompt, selectedStyle, userLevel, projectComplexity)
+        if (prompt.trim()) {
+            // Pass empty strings for removed options
+            onSubmit(prompt, "", "", "")
         }
     }
 
@@ -69,110 +82,109 @@ export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
                 <div className="text-center space-y-3 md:space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <div className="space-y-1">
                         <h1
-                            className="text-5xl md:text-[5rem] font-black tracking-tighter text-white leading-[0.85] mb-2"
+                            className="text-5xl md:text-[5rem] font-black tracking-tighter text-foreground leading-[0.85] mb-2"
                             style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
                         >
                             OHM
                         </h1>
                         <h2
-                            className="text-xl md:text-[2.2rem] font-light italic tracking-wide text-zinc-300 leading-none -mt-2"
+                            className="text-xl md:text-[2.2rem] font-light italic tracking-wide text-muted-foreground leading-none -mt-2"
                             style={{ fontFamily: "Georgia, serif" }}
                         >
                             Hardware Engineer
                         </h2>
                     </div>
-                    <p
-                        className="text-xs md:text-sm text-zinc-400 font-light max-w-2xl mx-auto leading-relaxed pt-3 px-4 md:px-0"
-                        style={{ fontFamily: "system-ui, sans-serif" }}
-                    >
-                        Autonomous hardware development with AI. From concept to BOM, wiring, and code.
-                    </p>
+                    <div className="flex justify-center items-center gap-3 pt-4">
+                        <AvatarGroup>
+                            {AVATARS.map((avatar, index) => (
+                                <Avatar key={index} className={avatar.className}>
+                                    <AvatarImage src={avatar.src} className="p-2" />
+                                    <AvatarFallback>{avatar.fallback}</AvatarFallback>
+                                    <AvatarGroupTooltip>{avatar.tooltip}</AvatarGroupTooltip>
+                                </Avatar>
+                            ))}
+                        </AvatarGroup>
+                        <p
+                            className="text-xs md:text-sm text-muted-foreground font-light leading-relaxed"
+                            style={{ fontFamily: "system-ui, sans-serif" }}
+                        >
+                            10 Experts, One Mission: Your Prototype
+                        </p>
+                    </div>
                 </div>
 
                 <div className="space-y-5 md:space-y-6 mt-8 md:mt-10 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
-                    <div className="space-y-2 relative">
-                        <Textarea
-                            ref={promptRef}
-                            placeholder="Describe your hardware project (e.g., 'A smart plant watering system with moisture sensors')..."
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            rows={3}
-                            className="relative z-10 resize-none bg-black border border-zinc-700 text-white placeholder:text-zinc-500 focus:ring-1 focus:ring-[#0071e3] focus:border-[#0071e3] transition-all duration-300 text-sm md:text-base rounded-sm px-4 md:px-5 py-3"
-                            style={{ fontFamily: "system-ui, sans-serif" }}
-                        />
-                        <p className="text-xs text-zinc-400 text-right font-light tracking-wide">Press ⌘+Enter to start</p>
-                    </div>
-
-                    <div className="space-y-3">
-                        <p className="text-xs md:text-sm text-zinc-300 font-semibold tracking-wide uppercase">Select Category</p>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-                            {styles.map((style) => (
-                                <button
-                                    key={style.value}
-                                    onClick={() => setSelectedStyle(style.value)}
-                                    className={`group px-2 sm:px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm rounded-sm transition-all duration-300 ease-out cursor-pointer border ${selectedStyle === style.value
-                                        ? "text-white bg-[#0071e3] border-[#0071e3] shadow-md shadow-[#0071e3]/20"
-                                        : "text-zinc-300 bg-black border-zinc-700 hover:text-white hover:border-zinc-500 hover:bg-zinc-900"
-                                        }`}
-                                >
-                                    <div className="font-bold text-xs md:text-sm tracking-wide leading-tight">{style.label}</div>
-                                </button>
-                            ))}
+                    <div
+                        onClick={() => promptRef.current?.focus()}
+                        className="bg-card p-6 mb-12 w-full cursor-text hover:ring-2 hover:ring-primary/50 transition-all max-w-4xl mx-auto rounded-lg relative"
+                    >
+                        <div className="block w-full">
+                            {!prompt && (
+                                <div className="text-muted-foreground text-sm font-mono mb-6 h-6 overflow-hidden relative pointer-events-none">
+                                    <TypingAnimation
+                                        words={[
+                                            "Create a lamp that turns on/off and changes colors when you wave your hand near it",
+                                            "Make a camera that automatically identifies and photographs wild animals in your backyard",
+                                            "I want to build a smart weather station with ESP32 and e-ink display.",
+                                            "Design a drone that drops tiny weather sensors across a forest to monitor air quality",
+                                            "Build a door lock that generates truly random passwords using radioactive particles",
+                                            "Create a robotic arm controlled by your muscle signals and brain patterns",
+                                            "Set up a homemade satellite receiver that tracks and downloads images from space"
+                                        ]}
+                                        loop
+                                        typeSpeed={50}
+                                        deleteSpeed={30}
+                                        pauseDelay={3000}
+                                        showCursor
+                                        blinkCursor
+                                        cursorStyle="line"
+                                        className="text-muted-foreground"
+                                    />
+                                </div>
+                            )}
+                            <textarea
+                                ref={promptRef}
+                                value={prompt}
+                                onChange={(e) => setPrompt(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                placeholder=""
+                                className="w-full bg-transparent text-foreground text-sm font-mono mb-6 min-h-6 resize-none outline-none border-none focus:outline-none focus:ring-0"
+                                style={{ fontFamily: "system-ui, sans-serif" }}
+                                rows={3}
+                            />
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <button type="button" className="text-muted-foreground hover:text-foreground transition">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-paperclip"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                                    </button>
+                                    <button type="button" className="text-muted-foreground hover:text-foreground transition">
+                                        <div className="w-5 h-5 bg-gradient-to-br from-purple-400 to-pink-400 rounded"></div>
+                                    </button>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <button type="button" className="text-muted-foreground hover:text-foreground transition">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-info"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleSubmit}
+                                        disabled={!prompt.trim()}
+                                        className="text-muted-foreground hover:text-foreground transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-send"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="space-y-3">
-                        <p className="text-xs md:text-sm text-zinc-300 font-semibold tracking-wide uppercase">Your Experience Level</p>
-                        <div className="grid grid-cols-3 gap-2">
-                            {userLevels.map((level) => (
-                                <button
-                                    key={level.value}
-                                    onClick={() => setUserLevel(level.value)}
-                                    className={`group px-2 sm:px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm rounded-sm transition-all duration-300 ease-out cursor-pointer border ${userLevel === level.value
-                                        ? "text-white bg-[#0071e3] border-[#0071e3] shadow-md shadow-[#0071e3]/20"
-                                        : "text-zinc-300 bg-black border-zinc-700 hover:text-white hover:border-zinc-500 hover:bg-zinc-900"
-                                        }`}
-                                >
-                                    <div className="font-bold text-xs md:text-sm tracking-wide leading-tight">{level.label}</div>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="space-y-3">
-                        <p className="text-xs md:text-sm text-zinc-300 font-semibold tracking-wide uppercase">Project Complexity</p>
-                        <div className="grid grid-cols-3 gap-2">
-                            {projectComplexities.map((complexity) => (
-                                <button
-                                    key={complexity.value}
-                                    onClick={() => setProjectComplexity(complexity.value)}
-                                    className={`group px-2 sm:px-3 md:px-4 py-2.5 md:py-3 text-xs md:text-sm rounded-sm transition-all duration-300 ease-out cursor-pointer border ${projectComplexity === complexity.value
-                                        ? "text-white bg-[#0071e3] border-[#0071e3] shadow-md shadow-[#0071e3]/20"
-                                        : "text-zinc-300 bg-black border-zinc-700 hover:text-white hover:border-zinc-500 hover:bg-zinc-900"
-                                        }`}
-                                >
-                                    <div className="font-bold text-xs md:text-sm tracking-wide leading-tight">{complexity.label}</div>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row justify-center items-center gap-3 pt-4 md:pt-6">
-                        <Button
-                            onClick={handleSubmit}
-                            disabled={!prompt.trim() || !selectedStyle || !userLevel || !projectComplexity}
-                            className="w-full sm:w-auto bg-[#0071e3] hover:bg-[#0077ed] text-white transition-all duration-200 h-11 md:h-12 text-sm md:text-base rounded-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-200 px-10 md:px-12"
-                        >
-                            Start Building
-                        </Button>
-                    </div>
+                    <p className="text-xs text-muted-foreground text-center font-light tracking-wide">Press ⌘+Enter to start</p>
                 </div>
 
-                <footer className="mt-8 md:mt-12 py-4 text-center text-xs text-zinc-500 space-x-3 md:space-x-4 font-light animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+                <footer className="mt-8 md:mt-12 py-4 text-center text-xs text-muted-foreground space-x-3 md:space-x-4 font-light animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
                     <button
                         onClick={() => setShowHowItWorks(true)}
-                        className="hover:text-white transition-colors duration-200 tracking-wide"
+                        className="hover:text-foreground transition-colors duration-200 tracking-wide"
                     >
                         how it works
                     </button>
@@ -181,20 +193,20 @@ export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
 
             <Dialog open={showHowItWorks} onOpenChange={setShowHowItWorks}>
                 <DialogContent
-                    className="max-w-2xl border-zinc-700/50 bg-zinc-900/95 backdrop-blur-xl rounded-3xl p-8"
+                    className="max-w-2xl border-border bg-card/95 backdrop-blur-xl rounded-3xl p-8"
                     showCloseButton={false}
                 >
                     <button
                         onClick={() => setShowHowItWorks(false)}
-                        className="absolute right-6 top-6 rounded-full p-2 hover:bg-zinc-800 transition-colors"
+                        className="absolute right-6 top-6 rounded-full p-2 hover:bg-muted transition-colors"
                     >
-                        <X className="h-5 w-5 text-zinc-400" />
+                        <X className="h-5 w-5 text-muted-foreground" />
                     </button>
                     <div className="space-y-6">
-                        <h2 className="text-3xl font-bold text-white">How Ohm Works</h2>
-                        <div className="space-y-5 text-zinc-300">
+                        <h2 className="text-3xl font-bold text-foreground">How Ohm Works</h2>
+                        <div className="space-y-5 text-muted-foreground">
                             <div className="space-y-2">
-                                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                                     <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/20 text-primary text-sm font-bold">
                                         1
                                     </span>
@@ -205,7 +217,7 @@ export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
                                 </p>
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                                     <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/20 text-primary text-sm font-bold">
                                         2
                                     </span>
@@ -216,7 +228,7 @@ export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
                                 </p>
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                                     <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/20 text-primary text-sm font-bold">
                                         3
                                     </span>
@@ -227,7 +239,7 @@ export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
                                 </p>
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                                     <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/20 text-primary text-sm font-bold">
                                         4
                                     </span>

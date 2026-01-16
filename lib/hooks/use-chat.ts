@@ -7,7 +7,7 @@ import { showKeyFailureToast, showKeyRotationSuccessToast, showToolCallToast } f
 type Message = Database['public']['Tables']['messages']['Row']
 type ChatSession = Database['public']['Tables']['chat_sessions']['Row']
 
-export function useChat(chatId: string | null, userContext?: any, onAgentChange?: (agent: any) => void) {
+export function useChat(chatId: string | null, onAgentChange?: (agent: any) => void) {
     const [messages, setMessages] = useState<Message[]>([])
     const [session, setSession] = useState<ChatSession | null>(null)
     const [isLoading, setIsLoading] = useState(false)
@@ -117,14 +117,13 @@ export function useChat(chatId: string | null, userContext?: any, onAgentChange?
                 return [...prev, optimisticMsg]
             })
 
-            // Call API with userContext and forceAgent
+            // Call API with forceAgent
             const res = await fetch('/api/agents/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: content,
                     chatId,
-                    userContext,
                     forceAgent
                 })
             })
@@ -142,6 +141,7 @@ export function useChat(chatId: string | null, userContext?: any, onAgentChange?
             const aiTempId = crypto.randomUUID();
             let fullContent = "";
             let agentInfo: any = null;
+            let accumulatedToolCalls: any[] = [];  // NEW: Accumulate tool calls
 
             // Add an empty AI message initially
             setMessages(prev => [
@@ -190,13 +190,25 @@ export function useChat(chatId: string | null, userContext?: any, onAgentChange?
                             ));
                         } else if (data.type === 'agent_selected') {
                             // EARLY agent notification - fires BEFORE response starts streaming
-                            console.log('[useChat] ⚡ EARLY agent selection received:', data.agent);
+                            const eventReceivedTime = performance.now();
+                            console.log('[useChat] ⚡ EARLY agent selection received at', eventReceivedTime.toFixed(2), 'ms:', data.agent);
                             agentInfo = data.agent;
+
+                            // Immediately show toast for agent selection
+                            console.log('[useChat] 🎯 Showing agent selection toast directly...');
+                            import('@/lib/agents/toast-notifications').then(({ showAgentChangeToast }) => {
+                                showAgentChangeToast(data.agent.id || data.agent.type);
+                            }).catch(err => {
+                                console.error('[useChat] ❌ Failed to show agent toast:', err);
+                            });
 
                             // Immediately notify parent (triggers toast + dropdown update)
                             if (onAgentChange) {
                                 console.log('[useChat] 🔔 Triggering immediate agent change callback...');
+                                const callbackStartTime = performance.now();
                                 onAgentChange(data.agent);
+                                const callbackEndTime = performance.now();
+                                console.log('[useChat] ✅ Agent change callback completed in', (callbackEndTime - callbackStartTime).toFixed(2), 'ms');
                             }
 
                             // Update the temporary AI message with agent info
@@ -204,19 +216,42 @@ export function useChat(chatId: string | null, userContext?: any, onAgentChange?
                                 m.id === aiTempId ? {
                                     ...m,
                                     agent_name: data.agent.name,
+                                    agent_id: data.agent.type || data.agent.id,  // NEW: Store the agent ID
                                     intent: data.agent.intent
                                 } : m
                             ));
                         } else if (data.type === 'tool_call') {
                             // NEW: Tool call notification - fires BEFORE tool execution
-                            console.log('[useChat] 🔧 Tool call notification received:', data.toolCall);
+                            const eventReceivedTime = performance.now();
+                            console.log('[useChat] 🔧 Tool call notification received at', eventReceivedTime.toFixed(2), 'ms:', data.toolCall);
                             const toolName = data.toolCall.name;
 
+                            // Accumulate tool calls for metadata
+                            accumulatedToolCalls.push(data.toolCall);
+
+                            // Update message with tool calls in metadata
+                            setMessages(prev => prev.map(m =>
+                                m.id === aiTempId ? {
+                                    ...m,
+                                    metadata: { ...m.metadata, toolCalls: accumulatedToolCalls }
+                                } : m
+                            ));
+
                             // 1. Show Toast
+                            const toastStartTime = performance.now();
                             showToolCallToast(toolName);
+                            const toastEndTime = performance.now();
+                            console.log('[useChat] ✅ Tool call toast triggered in', (toastEndTime - toastStartTime).toFixed(2), 'ms');
 
                             // 2. Map tool to drawer and dispatch open event
                             const toolDrawerMap: Record<string, string> = {
+                                // Open drawer tools (called BEFORE content generation)
+                                'open_context_drawer': 'context',
+                                'open_bom_drawer': 'bom',
+                                'open_code_drawer': 'code',
+                                'open_wiring_drawer': 'wiring',
+                                'open_budget_drawer': 'budget',
+                                // Update tools (called AFTER content generation)
                                 'update_context': 'context',
                                 'update_mvp': 'context',
                                 'update_prd': 'context',
@@ -228,10 +263,54 @@ export function useChat(chatId: string | null, userContext?: any, onAgentChange?
 
                             const drawer = toolDrawerMap[toolName];
                             if (drawer) {
-                                console.log(`[useChat] 🔓 Auto-opening drawer for tool ${toolName}: ${drawer}`);
+                                const drawerOpenStartTime = performance.now();
+                                console.log(`[useChat] 🔓 OPTIMISTIC OPENING: Dispatching drawer open event for ${drawer} at`, drawerOpenStartTime.toFixed(2), 'ms');
+                                console.log(`[useChat] ⏱️ Tool call received → Drawer open dispatch: ${(drawerOpenStartTime - eventReceivedTime).toFixed(2)}ms`);
+
                                 window.dispatchEvent(new CustomEvent('open-drawer', {
                                     detail: { drawer }
                                 }));
+
+                                const drawerOpenEndTime = performance.now();
+                                console.log(`[useChat] ✅ Drawer open event dispatched in ${(drawerOpenEndTime - drawerOpenStartTime).toFixed(2)}ms`);
+                                console.log(`[useChat] 📊 TOTAL: Tool notification → Drawer event = ${(drawerOpenEndTime - eventReceivedTime).toFixed(2)}ms`);
+                            }
+                        } else if (data.type === 'key_rotation') {
+                            // NEW: Key rotation notification - fires when API key is rotated
+                            const eventReceivedTime = performance.now();
+                            console.log('[useChat] 🔑 Key rotation event received at', eventReceivedTime.toFixed(2), 'ms:', data.event);
+
+                            const event = data.event;
+
+                            // Show toast based on event type
+                            if (event.type === 'key_rotated') {
+                                // Successful rotation
+                                const message = `Switched to backup key (${event.remainingKeys}/${event.totalKeys} available)`;
+                                console.log('[useChat] 🔄 Showing key rotation toast:', message);
+
+                                // Import and show toast
+                                import('@/lib/agents/toast-notifications').then(({ showKeyRotationSuccessToast }) => {
+                                    showKeyRotationSuccessToast(event.newKeyIndex || 0);
+                                });
+                            } else if (event.type === 'key_failed') {
+                                // Key failure
+                                const message = `API Key failed (${event.remainingKeys}/${event.totalKeys} remaining)`;
+                                console.log('[useChat] ⚠️ Showing key failure toast:', message);
+
+                                import('@/lib/agents/toast-notifications').then(({ showKeyFailureToast }) => {
+                                    showKeyFailureToast(
+                                        event.failedKeyIndex || 0,
+                                        event.totalKeys || 0,
+                                        `${event.remainingKeys} backup keys available`
+                                    );
+                                });
+                            } else if (event.type === 'all_keys_exhausted') {
+                                // All keys exhausted
+                                console.log('[useChat] ❌ Showing all keys exhausted toast');
+
+                                import('@/lib/agents/toast-notifications').then(({ showAllKeysExhaustedToast }) => {
+                                    showAllKeysExhaustedToast(event.totalKeys || 0);
+                                });
                             }
                         } else if (data.type === 'metadata') {
                             console.log('[useChat] Received final metadata:', data.agent);
@@ -313,7 +392,7 @@ export function useChat(chatId: string | null, userContext?: any, onAgentChange?
             // Remove optimistic message on error
             setMessages(prev => prev.filter(m => m.id !== tempId))
         }
-    }, [chatId, userContext, forceAgent, onAgentChange])
+    }, [chatId, forceAgent, onAgentChange])
 
     return { messages, session, isLoading, error, sendMessage, setForceAgent }
 }

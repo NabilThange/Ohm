@@ -9,6 +9,64 @@ export interface ToolCall {
 }
 
 export const DRAWER_TOOLS = {
+    // ========================================
+    // DRAWER OPENING TOOLS (Call BEFORE generating content)
+    // ========================================
+
+    open_context_drawer: {
+        name: "open_context_drawer",
+        description: "Open the Context drawer BEFORE you start generating the Context, MVP, and PRD content. Call this first to show the user that you're working on their project documentation.",
+        parameters: {
+            type: "object",
+            properties: {},
+            required: []
+        }
+    },
+
+    open_bom_drawer: {
+        name: "open_bom_drawer",
+        description: "Open the BOM drawer BEFORE you start generating the bill of materials. Call this first to show the user that you're working on their component list.",
+        parameters: {
+            type: "object",
+            properties: {},
+            required: []
+        }
+    },
+
+    open_code_drawer: {
+        name: "open_code_drawer",
+        description: "Open the Code drawer BEFORE you start generating code files. Call this first to show the user that you're working on their firmware.",
+        parameters: {
+            type: "object",
+            properties: {},
+            required: []
+        }
+    },
+
+    open_wiring_drawer: {
+        name: "open_wiring_drawer",
+        description: "Open the Wiring drawer BEFORE you start generating wiring instructions. Call this first to show the user that you're working on their wiring diagram.",
+        parameters: {
+            type: "object",
+            properties: {},
+            required: []
+        }
+    },
+
+    open_budget_drawer: {
+        name: "open_budget_drawer",
+        description: "Open the Budget drawer BEFORE you start analyzing budget optimization. Call this first to show the user that you're working on cost savings.",
+        parameters: {
+            type: "object",
+            properties: {},
+            required: []
+        }
+    },
+
+    // ========================================
+    // CONTENT UPDATE TOOLS (Call AFTER generating content)
+    // ========================================
+
     update_context: {
         name: "update_context",
         description: "Update the project context drawer with overview, background, success criteria, and constraints. Use this when you've gathered enough information about the user's project to create comprehensive context documentation.",
@@ -322,12 +380,12 @@ export const DRAWER_TOOLS = {
  */
 export function getToolsForAgent(agentType: string): any[] {
     const toolMap: Record<string, string[]> = {
-        conversational: ['update_context', 'update_mvp', 'update_prd'],
-        projectInitializer: ['update_context', 'update_mvp', 'update_prd'],
-        bomGenerator: ['update_bom'],
-        codeGenerator: ['add_code_file'],
-        wiringDiagram: ['update_wiring'],
-        budgetOptimizer: ['update_budget'],
+        conversational: ['open_context_drawer', 'update_context', 'update_mvp', 'update_prd'],
+        projectInitializer: ['open_context_drawer', 'update_context', 'update_mvp', 'update_prd'],
+        bomGenerator: ['open_bom_drawer', 'update_bom'],
+        codeGenerator: ['open_code_drawer', 'add_code_file'],
+        wiringDiagram: ['open_wiring_drawer', 'update_wiring'],
+        budgetOptimizer: ['open_budget_drawer', 'update_budget'],
         // Agents that don't use tools
         orchestrator: [],
         circuitVerifier: [],

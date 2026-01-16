@@ -1,6 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
+
+    // Disable source maps in production for faster builds
+    productionBrowserSourceMaps: false,
+
+    // Fix multiple lockfile warning - explicitly set project root
+    outputFileTracingRoot: 'C:\\Users\\thang\\Downloads\\OHM',
+
+    webpack: (config, { dev }) => {
+        if (dev) {
+            config.watchOptions = {
+                poll: 1000, // Check for changes every second
+                aggregateTimeout: 300, // Delay before rebuilding
+            }
+        }
+        return config
+    }
 }
 
 export default nextConfig

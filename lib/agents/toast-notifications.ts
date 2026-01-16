@@ -8,9 +8,13 @@ import type { CreateToasterReturn } from '@ark-ui/react/toast';
  * Lazy-initialized to prevent server-side execution
  */
 let apiToaster: CreateToasterReturn | null = null;
+let toasterInitTime: number | null = null;
 
 function getToaster(): CreateToasterReturn {
+    const startTime = performance.now();
+
     if (!apiToaster) {
+        console.log('[Toast Debug] 🔧 Initializing toaster for the first time...');
         apiToaster = createToaster({
             placement: 'top-end',
             overlap: true,
@@ -18,7 +22,13 @@ function getToaster(): CreateToasterReturn {
             max: 5,
             duration: 5000,
         });
+        toasterInitTime = performance.now();
+        console.log('[Toast Debug] ✅ Toaster initialized in', (toasterInitTime - startTime).toFixed(2), 'ms');
+    } else {
+        const timeSinceInit = toasterInitTime ? (performance.now() - toasterInitTime).toFixed(2) : 'unknown';
+        console.log('[Toast Debug] ♻️ Reusing existing toaster (initialized', timeSinceInit, 'ms ago)');
     }
+
     return apiToaster;
 }
 
@@ -89,23 +99,32 @@ export function showKeyManagerInitToast(keyCount: number) {
     }
 }
 
+import { getAgentIdentity } from './agent-identities';
+
 /**
  * Show a toast when the orchestrator switches agents
  */
-export function showAgentChangeToast(agentName: string, agentIcon: string) {
-    console.log('[Toast Debug] 🤖 showAgentChangeToast called:', { agentName, agentIcon });
+export function showAgentChangeToast(agentId: string) {
+    const callTime = performance.now();
+    console.log('[Toast Debug] 🤖 showAgentChangeToast called at', callTime.toFixed(2), 'ms:', { agentId });
     if (typeof window === 'undefined') {
         console.log('[Toast Debug] Skipping - server side');
         return;
     }
 
+    const agentIdentity = getAgentIdentity(agentId);
+    console.log('[Toast Debug] Agent identity:', agentIdentity);
+
     console.log('[Toast Debug] Creating agent change toast...');
+    const toastStartTime = performance.now();
     getToaster().success({
         title: 'Agent Active',
-        description: `${agentIcon} ${agentName} is now handling your request.`,
+        description: `${agentIdentity.icon} ${agentIdentity.name} is now handling your request.`,
         duration: 5000,
     });
-    console.log('[Toast Debug] Agent change toast created');
+    const toastEndTime = performance.now();
+    console.log('[Toast Debug] ✅ Agent change toast created in', (toastEndTime - toastStartTime).toFixed(2), 'ms');
+    console.log('[Toast Debug] 📊 Total time from call to creation:', (toastEndTime - callTime).toFixed(2), 'ms');
 }
 
 /**
@@ -126,7 +145,8 @@ const TOOL_DISPLAY_NAMES: Record<string, { name: string; icon: string }> = {
  * Format: "Agent called [tool_name]"
  */
 export function showToolCallToast(toolName: string) {
-    console.log('[Toast Debug] 🔧 showToolCallToast called:', { toolName });
+    const callTime = performance.now();
+    console.log('[Toast Debug] 🔧 showToolCallToast called at', callTime.toFixed(2), 'ms:', { toolName });
     if (typeof window === 'undefined') {
         console.log('[Toast Debug] Skipping - server side');
         return;
@@ -134,13 +154,16 @@ export function showToolCallToast(toolName: string) {
 
     const display = TOOL_DISPLAY_NAMES[toolName] || { name: toolName, icon: '⚙️' };
 
-    console.log('[Toast Debug] Creating tool call toast...');
+    console.log('[Toast Debug] Creating tool call toast for:', display.name);
+    const toastStartTime = performance.now();
     getToaster().success({
         title: `Agent called ${toolName}`,
         description: `${display.icon} ${display.name}`,
         duration: 4000,
     });
-    console.log('[Toast Debug] Tool call toast created');
+    const toastEndTime = performance.now();
+    console.log('[Toast Debug] ✅ Tool call toast created in', (toastEndTime - toastStartTime).toFixed(2), 'ms');
+    console.log('[Toast Debug] 📊 Total time from call to creation:', (toastEndTime - callTime).toFixed(2), 'ms');
 }
 
 // Export toaster getter for ToastProvider

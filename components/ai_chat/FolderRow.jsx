@@ -60,7 +60,7 @@ export default function FolderRow({
 
     return (
         <div className="group">
-            <div className="flex items-center justify-between rounded-lg px-2 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800">
+            <div className="flex items-center justify-between rounded-lg px-2 py-2 text-sm hover:bg-accent">
                 <button onClick={handleToggle} className="flex items-center gap-2 flex-1 text-left">
                     {isExpanded ? (
                         <ChevronDown className="h-4 w-4 text-zinc-500" />
@@ -72,7 +72,7 @@ export default function FolderRow({
                 </button>
 
                 <div className="flex items-center gap-1">
-                    <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[11px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                    <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">
                         {count}
                     </span>
 
@@ -82,7 +82,7 @@ export default function FolderRow({
                                 e.stopPropagation()
                                 setShowMenu(!showMenu)
                             }}
-                            className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-opacity"
+                            className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-accent transition-opacity"
                         >
                             <MoreHorizontal className="h-3 w-3" />
                         </button>
@@ -93,17 +93,17 @@ export default function FolderRow({
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
-                                    className="absolute right-0 top-full mt-1 w-32 rounded-lg border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-800 dark:bg-zinc-900 z-[100]"
+                                    className="absolute right-0 top-full mt-1 w-32 rounded-lg border border-border bg-popover py-1 shadow-lg z-[100]"
                                 >
                                     <button
                                         onClick={handleRename}
-                                        className="w-full px-3 py-1.5 text-left text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                        className="w-full px-3 py-1.5 text-left text-xs hover:bg-accent"
                                     >
                                         Rename
                                     </button>
                                     <button
                                         onClick={handleDelete}
-                                        className="w-full px-3 py-1.5 text-left text-xs text-red-600 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                        className="w-full px-3 py-1.5 text-left text-xs text-destructive hover:bg-accent"
                                     >
                                         Delete
                                     </button>

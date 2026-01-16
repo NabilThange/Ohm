@@ -25,7 +25,7 @@ import ContextDrawer from "@/components/tools/ContextDrawer"
 // Default/System user ID for MVP
 const DEFAULT_USER_ID = "00000000-0000-0000-0000-000000000000"
 
-export default function AIAssistantUI({ initialPrompt, initialChatId, userContext }) {
+export default function AIAssistantUI({ initialPrompt, initialChatId, userContext = undefined }) {
     const router = useRouter()
 
     // Theme Management - Initialize to null to avoid hydration mismatch
@@ -95,12 +95,12 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
     const [query, setQuery] = useState("")
     const searchRef = useRef(null)
 
-    // Current Agent State
+    // Current Agent State - Default to Project Initializer for new chats
     const [currentAgent, setCurrentAgent] = useState({
-        type: 'conversational',
-        name: 'Conversational Agent',
-        icon: '💡',
-        intent: 'CHAT'
+        type: 'projectInitializer',
+        name: 'Project Initializer',
+        icon: '🚀',
+        intent: 'INIT'
     });
 
     // Callback for agent changes - IMMEDIATELY called when orchestrator detects intent
@@ -116,7 +116,7 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
         // Show toast for ANY agent notification (not just when switching)
         if (agent && agent.name) {
             console.log('[AIAssistantUI] 🔔 Showing agent change toast NOW...');
-            showAgentChangeToast(agent.name, agent.icon);
+            showAgentChangeToast(agent.id || agent.type);
         }
 
         // Update state - this triggers Header dropdown update
@@ -125,10 +125,9 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
         console.log('[AIAssistantUI] ✅ Agent change complete');
     }, [currentAgent?.type]);
 
-    // Lifted useChat Hook - pass userContext and agent change callback
+    // Lifted useChat Hook - pass agent change callback
     const { messages, isLoading: chatLoading, sendMessage, setForceAgent } = useChat(
         selectedId,
-        userContext,
         handleAgentChange
     )
 
@@ -144,13 +143,17 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
     })
     const [showArtifacts, setShowArtifacts] = useState(false)
     const [activeTool, setActiveTool] = useState(null) // 'context', 'bom', 'code', 'wiring', 'budget'
-    
+
     // NEW: Track user-closed drawers to prevent auto-reopening
     const [closedDrawers, setClosedDrawers] = useState(new Set());
 
-    // Reset closed drawers when switching chats
+    // Track which artifact IDs have already triggered auto-open to prevent repeated opening
+    const autoOpenedArtifacts = useRef(new Set());
+
+    // Reset closed drawers and auto-opened tracking when switching chats
     useEffect(() => {
         setClosedDrawers(new Set());
+        autoOpenedArtifacts.current = new Set();
     }, [selectedId]);
 
     // Legacy parsed data for backwards compatibility (keep for now)
@@ -177,8 +180,10 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
 
         // Event listener for drawer link buttons in AI messages (and new tool call events)
         const handleOpenDrawer = (event) => {
+            const eventReceivedTime = performance.now();
             const { drawer } = event.detail || {};
-            console.log('[AIAssistantUI] 📨 Received open-drawer event:', drawer);
+            console.log('[AIAssistantUI] 📨 Received open-drawer event at', eventReceivedTime.toFixed(2), 'ms:', drawer);
+
             if (drawer) {
                 // If opening via tool/button, remove from closed set if present (force open)
                 if (closedDrawers.has(drawer)) {
@@ -189,10 +194,15 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
                         return next;
                     });
                 }
-                
-                console.log('[AIAssistantUI] ✅ Opening drawer:', drawer);
+
+                const stateUpdateStartTime = performance.now();
+                console.log('[AIAssistantUI] ✅ OPTIMISTIC OPENING: Setting drawer state to open:', drawer);
                 setActiveTool(drawer);
                 setShowArtifacts(true);
+                const stateUpdateEndTime = performance.now();
+
+                console.log(`[AIAssistantUI] 📊 Event received → State updated: ${(stateUpdateEndTime - eventReceivedTime).toFixed(2)}ms`);
+                console.log(`[AIAssistantUI] 🎯 Drawer ${drawer} should now be visible with loading state`);
             } else {
                 console.error('[AIAssistantUI] ❌ No drawer specified in event');
             }
@@ -200,9 +210,9 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
 
         window.addEventListener('open-code-drawer', handleOpenCodeDrawer);
         window.addEventListener('open-drawer', handleOpenDrawer);
-        
+
         console.log('[AIAssistantUI] 🎯 Event listeners registered');
-        
+
         return () => {
             window.removeEventListener('open-code-drawer', handleOpenCodeDrawer);
             window.removeEventListener('open-drawer', handleOpenDrawer);
@@ -215,7 +225,7 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
 
         const loadArtifacts = async () => {
             console.log('[AIAssistantUI] 📦 Loading artifacts from database for chat:', selectedId);
-            
+
             try {
                 const types = ['context', 'mvp', 'prd', 'bom', 'code', 'wiring', 'budget'];
                 const results = await Promise.all(
@@ -254,10 +264,29 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
                     budget: !!newArtifacts.budget
                 });
 
-                // Auto-open drawer if we have new artifacts
+                // Auto-open drawer if we have NEW artifacts - but respect user's closed state
+                // Only open if: 1) drawer not in closed set, 2) no drawer currently active, 3) haven't auto-opened for this artifact yet
                 if (newArtifacts.context || newArtifacts.mvp || newArtifacts.prd) {
-                    if (!activeTool) setActiveTool('context');
-                    if (!showArtifacts) setShowArtifacts(true);
+                    // Get the latest artifact ID to track if we've already opened for it
+                    const latestContextArtifact = newArtifacts.context || newArtifacts.mvp || newArtifacts.prd;
+                    const artifactId = latestContextArtifact?.artifact_id;
+
+                    const hasAlreadyOpened = artifactId && autoOpenedArtifacts.current.has(artifactId);
+                    const shouldAutoOpen = !closedDrawers.has('context') && !activeTool && !hasAlreadyOpened;
+
+                    console.log('[AIAssistantUI] 🔍 Context artifacts exist. Should auto-open?', shouldAutoOpen, {
+                        artifactId,
+                        inClosedSet: closedDrawers.has('context'),
+                        activeToolExists: !!activeTool,
+                        alreadyOpened: hasAlreadyOpened
+                    });
+
+                    if (shouldAutoOpen && artifactId) {
+                        console.log('[AIAssistantUI] ✅ Auto-opening context drawer for artifact:', artifactId);
+                        autoOpenedArtifacts.current.add(artifactId);
+                        setActiveTool('context');
+                        setShowArtifacts(true);
+                    }
                 }
             } catch (error) {
                 console.error('[AIAssistantUI] ❌ Failed to load artifacts:', error);
@@ -285,23 +314,23 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
                 },
                 async (payload) => {
                     console.log('[AIAssistantUI] 🔔 Realtime artifact update received:', payload);
-                    
+
                     // Get the artifact_id from the new version
                     const artifactId = payload.new.artifact_id;
-                    
+
                     // Find which artifact this belongs to by querying artifacts table
                     const { data: artifact } = await supabase
                         .from('artifacts')
                         .select('type, chat_id')
                         .eq('id', artifactId)
                         .single();
-                    
+
                     if (artifact && artifact.chat_id === selectedId) {
                         console.log(`[AIAssistantUI] ⭐ Refreshing ${artifact.type} artifact`);
-                        
+
                         // Reload just this artifact type
                         const updated = await ArtifactService.getLatestArtifact(selectedId, artifact.type);
-                        
+
                         setArtifacts(prev => ({
                             ...prev,
                             [artifact.type]: updated
@@ -323,7 +352,7 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
                         // Note: Immediate opening is now handled by stream events in useChat.
                         // This serves as a backup/fallback for artifact updates that didn't trigger stream event
                         console.log(`[AIAssistantUI] 🔓 Checking auto-open for ${artifact.type}`);
-                        
+
                         let drawerToOpen = null;
                         if (artifact.type === 'bom') drawerToOpen = 'bom';
                         else if (artifact.type === 'code') drawerToOpen = 'code';
@@ -332,14 +361,17 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
                         else if (['context', 'mvp', 'prd'].includes(artifact.type)) drawerToOpen = 'context';
 
                         if (drawerToOpen) {
+                            const hasAlreadyOpened = artifactId && autoOpenedArtifacts.current.has(artifactId);
+
                             if (closedDrawers.has(drawerToOpen)) {
                                 console.log(`[AIAssistantUI] 🛑 Drawer ${drawerToOpen} is in closed set. Ignoring auto-open.`);
+                            } else if (hasAlreadyOpened) {
+                                console.log(`[AIAssistantUI] 🛑 Already auto-opened for artifact ${artifactId}. Ignoring.`);
                             } else {
-                                // Only open if we aren't already viewing another tool (or if it's this one)
-                                // Actually, let's be less aggressive here since stream event handles immediate open.
-                                // We'll only open if it matches current active, to update data? No, activeTool handles data.
-                                // Just open if not closed.
-                                console.log(`[AIAssistantUI] ✅ Auto-opening drawer (fallback): ${drawerToOpen}`);
+                                console.log(`[AIAssistantUI] ✅ Auto-opening drawer (realtime): ${drawerToOpen} for artifact ${artifactId}`);
+                                if (artifactId) {
+                                    autoOpenedArtifacts.current.add(artifactId);
+                                }
                                 setActiveTool(drawerToOpen);
                                 setShowArtifacts(true);
                             }
@@ -428,8 +460,7 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         message: promptText,
-                        chatId: newChat.id,
-                        userContext: userContext
+                        chatId: newChat.id
                     })
                 })
 
@@ -471,14 +502,14 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
                         message: promptText
                     })
                 }).then(res => res.json())
-                  .then(data => {
-                      console.log('[AIAssistantUI] 🏷️ Title generated:', data.title);
-                      // Force refresh chat list or update local state if needed
-                      // The Sidebar uses dbChats which comes from useChatList
-                      // We might need to refresh that list.
-                      // For now, assuming realtime or next fetch will update it.
-                  })
-                  .catch(err => console.error('Title generation failed:', err));
+                    .then(data => {
+                        console.log('[AIAssistantUI] 🏷️ Title generated:', data.title);
+                        // Force refresh chat list or update local state if needed
+                        // The Sidebar uses dbChats which comes from useChatList
+                        // We might need to refresh that list.
+                        // For now, assuming realtime or next fetch will update it.
+                    })
+                    .catch(err => console.error('Title generation failed:', err));
             }
         } catch (e) {
             console.error("Failed to create chat or send initial message:", e)
@@ -508,7 +539,7 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
     const selectedChat = conversations.find((c) => c.id === selectedId) || null
 
     return (
-        <div className="h-screen w-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 flex overflow-hidden">
+        <div className="h-screen w-full bg-background text-foreground flex overflow-hidden">
 
             {/* Artifact Drawers - Absolute positioned or side-by-side? 
                 Let's make them sit on the right side if open, shrinking ChatPane? 
@@ -516,7 +547,7 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
             */}
             <div className="flex-1 flex flex-col min-w-0 h-full relative z-0">
                 {/* Mobile Header */}
-                <div className="md:hidden sticky top-0 z-40 flex items-center gap-2 border-b border-zinc-200/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/70">
+                <div className="md:hidden sticky top-0 z-40 flex items-center gap-2 border-b border-border bg-background/80 px-3 py-2 backdrop-blur">
                     <div className="ml-1 flex items-center gap-2 text-sm font-semibold tracking-tight">
                         <span className="inline-flex h-4 w-4 items-center justify-center">Ω</span> Ohm Assistant
                     </div>
@@ -599,7 +630,7 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
                                         intent: 'MANUAL'
                                     });
                                     // Show toast for manual selection
-                                    showAgentChangeToast(agentData.name, agentData.icon);
+                                    showAgentChangeToast(agentId);
                                 }
                             }}
                         />

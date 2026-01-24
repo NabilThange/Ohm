@@ -15,32 +15,41 @@ export function useChat(chatId: string | null, onAgentChange?: (agent: any) => v
     const [forceAgent, setForceAgent] = useState<string | null>(null)
 
     // Load initial history
+    const loadMessages = useCallback(async () => {
+        if (!chatId) return
+
+        console.log('[useChat] 📥 Loading messages for chatId:', chatId)
+        setIsLoading(true)
+        try {
+            const [msgs, sess] = await Promise.all([
+                ChatService.getMessages(chatId),
+                ChatService.getSession(chatId)
+            ])
+            console.log('[useChat] ✅ Loaded messages:', msgs?.length || 0, 'messages')
+            if (msgs && msgs.length > 0) {
+                console.log('[useChat] 📝 First message:', { id: msgs[0].id, role: msgs[0].role, content: msgs[0].content?.substring(0, 50) })
+                console.log('[useChat] 📝 Last message:', { id: msgs[msgs.length - 1].id, role: msgs[msgs.length - 1].role, content: msgs[msgs.length - 1].content?.substring(0, 50) })
+            } else {
+                console.warn('[useChat] ⚠️ No messages returned from database')
+            }
+            setMessages(msgs || [])
+            setSession(sess || null)
+        } catch (err: any) {
+            console.error('[useChat] ❌ Failed to load chat:', err)
+            setError(err.message)
+        } finally {
+            setIsLoading(false)
+        }
+    }, [chatId])
+
     useEffect(() => {
         if (!chatId) {
             setMessages([])
             setSession(null)
             return
         }
-
-        const load = async () => {
-            setIsLoading(true)
-            try {
-                const [msgs, sess] = await Promise.all([
-                    ChatService.getMessages(chatId),
-                    ChatService.getSession(chatId)
-                ])
-                setMessages(msgs || [])
-                setSession(sess || null)
-            } catch (err: any) {
-                console.error('Failed to load chat:', err)
-                setError(err.message)
-            } finally {
-                setIsLoading(false)
-            }
-        }
-
-        load()
-    }, [chatId])
+        loadMessages()
+    }, [chatId, loadMessages])
 
     // Subscribe to realtime updates
     useEffect(() => {
@@ -62,6 +71,22 @@ export function useChat(chatId: string | null, onAgentChange?: (agent: any) => v
                             console.log('[useChat] Message already exists, skipping:', newMsg.id)
                             return prev
                         }
+                        
+                        // NEW: If this is an assistant message, check if we have a temp message to replace
+                        if (newMsg.role === 'assistant') {
+                            console.log('[useChat] 🔄 Checking if we need to replace temp message...');
+                            const hasTempMessage = prev.some(m => m.agent_name === 'thinking...');
+                            
+                            if (hasTempMessage) {
+                                console.log('[useChat] ✅ Replacing temp message with real message from DB');
+                                // Replace the temp message with the real one
+                                return prev
+                                    .filter(m => m.agent_name !== 'thinking...')  // Remove temp
+                                    .concat([newMsg])  // Add real
+                                    .sort((a, b) => a.sequence_number - b.sequence_number);
+                            }
+                        }
+                        
                         console.log('[useChat] Adding new message from realtime:', newMsg.id, newMsg.role)
                         return [...prev, newMsg].sort((a, b) => a.sequence_number - b.sequence_number)
                     })
@@ -142,6 +167,7 @@ export function useChat(chatId: string | null, onAgentChange?: (agent: any) => v
             let fullContent = "";
             let agentInfo: any = null;
             let accumulatedToolCalls: any[] = [];  // NEW: Accumulate tool calls
+            let realMessageId: string | null = null;  // NEW: Track real message ID from DB
 
             // Add an empty AI message initially
             setMessages(prev => [
@@ -163,6 +189,8 @@ export function useChat(chatId: string | null, onAgentChange?: (agent: any) => v
                     content_search: null
                 }
             ]);
+
+            console.log('[useChat] 📝 Created temp message with ID:', aiTempId);
 
             console.log('[useChat] Starting to read stream...');
             while (true) {
@@ -394,5 +422,5 @@ export function useChat(chatId: string | null, onAgentChange?: (agent: any) => v
         }
     }, [chatId, forceAgent, onAgentChange])
 
-    return { messages, session, isLoading, error, sendMessage, setForceAgent }
+    return { messages, session, isLoading, error, sendMessage, setForceAgent, refreshMessages: loadMessages }
 }

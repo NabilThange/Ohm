@@ -39,7 +39,7 @@ export default function Header({
     }, [currentAgent]);
 
     return (
-        <div className="sticky top-0 z-30 flex items-center gap-2 border-b border-border bg-background/80 px-4 py-3 backdrop-blur">
+        <div className="sticky top-0 z-30 flex items-center gap-2 bg-background/80 px-4 py-3 backdrop-blur">
             {sidebarCollapsed && (
                 <button
                     onClick={() => setSidebarOpen(true)}

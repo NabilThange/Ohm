@@ -6,6 +6,7 @@ import { useState, useMemo, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { ProjectContextData } from '@/lib/parsers'
+import { LottieLoader } from '@/components/ui/lottie-loader'
 
 interface ContextDrawerProps {
     isOpen: boolean
@@ -211,43 +212,7 @@ export default function ContextDrawer({ isOpen, onClose, contextData }: ContextD
                                                         {activeContent}
                                                     </ReactMarkdown>
                                                 ) : (
-                                                    <div className="flex flex-col gap-6 py-8">
-                                                        {/* Animated Header */}
-                                                        <div className="flex flex-col items-center justify-center gap-4">
-                                                            <div className="relative">
-                                                                <div className="absolute inset-0 animate-ping rounded-full bg-primary/20"></div>
-                                                                <div className="relative animate-spin rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary"></div>
-                                                            </div>
-                                                            <div className="text-center space-y-2">
-                                                                <h4 className="text-lg font-semibold text-foreground">
-                                                                    Generating Content...
-                                                                </h4>
-                                                                <p className="text-sm text-muted-foreground">
-                                                                    The AI is creating your {treeData.children.find(f => f.id === selectedFile)?.name}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Skeleton Lines */}
-                                                        <div className="space-y-3 animate-pulse">
-                                                            <div className="h-4 bg-muted rounded w-3/4"></div>
-                                                            <div className="h-4 bg-muted rounded w-full"></div>
-                                                            <div className="h-4 bg-muted rounded w-5/6"></div>
-                                                            <div className="h-4 bg-muted rounded w-4/5"></div>
-                                                            <div className="h-4 bg-muted rounded w-full"></div>
-                                                            <div className="h-4 bg-muted rounded w-2/3"></div>
-                                                        </div>
-
-                                                        {/* Progress Indicator */}
-                                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                            <div className="flex gap-1">
-                                                                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                                                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                                                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                                                            </div>
-                                                            <span>Content will appear here as it's generated</span>
-                                                        </div>
-                                                    </div>
+                                                    <LottieLoader />
                                                 )}
                                             </div>
                                         </div>

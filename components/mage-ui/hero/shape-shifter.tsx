@@ -3,24 +3,24 @@ import Marquee from "@/components/mage-ui/container/marquee";
 
 const images: { src: string; alt: string; className?: string }[] = [
     {
-        src: "https://images.unsplash.com/photo-1465804575741-338df8554e02?q=80&w=600&auto=format&fit=crop&ixlib=rb-4.0.3",
-        alt: "PCB Layout",
+        src: "/img1.png",
+        alt: "Hardware Project 1",
     },
     {
-        src: "https://images.unsplash.com/photo-1495985812444-236d6a87bdd9?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-        alt: "Circuit Assembly",
+        src: "/img2.png",
+        alt: "Hardware Project 2",
     },
     {
-        src: "https://images.unsplash.com/photo-1451976426598-a7593bd6d0b2?q=80&w=600&auto=format&fit=crop&ixlib=rb-4.0.3",
-        alt: "Electronics Lab",
+        src: "/img3.png",
+        alt: "Hardware Project 3",
     },
     {
-        src: "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?q=80&w=600&auto=format&fit=crop&ixlib=rb-4.0.3",
-        alt: "Schematic Design",
+        src: "/img1.png",
+        alt: "Hardware Project 1",
     },
     {
-        src: "https://images.unsplash.com/photo-1611816055460-618287c870bd?q=80&w=600&auto=format&fit=crop&ixlib=rb-4.0.3",
-        alt: "Microcontroller",
+        src: "/img2.png",
+        alt: "Hardware Project 2",
     },
 ];
 
@@ -58,7 +58,7 @@ export default function ShapeShifter({
             <div>{prefix}</div>
             <div
                 className={cn(
-                    "relative animate-[shape-shift] overflow-hidden bg-black p-0 transition-all ease-in-out direction-alternate repeat-infinite dark:bg-white",
+                    "relative animate-[shape-shift] overflow-hidden bg-black p-0 transition-all ease-in-out direction-alternate repeat-infinite",
                     className,
                 )}
                 // Magic number based on length of images.

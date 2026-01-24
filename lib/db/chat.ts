@@ -34,6 +34,30 @@ export const ChatService = {
     },
 
     /**
+     * Create a new chat with a specific chatId (for instant navigation)
+     */
+    async createChatWithId(userId: string, chatId: string, title: string = 'New Hardware Project') {
+        const validUserId = userId === '00000000-0000-0000-0000-000000000000' ? null : userId;
+
+        const { data: chat, error } = await supabase
+            .from('chats')
+            .insert({ id: chatId, user_id: validUserId, title })
+            .select()
+            .single()
+
+        if (error) throw error
+
+        // Create a companion session for multi-agent state
+        const { error: sessionError } = await supabase
+            .from('chat_sessions')
+            .insert({ chat_id: chat.id })
+
+        if (sessionError) console.warn('Failed to create chat session:', sessionError)
+
+        return chat
+    },
+
+    /**
      * Get full message history for a chat
      */
     async getMessages(chatId: string) {
@@ -51,13 +75,36 @@ export const ChatService = {
      * Add a message to the chat
      */
     async addMessage(message: MessageInsert) {
+        console.log(`📤 [ChatService] Inserting message:`, {
+            chat_id: message.chat_id,
+            role: message.role,
+            contentLength: (message.content as string).length,
+            sequence_number: message.sequence_number
+        });
+
         const { data, error } = await supabase
             .from('messages')
             .insert(message)
             .select()
             .single()
 
-        if (error) throw error
+        if (error) {
+            console.error(`❌ [ChatService] Insert failed:`, {
+                error: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint
+            });
+            throw error;
+        }
+
+        console.log(`✅ [ChatService] Message inserted successfully:`, {
+            id: data.id,
+            chat_id: data.chat_id,
+            role: data.role,
+            sequence_number: data.sequence_number
+        });
+
         return data
     },
 
@@ -123,6 +170,8 @@ export const ChatService = {
      * Get the next sequence number for a chat
      */
     async getNextSequenceNumber(chatId: string) {
+        console.log(`🔢 [ChatService] Getting next sequence number for chat: ${chatId}`);
+
         const { data, error } = await supabase
             .from('messages')
             .select('sequence_number')
@@ -130,8 +179,15 @@ export const ChatService = {
             .order('sequence_number', { ascending: false })
             .limit(1)
 
-        if (error) throw error
-        const max = data[0]?.sequence_number || 0
-        return max + 1
+        if (error) {
+            console.error(`❌ [ChatService] Failed to get sequence number:`, error);
+            throw error;
+        }
+
+        const max = data[0]?.sequence_number || 0;
+        const nextSeq = max + 1;
+        console.log(`📊 [ChatService] Current max sequence: ${max}, next sequence: ${nextSeq}`);
+
+        return nextSeq;
     }
 }

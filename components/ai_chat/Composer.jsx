@@ -6,6 +6,8 @@ import { Send, Loader2, Plus, Mic, X, Paperclip } from "lucide-react"
 import ComposerActionsPopover from "./ComposerActionsPopover"
 import { cn as cls } from "@/lib/utils"
 
+import { motion } from "framer-motion"
+
 const COMMANDS = [
     { command: "/update-context", description: "Refresh MVP, PRD, and Context from chat history" },
     { command: "/update-bom", description: "Regenerate the Bill of Materials from current design" },
@@ -13,10 +15,16 @@ const COMMANDS = [
     { command: "/update-code", description: "Regenerate code based on latest specifications" },
 ]
 
+const PLACEHOLDER_EXAMPLES = [
+    "I want to build a smart weather station with ESP32 and e-ink display.",
+    "Create a gesture-controlled lamp with proximity sensors and RGB LEDs.",
+    "Design an automated plant watering system with soil moisture sensors.",
+    "Build a wireless temperature monitor for my home brewery.",
+]
+
 const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
     const [value, setValue] = useState("")
     const [sending, setSending] = useState(false)
-    const [lineCount, setLineCount] = useState(1)
     const [showCommands, setShowCommands] = useState(false)
     const [helpOpen, setHelpOpen] = useState(false)
     const [activeIndex, setActiveIndex] = useState(0)
@@ -34,28 +42,6 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
             setShowCommands(false)
         }
         setActiveIndex(0)
-    }, [value])
-
-    useEffect(() => {
-        if (inputRef.current) {
-            const textarea = inputRef.current
-            const lineHeight = 24
-            const minHeight = 24
-
-            textarea.style.height = "auto"
-            const scrollHeight = textarea.scrollHeight
-            const calculatedLines = Math.max(1, Math.ceil(scrollHeight / lineHeight))
-
-            setLineCount(calculatedLines)
-
-            if (calculatedLines <= 12) {
-                textarea.style.height = `${Math.max(minHeight, scrollHeight)}px`
-                textarea.style.overflowY = "hidden"
-            } else {
-                textarea.style.height = `${12 * lineHeight}px`
-                textarea.style.overflowY = "auto"
-            }
-        }
     }, [value])
 
     useImperativeHandle(
@@ -117,16 +103,62 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
 
     const hasContent = value.trim().length > 0
 
+    // Handle keyboard shortcuts
+    const handleKeyDown = (e) => {
+        if (showCommands) {
+            if (e.key === "ArrowDown") {
+                e.preventDefault()
+                setActiveIndex(i => (i + 1) % filteredCommands.length)
+                return
+            }
+            if (e.key === "ArrowUp") {
+                e.preventDefault()
+                setActiveIndex(i => (i - 1 + filteredCommands.length) % filteredCommands.length)
+                return
+            }
+            if (e.key === "Tab" || e.key === "Enter") {
+                e.preventDefault()
+                selectCommand(filteredCommands[activeIndex].command)
+                return
+            }
+            if (e.key === "Escape") {
+                e.preventDefault()
+                setShowCommands(false)
+                return
+            }
+        }
+
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault()
+            handleSend()
+        }
+    }
+
+    // Handle container click to focus textarea
+    const handleContainerClick = () => {
+        inputRef.current?.focus()
+    }
+
     return (
-        <div className="border-t border-border bg-background">
-            <div className="mx-auto max-w-3xl p-4 relative">
-                {/* Command Menu / Tooltip */}
+        <div className="border-t border-border bg-background p-4">
+            <motion.div
+                layoutId="main-composer"
+                layout
+                transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                }}
+                onClick={handleContainerClick}
+                className="bg-card border border-[#3e3e38] p-3 mb-2 w-full cursor-text hover:border-primary transition-all max-w-4xl mx-auto rounded-lg relative"
+            >
+                {/* Command Menu */}
                 {showCommands && (
                     <div
                         className="absolute w-72 overflow-hidden rounded-lg border shadow-xl animate-in fade-in zoom-in-95 z-50 transition-all duration-75 bg-[#4a4a4a] border-[#6b6b6b]"
                         style={{
                             bottom: '100%',
-                            left: '1rem',
+                            left: '1.5rem',
                             marginBottom: '0.5rem',
                         }}
                     >
@@ -163,6 +195,7 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
                     </div>
                 )}
 
+                {/* Help Modal */}
                 {helpOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/50 p-4 animate-in fade-in" onClick={() => setHelpOpen(false)}>
                         <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-2xl border border-border" onClick={e => e.stopPropagation()}>
@@ -192,101 +225,58 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
                     </div>
                 )}
 
-                {/* Modern Prompt Input Container */}
-                <div className="relative rounded-2xl border border-input bg-background shadow-sm hover:shadow-md focus-within:shadow-md focus-within:border-primary focus-within:ring-2 focus-within:ring-ring transition-all">
-                    {/* Textarea */}
-                    <textarea
-                        ref={inputRef}
-                        value={value}
-                        onChange={(e) => setValue(e.target.value)}
-                        placeholder="How can Ohm help you today? (Type / for commands)"
-                        rows={1}
-                        className={cls(
-                            "w-full resize-none bg-transparent px-4 py-3 text-sm outline-none",
-                            "placeholder:text-muted-foreground",
-                            "min-h-[48px] leading-6",
-                        )}
-                        onKeyDown={(e) => {
-                            if (showCommands) {
-                                if (e.key === "ArrowDown") {
-                                    e.preventDefault()
-                                    setActiveIndex(i => (i + 1) % filteredCommands.length)
-                                    return
-                                }
-                                if (e.key === "ArrowUp") {
-                                    e.preventDefault()
-                                    setActiveIndex(i => (i - 1 + filteredCommands.length) % filteredCommands.length)
-                                    return
-                                }
-                                if (e.key === "Tab" || e.key === "Enter") {
-                                    e.preventDefault()
-                                    selectCommand(filteredCommands[activeIndex].command)
-                                    return
-                                }
-                                if (e.key === "Escape") {
-                                    e.preventDefault()
-                                    setShowCommands(false)
-                                    return
-                                }
-                            }
+                <textarea
+                    ref={inputRef}
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Ask Ohm anything..."
+                    className="w-full mb-2 min-h-[40px] text-sm font-mono placeholder:text-muted-foreground bg-transparent border-none outline-none focus:ring-0 resize-none"
+                    rows={1}
+                />
 
-                            if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault()
-                                handleSend()
-                            }
-                        }}
-                    />
-
-                    {/* Footer with Tools and Submit */}
-                    <div className="flex items-center justify-between gap-2 px-3 pb-2">
-                        {/* Left side tools */}
-                        <div className="flex items-center gap-1">
-                            <ComposerActionsPopover>
-                                <button
-                                    className="inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-                                    title="Add attachment"
-                                >
-                                    <Paperclip className="h-4 w-4" />
-                                </button>
-                            </ComposerActionsPopover>
-
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <ComposerActionsPopover>
                             <button
-                                className="inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-                                title="Voice input"
+                                type="button"
+                                className="text-muted-foreground hover:text-foreground transition"
+                                onClick={(e) => e.stopPropagation()}
                             >
-                                <Mic className="h-4 w-4" />
+                                <Paperclip size={18} />
                             </button>
-                        </div>
-
-                        {/* Right side submit */}
+                        </ComposerActionsPopover>
                         <button
-                            onClick={handleSend}
-                            disabled={sending || busy || !hasContent}
-                            className={cls(
-                                "inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium transition-all",
-                                hasContent
-                                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                    : "bg-muted text-muted-foreground cursor-not-allowed",
-                            )}
+                            type="button"
+                            className="text-muted-foreground hover:text-foreground transition"
+                            onClick={(e) => e.stopPropagation()}
                         >
-                            {sending || busy ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <>
-                                    <Send className="h-4 w-4 mr-1.5" />
-                                    Send
-                                </>
-                            )}
+                            <Mic size={18} />
                         </button>
                     </div>
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            handleSend()
+                        }}
+                        disabled={sending || busy || !hasContent}
+                        className="text-muted-foreground hover:text-foreground transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {sending || busy ? (
+                            <Loader2 className="h-[18px] w-[18px] animate-spin" />
+                        ) : (
+                            <Send size={18} />
+                        )}
+                    </button>
                 </div>
+            </motion.div>
 
-                {/* Footer text */}
-                <div className="mt-2 px-1 text-center text-[11px] text-muted-foreground">
-                    AI can make mistakes. Check important info.
-                </div>
+            {/* Footer text */}
+            <div className="px-1 text-center text-[11px] text-muted-foreground">
+
             </div>
-        </div>
+        </div >
     )
 })
 

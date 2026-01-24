@@ -183,6 +183,179 @@ User Query
 
 ---
 
+## 🔧 TOOLS & MCP INTEGRATION
+
+### Overview
+
+OHM uses a dual-layer tool system to extend AI agent capabilities:
+
+1. **Internal Tools** - Native OHM tools for project management (drawers, updates, artifacts)
+2. **MCP (Model Context Protocol)** - External tools for internet search, web scraping, and third-party integrations
+
+### Internal Tool System
+
+**Verified from `lib/agents/tools.ts` and `lib/agents/tool-executor.ts`:**
+
+OHM's agents have access to specialized tools that manipulate project artifacts and trigger UI updates. Each tool is designed for a specific purpose and is only available to certain agents.
+
+#### Tool Catalog
+
+| Tool Name | Description | Agents with Access | Output |
+|-----------|-------------|-------------------|---------|
+| `update_context` | Updates project context (Overview, Background, Constraints) | Conversational, ProjectInitializer | Context Drawer |
+| `update_mvp` | Defines MVP specification (Core Features, Success Metrics) | Conversational, ProjectInitializer | Context Drawer |
+| `update_prd` | Creates Product Requirements Document | Conversational, ProjectInitializer | Context Drawer |
+| `update_bom` | Generates Bill of Materials with components, specs, and pricing | BOM Generator | BOM Drawer |
+| `add_code_file` | Adds code files (accumulates multiple files per project) | Code Generator | Code Drawer |
+| `update_wiring` | Creates wiring connections and assembly instructions | Wiring Specialist | Wiring Drawer |
+| `update_budget` | Provides budget optimization recommendations | Budget Optimizer | Budget Drawer |
+
+#### Tool Execution Flow
+
+```
+User Message
+    ↓
+Orchestrator (routes to appropriate agent)
+    ↓
+Specialized Agent (decides to call tool)
+    ↓
+Tool Executor (lib/agents/tool-executor.ts)
+    ↓
+    ├─ Validates tool arguments
+    ├─ Persists to Supabase (artifacts table)
+    ├─ Creates artifact version (Git-style versioning)
+    ├─ Triggers drawer auto-open event
+    └─ Returns success/error to agent
+    ↓
+UI Updates (drawer opens with new content)
+```
+
+#### Drawer Auto-Open System
+
+**Verified from `components/tools/` and event system:**
+
+- When an agent calls a tool, the tool executor dispatches a `window.dispatchEvent('open-drawer')` event
+- Corresponding drawer component listens for this event and automatically opens
+- User can manually close drawers; they won't auto-reopen until chat restart
+- Drawers subscribe to Supabase realtime updates for live artifact changes
+
+**Example Event:**
+
+```javascript
+window.dispatchEvent(new CustomEvent('open-drawer', {
+  detail: { drawerType: 'bom', artifactId: 'abc123' }
+}));
+```
+
+### MCP (Model Context Protocol) Integration
+
+**Status: 🚧 PLANNED - Infrastructure Ready**
+
+MCP enables OHM agents to access external tools and data sources beyond the OHM ecosystem. This allows agents to search the internet, fetch real-time data, and interact with third-party APIs.
+
+#### MCP Architecture
+
+```
+Agent Request
+    ↓
+MCP Client (lib/mcp/client.ts)
+    ↓
+    ├─ Internet Search Tool (Tavily/Perplexity API)
+    ├─ Web Scraper Tool (Firecrawl/Jina AI)
+    ├─ Component Database Tool (Octopart API)
+    ├─ Datasheet Fetcher Tool (PDF extraction)
+    └─ Supplier Pricing Tool (DigiKey/Mouser APIs)
+    ↓
+Structured Response → Agent
+```
+
+#### Planned MCP Tools
+
+| MCP Tool | Provider | Purpose | Use Case |
+|----------|----------|---------|----------|
+| **Internet Search** | Tavily/Perplexity | Search web for component specs, tutorials, troubleshooting | "Find the latest ESP32 variant with Bluetooth 5.0" |
+| **Web Scraper** | Firecrawl/Jina AI | Extract content from documentation pages | "Get setup instructions from Arduino docs" |
+| **Component Database** | Octopart API | Search for electronic components with real-time availability | "Find alternatives to this out-of-stock sensor" |
+| **Datasheet Fetcher** | PDF extraction | Download and parse component datasheets | "Extract pin configuration from datasheet" |
+| **Supplier Pricing** | DigiKey/Mouser APIs | Get real-time pricing and stock levels | "Find cheapest supplier for this component" |
+| **Image Analysis** | Vision API | Analyze circuit photos for verification | "Check if wiring matches the schematic" |
+
+#### MCP Configuration
+
+**Planned structure in `lib/mcp/config.ts`:**
+
+```typescript
+export const mcpTools = {
+  internetSearch: {
+    provider: 'tavily',
+    apiKey: process.env.TAVILY_API_KEY,
+    maxResults: 5,
+    searchDepth: 'advanced'
+  },
+  componentSearch: {
+    provider: 'octopart',
+    apiKey: process.env.OCTOPART_API_KEY,
+    includeAlternatives: true
+  },
+  supplierPricing: {
+    providers: ['digikey', 'mouser', 'sparkfun'],
+    apiKeys: {
+      digikey: process.env.DIGIKEY_API_KEY,
+      mouser: process.env.MOUSER_API_KEY
+    }
+  }
+};
+```
+
+#### Agent Access to MCP Tools
+
+Not all agents need access to all MCP tools. Access is granted based on agent role:
+
+| Agent | MCP Tools Available |
+|-------|---------------------|
+| Conversational | Internet Search, Web Scraper |
+| BOM Generator | Component Database, Supplier Pricing, Datasheet Fetcher |
+| Code Generator | Internet Search, Web Scraper |
+| Wiring Specialist | Datasheet Fetcher, Internet Search |
+| Circuit Verifier | Image Analysis |
+| Datasheet Analyzer | Datasheet Fetcher |
+| Budget Optimizer | Supplier Pricing, Component Database |
+
+#### Implementation Status
+
+**What EXISTS:**
+
+- ✅ Tool executor framework supports external tool calls
+- ✅ Agent configuration allows tool whitelisting
+- ✅ Error handling for API failures
+
+**What's NEEDED:**
+
+- ❌ MCP client implementation (`lib/mcp/client.ts`)
+- ❌ API integrations with Tavily, Octopart, DigiKey, Mouser
+- ❌ Rate limiting and caching for external API calls
+- ❌ Cost tracking for MCP tool usage (for premium tier limits)
+- ❌ Fallback mechanisms when external APIs are unavailable
+
+### Tool Usage Analytics
+
+**Planned for Premium Tier:**
+
+Track tool usage to provide insights and enforce limits:
+
+- **Free Tier**: 50 internal tool calls + 10 MCP tool calls per month
+- **Premium Tier**: Unlimited internal tools + 500 MCP tool calls per month
+- **Enterprise Tier**: Unlimited everything + dedicated API quotas
+
+**Tracking Metrics:**
+
+- Tool call frequency per agent
+- MCP API costs per project
+- Success/failure rates for external tools
+- Average response time for tool execution
+
+---
+
 ## ✅ IMPLEMENTED FEATURES
 
 ### 1. 🎨 UI & Design System

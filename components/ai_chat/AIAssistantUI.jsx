@@ -28,20 +28,17 @@ const DEFAULT_USER_ID = "00000000-0000-0000-0000-000000000000"
 export default function AIAssistantUI({ initialPrompt, initialChatId, userContext = undefined }) {
     const router = useRouter()
 
-    // Theme Management - Initialize to null to avoid hydration mismatch
-    const [theme, setTheme] = useState(null)
+    // Theme Management - Default to 'dark' for consistent experience
+    const [theme, setTheme] = useState("dark")
 
-    // Initialize theme on client side only
+    // Initialize theme on client side only - load saved preference or keep dark default
     useEffect(() => {
-        if (theme !== null) return // Already initialized
-
         const saved = localStorage.getItem("theme")
-        if (saved) {
+        if (saved && saved !== theme) {
             setTheme(saved)
-        } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-            setTheme("dark")
         } else {
-            setTheme("light")
+            // Ensure dark class is applied by default
+            document.documentElement.classList.add("dark")
         }
     }, [])
 
@@ -126,7 +123,7 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
     }, [currentAgent?.type]);
 
     // Lifted useChat Hook - pass agent change callback
-    const { messages, isLoading: chatLoading, sendMessage, setForceAgent } = useChat(
+    const { messages, isLoading: chatLoading, sendMessage, setForceAgent, refreshMessages } = useChat(
         selectedId,
         handleAgentChange
     )
@@ -410,7 +407,15 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
     // Initial Prompt Handling
     const hasInitializedPrompt = useRef(false)
     useEffect(() => {
-        if (initialPrompt && !hasInitializedPrompt.current && !initialChatId && !selectedId) {
+        // Case 1: initialPrompt with initialChatId (from instant navigation)
+        // Need to create the chat session in DB with this specific chatId
+        if (initialPrompt && initialChatId && !hasInitializedPrompt.current) {
+            hasInitializedPrompt.current = true
+            console.log('[AIAssistantUI] Creating chat with provided chatId:', initialChatId)
+            handleCreateChatWithId(initialChatId, initialPrompt)
+        }
+        // Case 2: initialPrompt without chatId (old flow)
+        else if (initialPrompt && !hasInitializedPrompt.current && !initialChatId && !selectedId) {
             hasInitializedPrompt.current = true
             // Create chat immediately on mount with initialPrompt
             handleCreateNewChat(initialPrompt)
@@ -474,22 +479,102 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
                     }
                 }
 
-                // Handle SSE stream - consume it but don't need to parse here
-                // The useChat hook will update messages via realtime subscription
+                // Handle SSE stream - parse and handle events for the initial message
                 const reader = res.body?.getReader();
                 if (reader) {
-                    console.log('[AIAssistantUI] Consuming stream for initial message...');
-                    // Just consume the stream, the realtime subscription will update messages
+                    console.log('[AIAssistantUI] Processing stream for initial message...');
+                    const decoder = new TextDecoder();
+
                     while (true) {
-                        const { done } = await reader.read();
+                        const { done, value } = await reader.read();
                         if (done) break;
+
+                        // Parse the stream to handle agent notifications, etc.
+                        const chunk = decoder.decode(value);
+                        const lines = chunk.split('\n');
+
+                        for (const line of lines) {
+                            if (!line.trim() || !line.startsWith('data: ')) continue;
+
+                            try {
+                                const data = JSON.parse(line.slice(6));
+
+                                // Handle text chunks (AI response content)
+                                if (data.type === 'text' && data.content) {
+                                    console.log('[AIAssistantUI] 📝 Received text chunk:', data.content.substring(0, 50), '...');
+                                    // Text chunks are being streamed but we don't need to handle them here
+                                    // The orchestrator will persist the complete response to the database
+                                    // and refreshMessages() will load it
+                                }
+
+                                // Handle agent selection for initial message
+                                if (data.type === 'agent_selected' && data.agent) {
+                                    console.log('[AIAssistantUI] 🚀 Initial message agent:', data.agent.name);
+                                    handleAgentChange(data.agent);
+                                }
+
+                                // Handle tool calls for initial message
+                                if (data.type === 'tool_call') {
+                                    const toolName = data.toolCall?.name;
+                                    if (toolName) {
+                                        // Map tool to drawer and open it
+                                        const toolDrawerMap = {
+                                            'open_context_drawer': 'context',
+                                            'update_context': 'context',
+                                            'update_mvp': 'context',
+                                            'update_prd': 'context',
+                                            'update_bom': 'bom',
+                                            'open_bom_drawer': 'bom',
+                                            'add_code_file': 'code',
+                                            'open_code_drawer': 'code',
+                                            'update_wiring': 'wiring',
+                                            'open_wiring_drawer': 'wiring',
+                                            'update_budget': 'budget',
+                                            'open_budget_drawer': 'budget'
+                                        };
+                                        const drawer = toolDrawerMap[toolName];
+                                        if (drawer) {
+                                            console.log(`[AIAssistantUI] 🔓 Opening drawer from initial message: ${drawer}`);
+                                            window.dispatchEvent(new CustomEvent('open-drawer', { detail: { drawer } }));
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                // Ignore parse errors in partial chunks
+                            }
+                        }
                     }
-                    console.log('[AIAssistantUI] Stream consumed successfully');
+                    console.log('[AIAssistantUI] Stream processed successfully');
                 }
             }
 
             // After the message has been accepted, update the URL for deep-linking
             router.push(`/build/${newChat.id}`)
+
+            // CRITICAL: Force message reload AFTER navigation
+            // This ensures useChat has initialized and realtime subscription is ready
+            // Longer delay needed because:
+            // 1. router.push is async and needs to complete
+            // 2. useChat hook needs to reinitialize with new chatId
+            // 3. Realtime subscription needs to be established
+            // 4. Messages need to be inserted into DB
+            console.log('[AIAssistantUI] ⏳ Waiting for navigation and subscription setup...');
+            console.log('[AIAssistantUI] 📊 Current selectedId:', selectedId, 'New chatId:', newChat.id);
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Reload messages to ensure they're visible
+            console.log('[AIAssistantUI] 🔄 Forcing message reload from database...');
+            console.log('[AIAssistantUI] 📊 refreshMessages available?', !!refreshMessages);
+            if (refreshMessages) {
+                try {
+                    await refreshMessages();
+                    console.log('[AIAssistantUI] ✅ Messages refreshed successfully');
+                } catch (err) {
+                    console.error('[AIAssistantUI] ❌ Failed to refresh messages:', err);
+                }
+            } else {
+                console.warn('[AIAssistantUI] ⚠️ refreshMessages not available yet');
+            }
 
             // Trigger title generation in background
             if (promptText && promptText !== "New Project") {
@@ -503,16 +588,111 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
                     })
                 }).then(res => res.json())
                     .then(data => {
-                        console.log('[AIAssistantUI] 🏷️ Title generated:', data.title);
-                        // Force refresh chat list or update local state if needed
-                        // The Sidebar uses dbChats which comes from useChatList
-                        // We might need to refresh that list.
-                        // For now, assuming realtime or next fetch will update it.
+                        if (data.title) {
+                            console.log('[AIAssistantUI] 🏷️ Title generated:', data.title);
+                            // Update newChat with generated title for immediate UI feedback
+                            newChat.title = data.title;
+                            // Note: The realtime subscription in useChatList will also sync this from DB
+                        }
                     })
                     .catch(err => console.error('Title generation failed:', err));
             }
         } catch (e) {
             console.error("Failed to create chat or send initial message:", e)
+            alert(`Could not create chat: ${e.message}`)
+        }
+    }
+
+    // NEW: Handle creating chat with a specific chatId (for instant navigation)
+    async function handleCreateChatWithId(chatId, promptText) {
+        try {
+            console.log('[AIAssistantUI] Creating chat session with chatId:', chatId)
+            
+            // Create chat in database with the provided chatId
+            const newChat = await ChatService.createChatWithId(DEFAULT_USER_ID, chatId, promptText.slice(0, 30))
+
+            // Update local state immediately
+            setSelectedId(chatId)
+            setSidebarOpen(false)
+
+            // Send initial message
+            if (promptText) {
+                console.log('[AIAssistantUI] Sending initial message...')
+                const res = await fetch('/api/agents/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: promptText,
+                        chatId: chatId
+                    })
+                })
+
+                if (!res.ok) {
+                    try {
+                        const errorData = await res.json()
+                        throw new Error(errorData.error || `API error: ${res.status}`)
+                    } catch {
+                        throw new Error(`API error: ${res.status}`)
+                    }
+                }
+
+                // Handle SSE stream
+                const reader = res.body?.getReader()
+                if (reader) {
+                    const decoder = new TextDecoder()
+                    while (true) {
+                        const { done, value } = await reader.read()
+                        if (done) break
+
+                        const chunk = decoder.decode(value)
+                        const lines = chunk.split('\n')
+
+                        for (const line of lines) {
+                            if (!line.trim() || !line.startsWith('data: ')) continue
+
+                            try {
+                                const data = JSON.parse(line.slice(6))
+
+                                if (data.type === 'agent_selected' && data.agent) {
+                                    handleAgentChange(data.agent)
+                                }
+
+                                if (data.type === 'tool_call') {
+                                    const toolName = data.toolCall?.name
+                                    if (toolName) {
+                                        // Handle tool drawer opening
+                                        console.log('[AIAssistantUI] Tool called:', toolName)
+                                    }
+                                }
+                            } catch (e) {
+                                // Ignore parse errors
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Wait for messages to be persisted
+            await new Promise(resolve => setTimeout(resolve, 1500))
+
+            // Reload messages
+            if (refreshMessages) {
+                await refreshMessages()
+            }
+
+            // Generate title in background
+            if (promptText) {
+                fetch('/api/agents/title', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chatId: chatId,
+                        message: promptText
+                    })
+                }).catch(err => console.error('Title generation failed:', err))
+            }
+        } catch (e) {
+            console.error("Failed to create chat with chatId:", e)
             alert(`Could not create chat: ${e.message}`)
         }
     }
@@ -539,7 +719,7 @@ export default function AIAssistantUI({ initialPrompt, initialChatId, userContex
     const selectedChat = conversations.find((c) => c.id === selectedId) || null
 
     return (
-        <div className="h-screen w-full bg-background text-foreground flex overflow-hidden">
+        <div className="relative h-screen w-full bg-background text-foreground flex overflow-hidden"> {/* Added relative for absolute/sticky children */}
 
             {/* Artifact Drawers - Absolute positioned or side-by-side? 
                 Let's make them sit on the right side if open, shrinking ChatPane? 

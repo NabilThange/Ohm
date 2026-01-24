@@ -3,10 +3,10 @@
 import { useState, forwardRef, useImperativeHandle, useRef, useEffect } from "react"
 import { Pencil, RefreshCw, Check, X } from "lucide-react"
 import Message from "./Message"
-import Composer from "./Composer"
 import { cn as cls, timeAgo } from "@/lib/utils"
 import { useChat } from "@/lib/hooks/use-chat"
 import { ChatService } from "@/lib/db/chat"
+import { ChatPromptInput } from "@/components/shared/ChatPromptInput"
 
 import OhmLoadingAnimation from "../ui/ohm-loading"
 
@@ -18,16 +18,16 @@ const ChatPane = forwardRef(function ChatPane(
     // const { messages, isLoading, sendMessage: hookSendMessage } = useChat(chatId)
 
     const [editingId, setEditingId] = useState(null)
-    const [draft, setDraft] = useState("")
     const [busy, setBusy] = useState(false)
-    const composerRef = useRef(null)
     const messagesEndRef = useRef(null)
 
     useImperativeHandle(
         ref,
         () => ({
             insertTemplate: (templateContent) => {
-                composerRef.current?.insertTemplate(templateContent)
+                // Template insertion is now handled by MorphingPromptInput
+                // This is kept for backwards compatibility but does nothing
+                console.log('Template insertion:', templateContent)
             },
         }),
         [],
@@ -85,6 +85,10 @@ Reflect any changes made during the chat in these documents.`;
 
     // Auto-scroll on new messages
     useEffect(() => {
+        console.log('[ChatPane] 📬 Messages updated:', messages.length, 'messages')
+        if (messages.length > 0) {
+            console.log('[ChatPane] 📝 Messages:', messages.map(m => ({ role: m.role, content: m.content?.substring(0, 30), id: m.id })))
+        }
         scrollToBottom()
     }, [messages])
 
@@ -95,67 +99,63 @@ Reflect any changes made during the chat in these documents.`;
 
     return (
         <div className="flex h-full min-h-0 flex-1 flex-col">
-            <div className="flex-1 space-y-5 overflow-y-auto px-4 py-6 md:px-[164px]">
-                <div className="mb-2 text-3xl font-serif tracking-tight sm:text-4xl md:text-5xl">
-                    <span className="block leading-[1.05] font-sans text-2xl">{chat?.title || "New Project"}</span>
-                </div>
+            <div className="flex-1 space-y-5 overflow-y-auto px-4 py-6 pb-32">
+                <div className="w-full mx-auto" style={{ maxWidth: '800px' }}>
+                    <div className="mb-2 text-3xl font-serif tracking-tight sm:text-4xl md:text-5xl">
+                        <span className="block leading-[1.05] font-sans text-2xl">{chat?.title || "New Project"}</span>
+                    </div>
                 {/* 
                 <div className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
                     Updated {timeAgo(conversation.updatedAt)} · {count} messages
                 </div>
                 */}
 
-                <div className="mb-6 flex flex-wrap gap-2 border-b border-border pb-5">
-                    {/* Tags could be passed as prop or fetched */}
+                    <div className="mb-6 flex flex-wrap gap-2 border-b border-border pb-5">
+                        {/* Tags could be passed as prop or fetched */}
+                    </div>
+
+                    {/* Combined Messages: Initial Prompt (if not yet in DB) + DB Messages */}
+                    {(() => {
+                        // Check if initialPrompt is already in messages
+                        const hasInitial = initialPrompt && initialPrompt !== "New Project" &&
+                            messages.some(m => m.content === initialPrompt && m.role === 'user');
+
+                        const showFakeInitial = initialPrompt && initialPrompt !== "New Project" && !hasInitial;
+
+                        // Always render the message container - never unmount
+                        return (
+                            <>
+                                {messages.length === 0 && !showFakeInitial && (
+                                    <div className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">
+                                        {isLoading ? "Loading history..." : "No messages yet. Say hello to start."}
+                                    </div>
+                                )}
+
+                                {showFakeInitial && (
+                                    <div className="space-y-2 fade-in">
+                                        <Message role="user">{initialPrompt}</Message>
+                                    </div>
+                                )}
+
+                                {messages.map((m) => (
+                                    <div key={m.id} className="space-y-2">
+                                        <Message role={m.role} metadata={{ agent_name: m.agent_name, agentId: m.agent_id, ...m.metadata }}>
+                                            {m.content}
+                                        </Message>
+                                    </div>
+                                ))}
+                            </>
+                        )
+                    })()}
+
+                    {/* Scroll anchor */}
+                    {(busy || isLoading || (messages.length === 0 && initialPrompt)) && <OhmLoadingAnimation />}
+                    <div ref={messagesEndRef} />
                 </div>
-
-                {/* Combined Messages: Initial Prompt (if not yet in DB) + DB Messages */}
-                {(() => {
-                    // Check if initialPrompt is already in messages
-                    const hasInitial = initialPrompt && initialPrompt !== "New Project" &&
-                        messages.some(m => m.content === initialPrompt && m.role === 'user');
-
-                    const showFakeInitial = initialPrompt && initialPrompt !== "New Project" && !hasInitial;
-
-                    // Always render the message container - never unmount
-                    return (
-                        <>
-                            {messages.length === 0 && !showFakeInitial && (
-                                <div className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">
-                                    {isLoading ? "Loading history..." : "No messages yet. Say hello to start."}
-                                </div>
-                            )}
-
-                            {showFakeInitial && (
-                                <div className="space-y-2 fade-in">
-                                    <Message role="user">{initialPrompt}</Message>
-                                </div>
-                            )}
-
-                            {messages.map((m) => (
-                                <div key={m.id} className="space-y-2">
-                                    <Message role={m.role} metadata={{ agent_name: m.agent_name, agentId: m.agent_id, ...m.metadata }}>
-                                        {m.content}
-                                    </Message>
-                                </div>
-                            ))}
-                        </>
-                    )
-                })()}
-
-                {/* Scroll anchor */}
-                {(busy || isLoading || (messages.length === 0 && initialPrompt)) && <OhmLoadingAnimation />}
-                <div ref={messagesEndRef} />
             </div>
 
-            <Composer
-                ref={composerRef}
-                onSend={async (text) => {
-                    if (!text.trim()) return
-                    await handleSend(text)
-                }}
-                busy={busy || isLoading}
-            />
+            {/* Chat Input - now part of layout flow */}
+            <ChatPromptInput onSendMessage={handleSend} isLoading={busy || isLoading} />
         </div >
     )
 })

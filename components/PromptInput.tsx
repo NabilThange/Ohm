@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowLeftIcon } from '@/components/ui/arrow-left'
+import { ArrowRightIcon } from '@/components/ui/arrow-right'
+import { Sparkles } from 'lucide-react'
 import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 
@@ -98,7 +100,7 @@ export default function PromptInput({ onSubmit, onBack }: PromptInputProps) {
                     onClick={onBack}
                     className="mb-8 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition group"
                 >
-                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                    <ArrowLeftIcon className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                     Back to Home
                 </button>
 
@@ -199,7 +201,7 @@ export default function PromptInput({ onSubmit, onBack }: PromptInputProps) {
                             className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg px-12 py-6 text-base group disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Start Building
-                            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            <ArrowRightIcon className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </Button>
                     </div>
                 </div>

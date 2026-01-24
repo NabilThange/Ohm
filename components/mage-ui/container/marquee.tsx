@@ -7,6 +7,7 @@ interface MarqueeProps {
     children?: React.ReactNode;
     vertical?: boolean;
     repeat?: number;
+    applyMask?: boolean;
     [key: string]: any;
 }
 
@@ -17,6 +18,7 @@ export default function Marquee({
     children,
     vertical = false,
     repeat = 4,
+    applyMask, // Extract to prevent passing to DOM
     ...props
 }: MarqueeProps) {
     return (

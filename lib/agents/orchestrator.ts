@@ -141,6 +141,7 @@ export class AgentRunner {
             onStream?: (chunk: string) => void;
             stream?: boolean;
             onToolCall?: (toolCall: ToolCall) => Promise<any>;
+            chatId?: string; // NEW: Pass chatId for context injection
         }
     ): Promise<{ response: string; toolCalls: ToolCall[] }> {
         const agent = AGENTS[agentType];
@@ -149,8 +150,29 @@ export class AgentRunner {
             throw new Error(`Unknown agent type: ${agentType}`);
         }
 
-        // Use agent's system prompt directly (no context modification needed)
-        const systemPrompt = agent.systemPrompt;
+        // NEW: Build dynamic context if chatId provided
+        let systemPrompt = agent.systemPrompt;
+        
+        if (options?.chatId) {
+            console.log(`🔍 [Orchestrator] chatId provided: ${options.chatId}, building context...`);
+            try {
+                const { AgentContextBuilder } = await import('./context-builder');
+                const contextBuilder = new AgentContextBuilder(options.chatId);
+                const dynamicContext = await contextBuilder.buildDynamicContext();
+                
+                if (dynamicContext) {
+                    systemPrompt = `${agent.systemPrompt}\n\n${dynamicContext}`;
+                    console.log(`💡 [Orchestrator] ✅ Injected conversation context for ${agent.name} (${dynamicContext.length} chars)`);
+                } else {
+                    console.log(`💡 [Orchestrator] ⏭️  No context to inject (new conversation or empty)`);
+                }
+            } catch (error: any) {
+                console.error(`❌ [Orchestrator] Failed to build context:`, error.message);
+                // Continue without context - don't break the agent
+            }
+        } else {
+            console.log(`⚠️  [Orchestrator] No chatId provided, skipping context injection`);
+        }
 
         // Prepend system prompt
         const fullMessages = [
@@ -159,9 +181,11 @@ export class AgentRunner {
         ];
 
         console.log(`🤖 Running ${agent.name} (${agent.model})...`);
+        console.log(`📊 [Orchestrator] Messages count: ${fullMessages.length}, System prompt length: ${systemPrompt.length} chars`);
 
         // Get tools for this agent
         const tools = getToolsForAgent(agentType);
+        console.log(`🔧 [Orchestrator] Tools available: ${tools.length}`);
 
         return this.executeWithRetry(
             async (client) => {
@@ -572,12 +596,20 @@ Examples:
                     if (toolExecutor) {
                         await toolExecutor.executeToolCall(toolCall);
                     }
-                }
+                },
+                chatId: this.chatId || undefined  // NEW: Pass chatId for context injection
             }
         );
 
         const response = result.response;
         const toolCalls = result.toolCalls;
+
+        console.log(`✅ [Orchestrator] Agent completed! Response length: ${response.length} chars, Tool calls: ${toolCalls.length}`);
+        if (response.length > 0) {
+            console.log(`📝 [Orchestrator] First 150 chars: "${response.substring(0, 150)}..."`);
+        } else {
+            console.error(`❌ [Orchestrator] WARNING: Agent returned EMPTY response!`);
+        }
 
         // 6.5 Check for key rotation events and notify immediately
         const keyRotationEvent = KeyManager.getInstance().getAndClearLastEvent();
@@ -588,29 +620,65 @@ Examples:
 
         // 7. Persist Assistant Response
         if (this.chatId) {
-            const seq = await ChatService.getNextSequenceNumber(this.chatId);
-            await ChatService.addMessage({
-                chat_id: this.chatId,
-                role: "assistant",
-                content: response,
-                agent_name: finalAgentType,
-                sequence_number: seq,
-                intent: intent,
-                metadata: (toolCalls.length > 0 ? { toolCalls } : null) as any // Persist tool calls in metadata
-            });
+            try {
+                console.log(`💾 [Orchestrator] Attempting to save assistant message:`, {
+                    chatId: this.chatId,
+                    role: 'assistant',
+                    contentLength: response.length,
+                    agentName: finalAgentType,
+                    intent: intent
+                });
 
-            // Update last active
-            await ChatService.updateSession(this.chatId, {
-                current_agent: finalAgentType,
-                last_active_at: new Date().toISOString()
-            });
+                const seq = await ChatService.getNextSequenceNumber(this.chatId);
+                console.log(`📊 [Orchestrator] Got sequence number: ${seq}`);
 
-            // 8. Trigger conversation summarization (non-blocking)
-            // This runs in background and doesn't affect response time
-            const summarizer = new ConversationSummarizer(this.chatId);
-            summarizer.updateSummary('system').catch(err => {
-                console.error('[Orchestrator] Background summarization failed:', err);
-            });
+                const messagePayload = {
+                    chat_id: this.chatId,
+                    role: "assistant" as const,
+                    content: response,
+                    agent_name: finalAgentType,
+                    agent_id: finalAgentType, // NEW: Add agent_id for proper avatar display
+                    sequence_number: seq,
+                    intent: intent,
+                    metadata: (toolCalls.length > 0 ? { toolCalls } : null) as any // Persist tool calls in metadata
+                };
+
+                console.log(`📝 [Orchestrator] Message payload prepared:`, {
+                    ...messagePayload,
+                    content: `${messagePayload.content.substring(0, 50)}...` // Log first 50 chars only
+                });
+
+                const savedMessage = await ChatService.addMessage(messagePayload);
+                console.log(`✅ [Orchestrator] Message saved successfully with ID: ${savedMessage.id}`);
+
+                // Update last active
+                console.log(`🔄 [Orchestrator] Updating session state...`);
+                await ChatService.updateSession(this.chatId, {
+                    current_agent: finalAgentType,
+                    last_active_at: new Date().toISOString()
+                });
+                console.log(`✅ [Orchestrator] Session updated`);
+
+                // 8. Trigger conversation summarization (non-blocking)
+                // This runs in background and doesn't affect response time
+                const summarizer = new ConversationSummarizer(this.chatId);
+                summarizer.updateSummary('system').catch(err => {
+                    console.error('[Orchestrator] Background summarization failed:', err);
+                });
+            } catch (error: any) {
+                console.error(`❌ [Orchestrator] CRITICAL: Failed to save assistant message:`, {
+                    error: error.message,
+                    code: error.code,
+                    details: error.details,
+                    hint: error.hint,
+                    chatId: this.chatId,
+                    responseLength: response.length
+                });
+                // Re-throw to let caller know about the failure
+                throw new Error(`Failed to persist assistant message: ${error.message}`);
+            }
+        } else {
+            console.warn(`⚠️  [Orchestrator] No chatId provided, skipping message persistence`);
         }
 
         // Check if ready to lock

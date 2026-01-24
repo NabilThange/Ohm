@@ -3,7 +3,9 @@
 import React, { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Check, FileCode, Layers } from 'lucide-react';
+import { CopyIcon } from '@/components/ui/copy';
+import { CheckIcon } from '@/components/ui/check';
+import { FileCode, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export interface CodeBlockProps {
@@ -46,7 +48,7 @@ export function CodeBlock({ files, projectName = "Generated Code", onViewAll }: 
                             </Button>
                         )}
                         <Button variant="ghost" size="sm" onClick={copyToClipboard} className="h-7 text-xs text-gray-400 hover:text-white gap-1.5">
-                            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                            {copied ? <CheckIcon className="w-3.5 h-3.5" /> : <CopyIcon className="w-3.5 h-3.5" />}
                             {copied ? "Copied" : "Copy"}
                         </Button>
                     </div>

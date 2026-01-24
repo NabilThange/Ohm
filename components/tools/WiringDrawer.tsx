@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import ToolDrawer from './ToolDrawer'
 import { ZoomIn, ZoomOut, Download, RefreshCw, Loader2, AlertTriangle, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { LottieLoader } from '@/components/ui/lottie-loader'
 
 interface WiringDrawerProps {
     isOpen: boolean
@@ -245,22 +246,18 @@ export default function WiringDrawer({ isOpen, onClose, wiringData, diagramSvg }
                     {view === 'breadboard' && (
                         <div className="p-4">
                             {isGenerating && (
-                                <div className="flex flex-col items-center justify-center py-12 gap-4">
-                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                    <div className="text-center w-full max-w-md">
-                                        <p className="font-medium">Generating photorealistic breadboard diagram...</p>
-                                        <p className="text-sm text-muted-foreground mt-1">
-                                            {currentStep || 'Processing...'}
-                                        </p>
-                                        <div className="mt-4">
-                                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                                <div
-                                                    className="bg-primary h-2 rounded-full transition-all duration-300"
-                                                    style={{ width: `${progress}%` }}
-                                                />
-                                            </div>
-                                            <p className="text-xs text-muted-foreground mt-1">{progress}%</p>
+                                <div className="flex flex-col items-center justify-center py-12 gap-4 h-full">
+                                    <div className="flex-1 w-full flex items-center justify-center">
+                                        <LottieLoader />
+                                    </div>
+                                    <div className="w-full max-w-md">
+                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                            <div
+                                                className="bg-primary h-2 rounded-full transition-all duration-300"
+                                                style={{ width: `${progress}%` }}
+                                            />
                                         </div>
+                                        <p className="text-xs text-muted-foreground mt-1 text-center">{progress}%</p>
                                     </div>
                                 </div>
                             )}

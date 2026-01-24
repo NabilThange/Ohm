@@ -1,18 +1,12 @@
 'use client'
 
-import { ArrowRight, Zap, Cpu, Code, CircuitBoard } from 'lucide-react'
+import { ArrowRightIcon } from '@/components/ui/arrow-right'
+import { ZapIcon } from '@/components/ui/zap'
 import { Button } from './ui/button'
 
 interface LandingPageProps {
     onGetStarted: () => void
 }
-
-const features = [
-    { icon: CircuitBoard, label: 'Component Selection', description: 'Smart BOM generation' },
-    { icon: Zap, label: 'Wiring Guide', description: 'Visual digital twin' },
-    { icon: Code, label: 'Code Generation', description: 'Arduino & MicroPython' },
-    { icon: Cpu, label: 'Compatibility Check', description: 'Voltage & protocol validation' },
-]
 
 const useCases = [
     { label: 'IoT Sensors' },
@@ -39,7 +33,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-primary rounded-sm flex items-center justify-center">
-                                <Zap className="w-6 h-6 text-primary-foreground" />
+                                <ZapIcon className="w-6 h-6 text-primary-foreground" />
                             </div>
                             <span className="text-2xl font-bold tracking-tight">Ohm</span>
                         </div>
@@ -87,7 +81,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
                             className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg px-8 py-6 text-base group"
                         >
                             Start Building
-                            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            <ArrowRightIcon className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </Button>
                         <Button
                             variant="outline"
@@ -111,66 +105,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
                     </div>
                 </section>
 
-                {/* Features Grid */}
-                <section id="features" className="mb-20 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                    <h2 className="text-3xl font-bold text-center mb-12">
-                        Everything you need to build hardware
-                    </h2>
 
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {features.map((feature, idx) => (
-                            <div
-                                key={idx}
-                                className="glass rounded-lg p-6 border-dashed-tech hover:border-primary/50 hover:glow-amber transition-smooth group"
-                            >
-                                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition">
-                                    <feature.icon className="w-6 h-6 text-primary" />
-                                </div>
-                                <h3 className="font-semibold text-lg mb-2">{feature.label}</h3>
-                                <p className="text-sm text-muted-foreground">{feature.description}</p>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                {/* How It Works */}
-                <section id="how-it-works" className="mb-20 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                    <div className="glass rounded-xl p-8 md:p-12 border-dashed-tech">
-                        <h2 className="text-3xl font-bold mb-8 text-center">How It Works</h2>
-
-                        <div className="grid md:grid-cols-3 gap-8">
-                            <div className="text-center">
-                                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-2xl text-primary">
-                                    1
-                                </div>
-                                <h3 className="font-semibold text-lg mb-2">Describe Your Idea</h3>
-                                <p className="text-sm text-muted-foreground">
-                                    Tell Ohm what you want to build - from smart sensors to robotics projects
-                                </p>
-                            </div>
-
-                            <div className="text-center">
-                                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-2xl text-primary">
-                                    2
-                                </div>
-                                <h3 className="font-semibold text-lg mb-2">AI-Guided Planning</h3>
-                                <p className="text-sm text-muted-foreground">
-                                    Get component recommendations, wiring diagrams, and compatibility checks
-                                </p>
-                            </div>
-
-                            <div className="text-center">
-                                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-2xl text-primary">
-                                    3
-                                </div>
-                                <h3 className="font-semibold text-lg mb-2">Build & Deploy</h3>
-                                <p className="text-sm text-muted-foreground">
-                                    Download code, order parts, and bring your hardware to life
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
 
                 {/* Footer */}
                 <footer className="text-center text-sm text-muted-foreground border-t border-dashed border-border pt-8">

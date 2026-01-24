@@ -16,6 +16,131 @@ export class ToolExecutor {
     }
 
     /**
+     * Read any artifact from the database
+     */
+    private async readFile(artifactType: string, filePath?: string): Promise<any> {
+        console.log(`📖 [ToolExecutor] Reading artifact: ${artifactType}${filePath ? ` (${filePath})` : ''}`);
+
+        try {
+            // Special handling for conversation summary
+            if (artifactType === 'conversation_summary') {
+                const { ConversationSummarizer } = await import('./summarizer');
+                const summarizer = new ConversationSummarizer(this.chatId);
+                return await summarizer.getSummaryForContext();
+            }
+
+            // Map artifact_type to database type
+            const typeMap: Record<string, any> = {
+                'context': 'context',
+                'mvp': 'mvp',
+                'prd': 'prd',
+                'bom': 'bom',
+                'code': 'code',
+                'wiring': 'wiring',
+                'budget': 'budget'
+            };
+
+            const dbType = typeMap[artifactType];
+            if (!dbType) {
+                throw new Error(`Unknown artifact type: ${artifactType}`);
+            }
+
+            const result = await ArtifactService.getLatestArtifact(this.chatId, dbType);
+
+            if (!result || !result.version) {
+                return {
+                    exists: false,
+                    message: `No ${artifactType} artifact found. This would be the first version.`
+                };
+            }
+
+            // Handle code files specifically
+            if (artifactType === 'code' && filePath) {
+                const contentJson = result.version.content_json as { files?: any[] } | null;
+                const files = contentJson?.files || [];
+                const file = files.find((f: any) => f.path === filePath);
+                
+                if (!file) {
+                    return {
+                        exists: false,
+                        message: `File ${filePath} not found in code artifact`,
+                        availableFiles: files.map((f: any) => f.path)
+                    };
+                }
+
+                return {
+                    exists: true,
+                    file: file,
+                    totalFiles: files.length
+                };
+            }
+
+            // Return appropriate content format
+            const content = result.version.content || result.version.content_json;
+            
+            return {
+                exists: true,
+                artifact_id: result.artifact.id,
+                version: result.artifact.current_version,
+                content: content,
+                title: result.artifact.title
+            };
+
+        } catch (error: any) {
+            console.error(`❌ [ToolExecutor] Failed to read ${artifactType}:`, error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Write/update any artifact with merge strategies
+     */
+    private async writeFile(params: {
+        artifact_type: string;
+        content: any;
+        merge_strategy?: 'replace' | 'append' | 'merge';
+        file_path?: string;
+        language?: string;
+    }): Promise<any> {
+        const { artifact_type, content, merge_strategy = 'replace', file_path, language } = params;
+        
+        console.log(`✍️ [ToolExecutor] Writing artifact: ${artifact_type} (strategy: ${merge_strategy})`);
+
+        try {
+            // Handle code files specially (use existing addCodeFile logic)
+            if (artifact_type === 'code' && file_path) {
+                return await this.addCodeFile({
+                    filename: file_path,
+                    language: language || 'text',
+                    content: typeof content === 'string' ? content : JSON.stringify(content, null, 2)
+                });
+            }
+
+            // Route to specialized handlers for backward compatibility
+            switch (artifact_type) {
+                case 'context':
+                    return await this.updateContext(content);
+                case 'mvp':
+                    return await this.updateMVP(content);
+                case 'prd':
+                    return await this.updatePRD(content);
+                case 'bom':
+                    return await this.updateBOM(content);
+                case 'wiring':
+                    return await this.updateWiring(content);
+                case 'budget':
+                    return await this.updateBudget(content);
+                default:
+                    throw new Error(`Unsupported artifact type: ${artifact_type}`);
+            }
+
+        } catch (error: any) {
+            console.error(`❌ [ToolExecutor] Failed to write ${artifact_type}:`, error.message);
+            throw error;
+        }
+    }
+
+    /**
      * Helper to get or create an artifact, returning consistent { id, currentVersion, existingVersion } structure
      */
     private async getOrCreateArtifact(type: ArtifactType, title: string): Promise<{
@@ -97,6 +222,24 @@ export class ToolExecutor {
 
                 case 'update_budget':
                     return await this.updateBudget(toolCall.arguments as { originalCost: number; optimizedCost: number; savings?: string; recommendations: any[]; bulkOpportunities?: string[]; qualityWarnings?: string[] });
+
+                // ========================================
+                // UNIVERSAL FILE I/O TOOLS (NEW)
+                // ========================================
+                case 'read_file':
+                    return await this.readFile(
+                        toolCall.arguments.artifact_type,
+                        toolCall.arguments.file_path
+                    );
+
+                case 'write_file':
+                    return await this.writeFile(toolCall.arguments as {
+                        artifact_type: string;
+                        content: any;
+                        merge_strategy?: 'replace' | 'append' | 'merge';
+                        file_path?: string;
+                        language?: string;
+                    });
 
                 default:
                     throw new Error(`Unknown tool: ${toolCall.name}`);

@@ -75,7 +75,7 @@ export default function Message({ role, children, metadata }) {
                                     {segments.map((segment, index) => {
                                         if (segment.type === 'text') {
                                             return (
-                                                <div key={index} className="prose prose-sm prose-invert max-w-none prose-headings:mt-3 prose-headings:mb-2 prose-p:my-1.5 prose-pre:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 text-white [&_*]:text-white">
+                                                <div key={index} className="prose prose-sm max-w-none prose-headings:mt-3 prose-headings:mb-2 prose-p:my-1.5 prose-pre:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 text-foreground [&_*]:text-foreground dark:prose-invert">
                                                     <ReactMarkdown
                                                         remarkPlugins={[remarkGfm]}
                                                         rehypePlugins={[rehypeRaw]}
@@ -87,7 +87,7 @@ export default function Message({ role, children, metadata }) {
                                                                 // Since splitMessageIntoSegments catches ```...```, mostly this will be inline `code`.
                                                                 return (
                                                                     <code
-                                                                        className="px-1.5 py-0.5 rounded bg-gray-700 text-white font-mono text-xs"
+                                                                        className="px-1.5 py-0.5 rounded bg-muted text-foreground font-mono text-xs"
                                                                         {...props}
                                                                     >
                                                                         {children}
@@ -97,7 +97,7 @@ export default function Message({ role, children, metadata }) {
                                                             a({ node, children, ...props }) {
                                                                 return (
                                                                     <a
-                                                                        className="text-blue-400 hover:text-blue-300 hover:underline"
+                                                                        className="text-primary hover:text-primary/80 hover:underline"
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                         {...props}

@@ -1,13 +1,13 @@
 'use client'
 
-import { ArrowRight, Paperclip, Send, Info } from 'lucide-react'
+import { ArrowRightIcon } from '@/components/ui/arrow-right'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import ShapeShifter from '@/components/mage-ui/hero/shape-shifter'
-import SlackIntro from '@/components/mage-ui/hero/slack-intro'
-import MaskEffectPage from '@/components/mage-ui/hero/svg-mask-effect'
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import OhmFeatures from '@/components/OhmFeatures'
+import PricingSection from '@/components/PricingSection'
+import { SquigglyArrow } from '@/components/ui/squiggle-arrow'
+import { HeroPromptInput } from '@/components/shared/HeroPromptInput'
 
 const features = [
     { label: 'Project Planning' },
@@ -48,41 +48,39 @@ const companies = [
 export default function Home() {
     return (
         <div className="min-h-screen bg-background flex justify-center">
-            <div className="relative w-full">
+            <div className="relative w-full"> {/* Added relative positioning for absolute child */}
                 {/* Header */}
                 <header className="">
                     <div className="px-6 py-6 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-primary flex items-center justify-center text-primary-foreground font-bold rounded">
-                                Ω
-                            </div>
+                            <img src="/omega1.png" alt="Ohm" className="w-8 h-8" />
                         </div>
                         <nav className="hidden md:flex items-center gap-8">
-                            <a href="#" className="text-sm font-mono text-foreground hover:opacity-75 transition">
+                            <a href="#" className="text-sm font-sans text-foreground hover:opacity-75 transition">
                                 Solutions
                             </a>
-                            <a href="#" className="text-sm font-mono text-foreground hover:opacity-75 transition">
+                            <a href="#" className="text-sm font-sans text-foreground hover:opacity-75 transition">
                                 Use Cases
                             </a>
-                            <a href="#" className="text-sm font-mono text-foreground hover:opacity-75 transition">
+                            <a href="#" className="text-sm font-sans text-foreground hover:opacity-75 transition">
                                 Developers
                             </a>
-                            <Link href="/marketplace" className="text-sm font-mono text-foreground hover:opacity-75 transition">
+                            <Link href="/marketplace" className="text-sm font-sans text-foreground hover:opacity-75 transition">
                                 Marketplace
                             </Link>
-                            <a href="#" className="text-sm font-mono text-foreground hover:opacity-75 transition">
+                            <a href="#" className="text-sm font-sans text-foreground hover:opacity-75 transition">
                                 Resources
                             </a>
-                            <a href="#" className="text-sm font-mono text-foreground hover:opacity-75 transition">
+                            <a href="#" className="text-sm font-sans text-foreground hover:opacity-75 transition">
                                 Pricing
                             </a>
                         </nav>
                         <div className="flex items-center gap-4">
-                            <button className="text-sm font-mono text-foreground hover:opacity-75 transition">
+                            <Link href="/login" className="text-sm font-sans text-foreground hover:opacity-75 transition">
                                 Login
-                            </button>
+                            </Link>
                             <Link href="/build">
-                                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-mono rounded-full px-6 py-2">
+                                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-sans rounded-full px-6 py-2">
                                     Start Building
                                 </Button>
                             </Link>
@@ -91,31 +89,33 @@ export default function Home() {
                 </header>
 
                 {/* Hero Section */}
-                <main className="flex flex-col items-center justify-center py-20 px-6">
-                    <div className="w-full px-8 py-12">
+                <main className="relative flex flex-col items-center justify-center py-8 px-6 min-h-[80vh]">
+                    <div className="w-full px-8 py-4 relative mb-8">
                         {/* Badge */}
                         <div className="mb-8 flex items-center gap-3 justify-center">
                             <div className="bg-muted px-3 py-1">
                                 <span className="text-sm font-mono text-foreground">Introducing Ohm</span>
                             </div>
-                            <Link href="/build">
-                                <button className="bg-primary text-primary-foreground px-3 py-1 flex items-center gap-2 hover:bg-primary/90 transition text-sm font-mono">
-                                    Try now <ArrowRight size={14} />
-                                </button>
-                            </Link>
+                            <button
+                                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+                                className="bg-transparent border border-orange-100 text-orange-80 px-3 py-1 flex items-center gap-2 hover:bg-orange-500/10 transition text-sm font-sans rounded-none"
+                            >
+                                Explore Ohm  <ArrowRightIcon size={14} />
+                            </button>
                         </div>
 
                         {/* Headlines + ShapeShifter */}
                         <div className="flex flex-col xl:flex-row items-center justify-between w-full max-w-6xl gap-12 mb-12">
                             <div className="flex-1 flex-shrink-0 relative z-10">
                                 {/* Headline */}
-                                <h1 className="text-5xl md:text-6xl font-mono font-bold text-left mb-6 text-pretty">
-                                    Meet your first autonomous hardware engineer.
+                                <h1 className="text-5xl md:text-6xl font-bold text-left mb-6 text-pretty font-sans">
+                                    Complex circuits?
+                                    Meet Ohm.
                                 </h1>
 
                                 {/* Subheading */}
-                                <p className="text-left text-foreground/70 max-w-2xl mb-12 text-sm md:text-base font-mono">
-                                    Ohm helps engineers plan, design, and build electronics projects — from simple circuits to complex IoT systems — with a single prompt.
+                                <p className="text-left text-foreground/70 max-w-2xl mb-12 text-sm md:text-base font-sans">
+                                    Your AI hardware engineer that turns prompts into production-ready designs.
                                 </p>
                             </div>
 
@@ -124,31 +124,14 @@ export default function Home() {
                             </div>
                         </div>
 
-                        {/* Input Box */}
-                        <div className="bg-card border border-border p-6 mb-12 w-full cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all max-w-4xl mx-auto">
-                            <Link href="/build" className="block w-full">
-                                <div className="text-muted-foreground text-sm font-mono mb-6 h-6 overflow-hidden relative">
-                                    <TypingEffect text="I want to build a smart weather station with ESP32 and e-ink display." />
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <button className="text-muted-foreground hover:text-foreground transition">
-                                            <Paperclip size={18} />
-                                        </button>
-                                        <button className="text-muted-foreground hover:text-foreground transition">
-                                            <div className="w-5 h-5 bg-gradient-to-br from-purple-400 to-pink-400" />
-                                        </button>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <button className="text-muted-foreground hover:text-foreground transition">
-                                            <Info size={18} />
-                                        </button>
-                                        <button className="text-muted-foreground hover:text-foreground transition">
-                                            <Send size={18} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </Link>
+                        {/* Squiggle Arrow */}
+                        <div className="absolute pointer-events-none ml-0 md:ml-8" style={{ top: '370px', left: '-35px' }}>
+                            <SquigglyArrow direction="down" variant="bouncy" width={520} height={130} strokeWidth={2.5} className="text-orange-500" roundedEnd={true} rotation={-48} />
+                        </div>
+
+                        {/* Textarea - now part of layout flow */}
+                        <div className="mb-16">
+                            <HeroPromptInput variant="landing" />
                         </div>
 
                         {/* Feature Cards */}
@@ -165,7 +148,7 @@ export default function Home() {
 
                         {/* Social Proof Section */}
                         <div className="text-center mb-12">
-                            <h2 className="text-2xl md:text-3xl font-mono font-bold text-foreground mb-8">
+                            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8 font-sans">
                                 Trusted by hardware teams globally
                             </h2>
                         </div>
@@ -175,50 +158,21 @@ export default function Home() {
                             {companies.map((company, idx) => (
                                 <div key={idx} className="flex flex-col items-center justify-center gap-2 text-foreground/50 hover:text-foreground/70 transition">
                                     <div className="w-12 h-12" dangerouslySetInnerHTML={{ __html: company.svg }} />
-                                    <span className="text-xs font-mono font-bold">{company.name}</span>
+                                    <span className="text-xs font-sans font-bold">{company.name}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
                 </main>
 
-                {/* Slack Intro Section */}
-                <section className="w-full">
-                    <SlackIntro animateOut={false} />
-                </section>
+                {/* Ohm Features Section */}
+                <div id="features">
+                    <OhmFeatures />
+                </div>
 
-                {/* Mask Effect Section */}
-                <section className="w-full">
-                    <MaskEffectPage />
-                </section>
+                {/* Pricing Section */}
+                <PricingSection />
             </div>
         </div>
     )
-}
-
-function TypingEffect({ text }: { text: string }) {
-    const [displayedText, setDisplayedText] = useState("");
-
-    useEffect(() => {
-        let i = 0;
-        const interval = setInterval(() => {
-            setDisplayedText(text.slice(0, i + 1));
-            i++;
-            if (i >= text.length) {
-                clearInterval(interval);
-            }
-        }, 50);
-        return () => clearInterval(interval);
-    }, [text]);
-
-    return (
-        <span>
-            {displayedText}
-            <motion.span
-                animate={{ opacity: [0, 1, 0] }}
-                transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-                className="inline-block w-2.5 h-4 bg-muted-foreground ml-1 align-middle"
-            />
-        </span>
-    );
 }

@@ -1,4 +1,5 @@
 /* Toast Notification Styles for API Failover */
+/* Uses CSS variables from globals.css for consistent theming */
 
 [data-scope='toast'][data-part='root'] {
   translate: var(--x) var(--y);
@@ -31,7 +32,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  z-index: 99999; /* Increased from 9999 to ensure toasts are always visible */
+  z-index: 99999;
   pointer-events: none;
 }
 
@@ -40,18 +41,14 @@
 }
 
 .toast-root {
-  background: white;
-  border-radius: 8px;
+  background: var(--card);
+  border-radius: var(--radius-lg);
   padding: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   min-width: 320px;
   max-width: 420px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.dark .toast-root {
-  background: #1f2937;
-  border-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
 }
 
 .toast-content {
@@ -82,23 +79,15 @@
   font-weight: 600;
   font-size: 14px;
   line-height: 1.4;
-  color: #111827;
+  color: var(--card-foreground);
   margin: 0 0 4px 0;
-}
-
-.dark .toast-title {
-  color: #f9fafb;
 }
 
 .toast-description {
   font-size: 13px;
   line-height: 1.5;
-  color: #6b7280;
+  color: var(--muted-foreground);
   margin: 0;
-}
-
-.dark .toast-description {
-  color: #9ca3af;
 }
 
 .toast-close {
@@ -107,7 +96,7 @@
   border: none;
   padding: 4px;
   cursor: pointer;
-  color: #9ca3af;
+  color: var(--muted-foreground);
   border-radius: 4px;
   transition: all 0.2s;
   display: flex;
@@ -116,39 +105,49 @@
 }
 
 .toast-close:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: #111827;
+  background: var(--accent);
+  color: var(--accent-foreground);
 }
 
-.dark .toast-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #f9fafb;
+/* Type-specific styling with accent borders */
+[data-scope='toast'][data-part='root'][data-type='success'] {
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
-/* Type-specific styling */
 [data-scope='toast'][data-part='root'][data-type='success'] .toast-icon {
-  color: #10b981;
+  color: #34d399;
+}
+
+[data-scope='toast'][data-part='root'][data-type='error'] {
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 [data-scope='toast'][data-part='root'][data-type='error'] .toast-icon {
-  color: #ef4444;
+  color: #f87171;
+}
+
+[data-scope='toast'][data-part='root'][data-type='warning'] {
+  border-color: rgba(245, 158, 11, 0.3);
 }
 
 [data-scope='toast'][data-part='root'][data-type='warning'] .toast-icon {
-  color: #f59e0b;
+  color: #fbbf24;
+}
+
+[data-scope='toast'][data-part='root'][data-type='info'] {
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
 [data-scope='toast'][data-part='root'][data-type='info'] .toast-icon {
-  color: #3b82f6;
+  color: #60a5fa;
 }
 
 [data-scope='toast'][data-part='root'][data-type='agent'] {
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  /* Purple accent */
+  border-color: rgba(139, 92, 246, 0.3);
 }
 
 [data-scope='toast'][data-part='root'][data-type='agent'] .toast-icon {
-  color: #8b5cf6;
+  color: #a78bfa;
 }
 
 /* Mobile responsive */

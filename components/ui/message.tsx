@@ -40,14 +40,16 @@ const MessageContent = React.forwardRef<HTMLDivElement, MessageContentProps>(
       <div
         ref={ref}
         className={cn(
-          "rounded-2xl px-4 py-2.5 text-sm max-w-[85%] w-fit",
+          "rounded-2xl px-4 py-2.5 text-sm w-fit",
+          "group-data-[from=user]:max-w-[85%]",
+          "group-data-[from=assistant]:max-w-[725px]",
           variant === "contained" && [
             "shadow-sm",
-            "group-data-[from=user]:bg-white group-data-[from=user]:text-gray-900",
+            "group-data-[from=user]:bg-[#EEEEEE] group-data-[from=user]:text-gray-900",
             "group-data-[from=assistant]:bg-[#272626] group-data-[from=assistant]:text-white",
           ],
           variant === "flat" && [
-            "group-data-[from=user]:bg-white group-data-[from=user]:text-gray-900 group-data-[from=user]:shadow-sm",
+            "group-data-[from=user]:bg-[#EEEEEE] group-data-[from=user]:text-gray-900 group-data-[from=user]:shadow-sm",
             "group-data-[from=assistant]:bg-[#272626] group-data-[from=assistant]:text-white",
           ],
           className
@@ -78,11 +80,11 @@ const MessageAvatar = React.forwardRef<
     ? name.length <= 2
       ? name.toUpperCase()
       : name
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
-          .slice(0, 2)
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
     : "?")
 
   return (
@@ -92,7 +94,7 @@ const MessageAvatar = React.forwardRef<
       {...props}
     >
       {src && <AvatarImage src={src} alt={name || "Avatar"} />}
-      <AvatarFallback 
+      <AvatarFallback
         className={cn(
           "text-xs font-bold",
           "bg-primary text-primary-foreground"

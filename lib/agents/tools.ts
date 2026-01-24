@@ -372,6 +372,63 @@ export const DRAWER_TOOLS = {
             },
             required: ["originalCost", "optimizedCost", "recommendations"]
         }
+    },
+
+    // ========================================
+    // UNIVERSAL FILE I/O TOOLS (NEW)
+    // ========================================
+
+    read_file: {
+        name: "read_file",
+        description: "Read any project artifact to understand current project state. Use this to check what's been created or decided before making changes. Available artifacts: context, mvp, prd, bom, code, wiring, budget, conversation_summary.",
+        parameters: {
+            type: "object",
+            properties: {
+                artifact_type: {
+                    type: "string",
+                    enum: ["context", "mvp", "prd", "bom", "code", "wiring", "budget", "conversation_summary"],
+                    description: "Type of artifact to read"
+                },
+                file_path: {
+                    type: "string",
+                    description: "Optional: For code artifacts, specify which file to read (e.g., 'src/main.cpp')"
+                }
+            },
+            required: ["artifact_type"]
+        }
+    },
+
+    write_file: {
+        name: "write_file",
+        description: "Create or update any project artifact. This replaces specialized update tools (update_context, update_bom, etc.). Always read the artifact first to preserve existing data.",
+        parameters: {
+            type: "object",
+            properties: {
+                artifact_type: {
+                    type: "string",
+                    enum: ["context", "mvp", "prd", "bom", "code", "wiring", "budget"],
+                    description: "Type of artifact to write"
+                },
+                content: {
+                    type: ["string", "object"],
+                    description: "Content to write. Use string for markdown (context/mvp/prd), object for structured data (bom/wiring/budget)"
+                },
+                merge_strategy: {
+                    type: "string",
+                    enum: ["replace", "append", "merge"],
+                    description: "How to handle existing content. Default: replace"
+                },
+                file_path: {
+                    type: "string",
+                    description: "For code artifacts: file path (e.g., 'src/main.cpp')"
+                },
+                language: {
+                    type: "string",
+                    description: "For code artifacts: programming language identifier"
+                }
+            },
+            required: ["artifact_type", "content"]
+        }
     }
 };
 
@@ -380,12 +437,13 @@ export const DRAWER_TOOLS = {
  */
 export function getToolsForAgent(agentType: string): any[] {
     const toolMap: Record<string, string[]> = {
-        conversational: ['open_context_drawer', 'update_context', 'update_mvp', 'update_prd'],
-        projectInitializer: ['open_context_drawer', 'update_context', 'update_mvp', 'update_prd'],
-        bomGenerator: ['open_bom_drawer', 'update_bom'],
-        codeGenerator: ['open_code_drawer', 'add_code_file'],
-        wiringDiagram: ['open_wiring_drawer', 'update_wiring'],
-        budgetOptimizer: ['open_budget_drawer', 'update_budget'],
+        conversational: ['read_file', 'write_file', 'open_context_drawer', 'update_context', 'update_mvp', 'update_prd'],
+        projectInitializer: ['read_file', 'write_file', 'open_context_drawer', 'update_context', 'update_mvp', 'update_prd'],
+        bomGenerator: ['read_file', 'write_file', 'open_bom_drawer', 'update_bom'],
+        codeGenerator: ['read_file', 'write_file', 'open_code_drawer', 'add_code_file'],
+        wiringDiagram: ['read_file', 'write_file', 'open_wiring_drawer', 'update_wiring'],
+        budgetOptimizer: ['read_file', 'write_file', 'open_budget_drawer', 'update_budget'],
+        conversationSummarizer: ['read_file'], // Can read but not write artifacts
         // Agents that don't use tools
         orchestrator: [],
         circuitVerifier: [],

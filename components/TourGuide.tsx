@@ -1,7 +1,9 @@
 'use client'
 
 import { Tour, useTour } from '@ark-ui/react/tour'
-import { X, ChevronRight, ChevronLeft } from 'lucide-react'
+import { XIcon } from '@/components/ui/x'
+import { ChevronRightIcon } from '@/components/ui/chevron-right'
+import { ChevronLeftIcon } from '@/components/ui/chevron-left'
 import { useEffect, useState } from 'react'
 
 interface TourGuideProps {
@@ -121,7 +123,7 @@ export default function TourGuide({ start }: TourGuideProps) {
                         <div className="flex items-start justify-between">
                             <Tour.Title className="font-semibold text-lg" />
                             <Tour.CloseTrigger className="text-muted-foreground hover:text-foreground">
-                                <X className="w-4 h-4" />
+                                <XIcon className="w-4 h-4" />
                             </Tour.CloseTrigger>
                         </div>
 
@@ -133,12 +135,12 @@ export default function TourGuide({ start }: TourGuideProps) {
                             <div className="flex gap-2">
                                 <Tour.Control>
                                     <Tour.ActionTrigger action={'prev' as any} className="p-2 hover:bg-accent rounded-md disabled:opacity-50">
-                                        <ChevronLeft className="w-4 h-4" />
+                                        <ChevronLeftIcon className="w-4 h-4" />
                                     </Tour.ActionTrigger>
 
                                     <Tour.ActionTrigger action={'next' as any} className="bg-primary text-primary-foreground px-3 py-1.5 rounded-md text-sm font-medium hover:bg-primary/90 flex items-center gap-1">
                                         <span>Next</span>
-                                        <ChevronRight className="w-3 h-3" />
+                                        <ChevronRightIcon className="w-3 h-3" />
                                     </Tour.ActionTrigger>
                                 </Tour.Control>
                             </div>

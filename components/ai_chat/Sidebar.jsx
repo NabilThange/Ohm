@@ -176,7 +176,7 @@ export default function Sidebar({
                     transition={{ type: "spring", stiffness: 260, damping: 28 }}
                     className="z-50 flex h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar"
                 >
-                    <div className="flex items-center justify-center border-b border-sidebar-border px-3 py-3">
+                    <div className="flex items-center justify-center px-3 py-3">
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <button
@@ -353,10 +353,8 @@ export default function Sidebar({
                     >
                         <div className="flex items-center gap-2 border-b border-sidebar-border px-3 py-3">
                             <div className="flex items-center gap-2">
-                                <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary text-primary-foreground shadow-sm">
-                                    <Asterisk className="h-4 w-4" />
-                                </div>
-                                <div className="text-sm font-semibold tracking-tight">Ohm Assistant</div>
+                                <img src="/omega1.png" alt="Ohm" className="h-8 w-8" />
+                                <div className="text-sm font-semibold tracking-tight">Ohm</div>
                             </div>
                             <div className="ml-auto flex items-center gap-1">
                                 <button

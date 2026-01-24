@@ -3,12 +3,13 @@
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { X } from "lucide-react"
+import { XIcon } from '@/components/ui/x'
 import MeshGradient from "./mesh-gradient"
 import FaultyTerminal from "../mage-ui/faulty-terminal"
 import { AvatarGroup, AvatarGroupTooltip } from "@/components/animate-ui/components/animate/avatar-group"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { TypingAnimation } from "@/components/ui/typing-animation"
+import { MorphingComposer } from "@/components/shared/MorphingComposer"
+import { cn as cls } from "@/lib/utils"
 
 interface ProjectCreatorProps {
     onSubmit: (prompt: string, style: string, userLevel: string, projectComplexity: string) => void
@@ -16,47 +17,80 @@ interface ProjectCreatorProps {
 
 const AVATARS = [
     {
-        src: "/avatar/1GWRMnhKM0cOW-4U3AAp.svg",
-        fallback: "EN",
-        tooltip: "Electronics Engineer",
+        src: "/avatar/Lead_Engineer.svg",
+        fallback: "LE",
+        tooltip: "I'll lead your build.",
         className: "w-12 h-12 border-2 border-border bg-gradient-to-br from-blue-500 to-cyan-500"
     },
     {
-        src: "/avatar/6ghHj9wt308Ia6VxSSfX.svg",
-        fallback: "RB",
-        tooltip: "Robotics Builder",
+        src: "/avatar/Project_Architect.svg",
+        fallback: "PA",
+        tooltip: "I'll architect your plan.",
         className: "w-12 h-12 border-2 border-border bg-gradient-to-br from-purple-500 to-pink-500"
     },
     {
-        src: "/avatar/K6Yg63HPckCgnwEYxxnY.svg",
-        fallback: "IT",
-        tooltip: "IoT Developer",
+        src: "/avatar/Component_Specialist.svg",
+        fallback: "CS",
+        tooltip: "I'll source your parts.",
         className: "w-12 h-12 border-2 border-border bg-gradient-to-br from-orange-500 to-red-500"
     },
     {
-        src: "/avatar/Qga5M5EYD6Tbt4GDvHzf.svg",
-        fallback: "ME",
-        tooltip: "Mechatronics Expert",
+        src: "/avatar/software_engineer.svg",
+        fallback: "SE",
+        tooltip: "I'll write your code.",
         className: "w-12 h-12 border-2 border-border bg-gradient-to-br from-green-500 to-emerald-500"
     },
     {
-        src: "",
-        fallback: "+5",
-        tooltip: "More Agents",
-        className: "w-12 h-12 border-2 border-border bg-card text-foreground"
+        src: "/avatar/circuit_designer.svg",
+        fallback: "CD",
+        tooltip: "I'll design your circuits.",
+        className: "w-12 h-12 border-2 border-border bg-gradient-to-br from-amber-500 to-yellow-500"
     }
+]
+
+const COMMANDS = [
+    { command: "/update-context", description: "Refresh MVP, PRD, and Context from chat history" },
+    { command: "/update-bom", description: "Regenerate the Bill of Materials from current design" },
+    { command: "/recheck-wiring", description: "Validate and update wiring connections" },
+    { command: "/update-code", description: "Regenerate code based on latest specifications" },
 ]
 
 export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
     const [prompt, setPrompt] = useState("")
     const promptRef = useRef<HTMLTextAreaElement>(null)
     const [showHowItWorks, setShowHowItWorks] = useState(false)
+    const [showCommands, setShowCommands] = useState(false)
+    const [filteredCommands, setFilteredCommands] = useState<typeof COMMANDS>([])
+    const [activeIndex, setActiveIndex] = useState(0)
+    const [helpOpen, setHelpOpen] = useState(false)
 
     useEffect(() => {
         if (promptRef.current) {
             promptRef.current.focus()
         }
     }, [])
+
+    // Handle command filtering
+    useEffect(() => {
+        const isCommand = prompt.trim().startsWith("/")
+        if (isCommand) {
+            const filtered = COMMANDS.filter(c =>
+                c.command.toLowerCase().startsWith(prompt.trim().toLowerCase())
+            )
+            setFilteredCommands(filtered)
+            setShowCommands(filtered.length > 0)
+        } else {
+            setShowCommands(false)
+        }
+        setActiveIndex(0)
+    }, [prompt])
+
+    const selectCommand = (cmd: string) => {
+        setPrompt(cmd + " ")
+        setShowCommands(false)
+        promptRef.current?.focus()
+    }
+
 
     const handleSubmit = () => {
         if (prompt.trim()) {
@@ -66,6 +100,29 @@ export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (showCommands) {
+            if (e.key === "ArrowDown") {
+                e.preventDefault()
+                setActiveIndex(i => (i + 1) % filteredCommands.length)
+                return
+            }
+            if (e.key === "ArrowUp") {
+                e.preventDefault()
+                setActiveIndex(i => (i - 1 + filteredCommands.length) % filteredCommands.length)
+                return
+            }
+            if (e.key === "Tab" || e.key === "Enter") {
+                e.preventDefault()
+                selectCommand(filteredCommands[activeIndex].command)
+                return
+            }
+            if (e.key === "Escape") {
+                e.preventDefault()
+                setShowCommands(false)
+                return
+            }
+        }
+
         if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
             e.preventDefault()
             handleSubmit()
@@ -82,14 +139,12 @@ export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
                 <div className="text-center space-y-3 md:space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <div className="space-y-1">
                         <h1
-                            className="text-5xl md:text-[5rem] font-black tracking-tighter text-foreground leading-[0.85] mb-2"
-                            style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
+                            className="text-5xl md:text-[5rem] font-black tracking-tighter text-foreground leading-[0.85] mb-2 font-serif"
                         >
                             OHM
                         </h1>
                         <h2
-                            className="text-xl md:text-[2.2rem] font-light italic tracking-wide text-muted-foreground leading-none -mt-2"
-                            style={{ fontFamily: "Georgia, serif" }}
+                            className="text-xl md:text-[2.2rem] font-light italic tracking-wide text-muted-foreground leading-none -mt-2 font-serif"
                         >
                             Hardware Engineer
                         </h2>
@@ -98,15 +153,14 @@ export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
                         <AvatarGroup>
                             {AVATARS.map((avatar, index) => (
                                 <Avatar key={index} className={avatar.className}>
-                                    <AvatarImage src={avatar.src} className="p-2" />
+                                    {avatar.src && <AvatarImage src={avatar.src} className="p-2" />}
                                     <AvatarFallback>{avatar.fallback}</AvatarFallback>
                                     <AvatarGroupTooltip>{avatar.tooltip}</AvatarGroupTooltip>
                                 </Avatar>
                             ))}
                         </AvatarGroup>
                         <p
-                            className="text-xs md:text-sm text-muted-foreground font-light leading-relaxed"
-                            style={{ fontFamily: "system-ui, sans-serif" }}
+                            className="text-xs md:text-sm text-muted-foreground font-light leading-relaxed font-sans"
                         >
                             10 Experts, One Mission: Your Prototype
                         </p>
@@ -114,69 +168,8 @@ export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
                 </div>
 
                 <div className="space-y-5 md:space-y-6 mt-8 md:mt-10 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
-                    <div
-                        onClick={() => promptRef.current?.focus()}
-                        className="bg-card p-6 mb-12 w-full cursor-text hover:ring-2 hover:ring-primary/50 transition-all max-w-4xl mx-auto rounded-lg relative"
-                    >
-                        <div className="block w-full">
-                            {!prompt && (
-                                <div className="text-muted-foreground text-sm font-mono mb-6 h-6 overflow-hidden relative pointer-events-none">
-                                    <TypingAnimation
-                                        words={[
-                                            "Create a lamp that turns on/off and changes colors when you wave your hand near it",
-                                            "Make a camera that automatically identifies and photographs wild animals in your backyard",
-                                            "I want to build a smart weather station with ESP32 and e-ink display.",
-                                            "Design a drone that drops tiny weather sensors across a forest to monitor air quality",
-                                            "Build a door lock that generates truly random passwords using radioactive particles",
-                                            "Create a robotic arm controlled by your muscle signals and brain patterns",
-                                            "Set up a homemade satellite receiver that tracks and downloads images from space"
-                                        ]}
-                                        loop
-                                        typeSpeed={50}
-                                        deleteSpeed={30}
-                                        pauseDelay={3000}
-                                        showCursor
-                                        blinkCursor
-                                        cursorStyle="line"
-                                        className="text-muted-foreground"
-                                    />
-                                </div>
-                            )}
-                            <textarea
-                                ref={promptRef}
-                                value={prompt}
-                                onChange={(e) => setPrompt(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                placeholder=""
-                                className="w-full bg-transparent text-foreground text-sm font-mono mb-6 min-h-6 resize-none outline-none border-none focus:outline-none focus:ring-0"
-                                style={{ fontFamily: "system-ui, sans-serif" }}
-                                rows={3}
-                            />
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <button type="button" className="text-muted-foreground hover:text-foreground transition">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-paperclip"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-                                    </button>
-                                    <button type="button" className="text-muted-foreground hover:text-foreground transition">
-                                        <div className="w-5 h-5 bg-gradient-to-br from-purple-400 to-pink-400 rounded"></div>
-                                    </button>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <button type="button" className="text-muted-foreground hover:text-foreground transition">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-info"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={handleSubmit}
-                                        disabled={!prompt.trim()}
-                                        className="text-muted-foreground hover:text-foreground transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-send"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    {/* Spacer for persistent textarea */}
+                    <div className="h-64 mb-12" />
 
                     <p className="text-xs text-muted-foreground text-center font-light tracking-wide">Press ⌘+Enter to start</p>
                 </div>
@@ -200,7 +193,7 @@ export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
                         onClick={() => setShowHowItWorks(false)}
                         className="absolute right-6 top-6 rounded-full p-2 hover:bg-muted transition-colors"
                     >
-                        <X className="h-5 w-5 text-muted-foreground" />
+                        <XIcon className="h-5 w-5 text-muted-foreground" />
                     </button>
                     <div className="space-y-6">
                         <h2 className="text-3xl font-bold text-foreground">How Ohm Works</h2>

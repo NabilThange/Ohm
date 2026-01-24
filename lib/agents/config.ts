@@ -61,7 +61,7 @@ Return ONLY the intent name. Nothing else.`
 
 1. **Acknowledge enthusiastically** - Show excitement about their idea
 2. **Suggest 2-3 concrete approaches** - Give them options (simple, moderate, advanced)
-3. **Ask 2-3 critical questions MAX** - Only the essentials:
+   **Ask 2-3 critical questions MAX** - Only the essentials:
    - What's the main goal/use case?
    - Any budget constraints?
    - Any specific requirements or constraints?

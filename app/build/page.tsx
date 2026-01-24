@@ -1,30 +1,48 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
-import { ProjectCreator } from "@/components/text_area/ProjectCreator"
+import { useParams, useSearchParams } from "next/navigation"
+import { HeroPromptInput } from "@/components/shared/HeroPromptInput"
 import AIAssistantUI from "@/components/ai_chat/AIAssistantUI"
 
 export default function BuildPage() {
     const params = useParams()
+    const searchParams = useSearchParams()
     const chatId = params?.chatId as string | undefined
 
-    // If chatId exists in URL, start in chat mode
-    const [mode, setMode] = useState(chatId ? "chat" : "input")
-    const [initialPrompt, setInitialPrompt] = useState("")
+    // Get prompt from URL query parameter
+    const promptFromUrl = searchParams?.get("prompt")
+    const initialPromptFromUrl = searchParams?.get("initialPrompt")
+
+    // Determine mode based on chatId or prompt
+    const [mode, setMode] = useState(chatId || promptFromUrl || initialPromptFromUrl ? "chat" : "input")
+    const [initialPrompt, setInitialPrompt] = useState(promptFromUrl || initialPromptFromUrl || "")
 
     useEffect(() => {
         if (chatId) setMode("chat")
     }, [chatId])
 
-    const handleProjectSubmit = (prompt: string, style: string, userLevel: string, projectComplexity: string) => {
-        // Since we removed the options, just use the prompt directly
-        setInitialPrompt(prompt)
-        setMode("chat")
-    }
+    // Handle prompt from URL on initial load
+    useEffect(() => {
+        if ((promptFromUrl || initialPromptFromUrl) && !chatId) {
+            setInitialPrompt(promptFromUrl || initialPromptFromUrl || "")
+            setMode("chat")
+        }
+    }, [promptFromUrl, initialPromptFromUrl, chatId])
 
     if (mode === "input") {
-        return <ProjectCreator onSubmit={handleProjectSubmit} />
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-background">
+                <div className="text-center mb-12">
+                    <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Build Mode</h1>
+                    <p className="text-lg text-muted-foreground">
+                        Describe your project in detail
+                    </p>
+                </div>
+                
+                <HeroPromptInput variant="build" />
+            </div>
+        )
     }
 
     // @ts-ignore

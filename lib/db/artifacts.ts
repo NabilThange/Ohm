@@ -55,7 +55,7 @@ export const ArtifactService = {
             .eq('type', type)
             .order('created_at', { ascending: false })
             .limit(1)
-            .single()
+            .maybeSingle()
 
         if (!artifact) return null
 

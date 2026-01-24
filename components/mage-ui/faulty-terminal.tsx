@@ -233,11 +233,15 @@ void main() {
 
 function hexToRgb(hex: string): [number, number, number] {
     let h = hex.replace('#', '').trim();
+    // Handle shorthand (3 chars) -> expand to 6 chars
     if (h.length === 3)
         h = h
             .split('')
             .map(c => c + c)
             .join('');
+    // Handle 8-char hex with alpha (e.g., ff0000ff) -> strip alpha
+    if (h.length === 8)
+        h = h.slice(0, 6);
     const num = parseInt(h, 16);
     return [((num >> 16) & 255) / 255, ((num >> 8) & 255) / 255, (num & 255) / 255];
 }
@@ -256,7 +260,7 @@ function FaultyTerminalComponent({
     chromaticAberration = 0,
     dither = 0,
     curvature = 0.5,
-    tint = '#f661ddff',
+    tint = '#559696ff',
     mouseReact = true,
     mouseStrength = 0.5,
     dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1,

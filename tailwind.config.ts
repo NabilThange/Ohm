@@ -68,13 +68,19 @@ export default {
 			},
 			fontFamily: {
 				sans: [
-					'Inter',
-					'system-ui',
-					'sans-serif'
+					'Space Grotesk',
+					'ui-sans-serif',
+					'sans-serif',
+					'system-ui'
+				],
+				serif: [
+					'Fraunces',
+					'ui-serif',
+					'serif'
 				],
 				mono: [
 					'JetBrains Mono',
-					'Courier New',
+					'ui-monospace',
 					'monospace'
 				]
 			}

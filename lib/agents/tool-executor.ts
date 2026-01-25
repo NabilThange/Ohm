@@ -1,4 +1,5 @@
 import { ArtifactService } from '@/lib/db/artifacts';
+import { supabase } from '@/lib/supabase/client';
 import type { ToolCall } from './tools';
 import { Database } from '@/lib/supabase/types';
 
@@ -59,7 +60,7 @@ export class ToolExecutor {
                 const contentJson = result.version.content_json as { files?: any[] } | null;
                 const files = contentJson?.files || [];
                 const file = files.find((f: any) => f.path === filePath);
-                
+
                 if (!file) {
                     return {
                         exists: false,
@@ -77,7 +78,7 @@ export class ToolExecutor {
 
             // Return appropriate content format
             const content = result.version.content || result.version.content_json;
-            
+
             return {
                 exists: true,
                 artifact_id: result.artifact.id,
@@ -103,7 +104,7 @@ export class ToolExecutor {
         language?: string;
     }): Promise<any> {
         const { artifact_type, content, merge_strategy = 'replace', file_path, language } = params;
-        
+
         console.log(`✍️ [ToolExecutor] Writing artifact: ${artifact_type} (strategy: ${merge_strategy})`);
 
         try {
@@ -218,7 +219,7 @@ export class ToolExecutor {
                     return await this.addCodeFile(toolCall.arguments as { filename: string; language: string; content: string; description?: string });
 
                 case 'update_wiring':
-                    return await this.updateWiring(toolCall.arguments as { connections: any[]; instructions: string; warnings?: string[] });
+                    return await this.updateWiring(toolCall.arguments as { connections: any[]; instructions: string; warnings?: string[]; components?: any[] });
 
                 case 'update_budget':
                     return await this.updateBudget(toolCall.arguments as { originalCost: number; optimizedCost: number; savings?: string; recommendations: any[]; bulkOpportunities?: string[]; qualityWarnings?: string[] });
@@ -389,7 +390,7 @@ export class ToolExecutor {
      * Update wiring diagram artifact with visual generation
      * Generates SVG schematic (sync) and triggers AI breadboard image (async)
      */
-    private async updateWiring(wiringData: { connections: any[]; instructions: string; warnings?: string[] }) {
+    private async updateWiring(wiringData: { connections: any[]; instructions: string; warnings?: string[]; components?: any[] }) {
         const { id: artifactId, currentVersion } = await this.getOrCreateArtifact('wiring', 'Wiring Diagram');
 
         // Step 1: Save wiring JSON to artifact (IMMEDIATE)
@@ -402,6 +403,41 @@ export class ToolExecutor {
         });
 
         console.log(`✅ [ToolExecutor] Wiring updated: ${wiringData.connections?.length || 0} connections`);
+
+        // NEW: Queue AI Diagram Generation
+        try {
+            const circuitJson = {
+                components: wiringData.components || [],
+                connections: wiringData.connections || []
+            };
+
+            console.log(`🔌 [ToolExecutor] Queueing diagram generation for artifact version ${version.id}`);
+
+            // Update status on the artifact version we just created
+            await supabase.from('artifact_versions')
+                .update({
+                    diagram_status: 'queued',
+                    updated_at: new Date().toISOString()
+                } as any)
+                .eq('id', version.id);
+
+            // Add to queue using the correct artifact_versions.id (not artifacts.id)
+            const { error: queueError } = await (supabase.from('diagram_queue' as any)).insert({
+                circuit_json: circuitJson,
+                artifact_id: version.id, // ✅ FIXED: Use version.id (artifact_versions.id) instead of artifactId (artifacts.id)
+                chat_id: this.chatId,
+                status: 'queued'
+            });
+
+            if (queueError) {
+                console.error('[ToolExecutor] Failed to queue diagram:', queueError);
+                console.error('[ToolExecutor] Queue error details:', queueError);
+            } else {
+                console.log('[ToolExecutor] Diagram generation queued successfully');
+            }
+        } catch (err) {
+            console.error('[ToolExecutor] Error queueing diagram:', err);
+        }
 
         // Step 2: Generate visual diagrams (SVG sync + AI async)
         try {

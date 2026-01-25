@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useParams, useSearchParams } from "next/navigation"
 import { HeroPromptInput } from "@/components/shared/HeroPromptInput"
 import AIAssistantUI from "@/components/ai_chat/AIAssistantUI"
 
-export default function BuildPage() {
+function BuildPageContent() {
     const params = useParams()
     const searchParams = useSearchParams()
     const chatId = params?.chatId as string | undefined
@@ -39,7 +39,7 @@ export default function BuildPage() {
                         Describe your project in detail
                     </p>
                 </div>
-                
+
                 <HeroPromptInput variant="build" />
             </div>
         )
@@ -47,4 +47,12 @@ export default function BuildPage() {
 
     // @ts-ignore
     return <AIAssistantUI initialPrompt={initialPrompt} initialChatId={chatId} />
+}
+
+export default function BuildPage() {
+    return (
+        <Suspense fallback={null}>
+            <BuildPageContent />
+        </Suspense>
+    )
 }

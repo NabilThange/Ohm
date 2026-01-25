@@ -1,5 +1,6 @@
 "use client"
 
+import { use } from "react"
 import { useRouter } from "next/navigation"
 import {
     ArrowLeft,
@@ -15,14 +16,15 @@ import {
 import { getTemplateById } from "@/lib/marketplace-data"
 
 interface PageProps {
-    params: {
+    params: Promise<{
         id: string
-    }
+    }>
 }
 
 export default function TemplateDetailPage({ params }: PageProps) {
+    const { id } = use(params)
     const router = useRouter()
-    const template = getTemplateById(params.id)
+    const template = getTemplateById(id)
 
     if (!template) {
         return (

@@ -152,14 +152,14 @@ export class AgentRunner {
 
         // NEW: Build dynamic context if chatId provided
         let systemPrompt = agent.systemPrompt;
-        
+
         if (options?.chatId) {
             console.log(`🔍 [Orchestrator] chatId provided: ${options.chatId}, building context...`);
             try {
                 const { AgentContextBuilder } = await import('./context-builder');
                 const contextBuilder = new AgentContextBuilder(options.chatId);
                 const dynamicContext = await contextBuilder.buildDynamicContext();
-                
+
                 if (dynamicContext) {
                     systemPrompt = `${agent.systemPrompt}\n\n${dynamicContext}`;
                     console.log(`💡 [Orchestrator] ✅ Injected conversation context for ${agent.name} (${dynamicContext.length} chars)`);
@@ -425,10 +425,23 @@ export class AssemblyLineOrchestrator {
     private async getHistory() {
         if (this.chatId) {
             const dbMessages = await ChatService.getMessages(this.chatId);
-            return dbMessages.map(m => ({
-                role: m.role as "user" | "assistant" | "system",
-                content: m.content
-            }));
+            return dbMessages
+                .map(m => {
+                    let content = m.content;
+                    const metadata = m.metadata as any;
+
+                    // If content is empty but we have tool calls, reconstruct a description
+                    // This prevents "all messages must have non-empty content" errors from the API
+                    if ((!content || content.trim() === '') && metadata?.toolCalls?.length) {
+                        content = `[Agent executed tool(s): ${metadata.toolCalls.map((t: any) => t.name).join(', ')}]`;
+                    }
+
+                    return {
+                        role: m.role as "user" | "assistant" | "system",
+                        content: content
+                    };
+                })
+                .filter(m => m.content && m.content.trim() !== ''); // Double-check: removing any remaining empty messages
         }
         return [];
     }
@@ -611,7 +624,7 @@ Examples:
             console.error(`❌ [Orchestrator] WARNING: Agent returned EMPTY response!`);
         }
 
-        // 6.5 Check for key rotation events and notify immediately
+        // 6.6 Check for key rotation events and notify immediately
         const keyRotationEvent = KeyManager.getInstance().getAndClearLastEvent();
         if (keyRotationEvent && onKeyRotation) {
             console.log(`📢 Sending key rotation event: ${keyRotationEvent.type}`);

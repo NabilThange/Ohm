@@ -1,0 +1,300 @@
+Image Models
+text-to-image
+Generate images using text
+
+Basic usage
+
+Generate images using text
+
+javascript :
+
+import Bytez from 'bytez.js';
+
+// insert your key
+const sdk = new Bytez('BYTEZ_KEY');
+
+// choose your model
+const model = sdk.model('dreamlike-art/dreamlike-photoreal-2.0');
+
+// provide the model with input
+const input = "A beautiful landscape with mountains and a river";
+
+// send to the model
+const { error, output } = await model.run(input);
+
+// observe the output
+console.log({ error, output });
+
+
+### HTTP REFERENCE
+
+Image Models
+text-to-image
+Generate images using text
+
+POST
+/
+models
+/
+v2
+/
+dreamlike-art
+/
+dreamlike-photoreal-2.0
+
+Try it
+Authorizations
+​
+Authorization
+stringheaderrequired
+Set Authorization header to BYTEZ_KEY
+'Authorization: YOUR_BYTEZ_KEY_HERE'
+
+Body
+application/json
+Schema for text-to-image models
+
+​
+text
+stringrequired
+The input text
+
+Example:
+"A beautiful landscape with mountains and a river"
+
+Response
+
+200
+
+application/json
+Successful text-to-image response.
+
+​
+error
+string | nullrequired
+Null on success; otherwise an error message.
+
+​
+output
+stringrequired
+Successful response with the generated image link
+
+Example:
+"https://api.bytez.com/image/1234567890"
+
+TEXT TO IMAGE ->
+
+const options = {
+  method: 'POST',
+  headers: {Authorization: '<api-key>', 'Content-Type': 'application/json'},
+  body: JSON.stringify({text: 'A beautiful landscape with mountains and a river'})
+};
+
+fetch('https://api.bytez.com/models/v2/dreamlike-art/dreamlike-photoreal-2.0', options)
+  .then(res => res.json())
+  .then(res => console.log(res))
+  .catch(err => console.error(err));
+
+
+
+FOR GOOGLE IMAGE MODELS [HTTPS REFERENCE] ->
+
+Closed Source
+Google
+Send requests to any Google model by specifying the {model} placeholder in the path.
+
+POST
+/
+models
+/
+v2
+/
+google
+/
+{model}
+
+Try it
+Authorizations
+​
+Authorization
+stringheaderrequired
+Set Authorization header to BYTEZ_KEY (e.g. 'Authorization': 'Key ABC123')
+
+​
+provider-key
+stringheaderrequired
+Set provider-key header to PROVIDER_KEY (e.g. 'provider-key': 'OPEN_AI_KEY')
+
+Path Parameters
+​
+model
+stringrequired
+The specific Google model to interact with (e.g., gemini-1.5-flash).
+
+Body
+application/json
+Universal schema that supports text, chat, image, audio, video, QA, zero-shot, and more.
+
+​
+text
+string
+Input text for NLP tasks.
+
+​
+messages
+object[]
+Conversation history.
+
+Hide child attributes
+
+​
+messages.role
+enum<string>required
+Available options: system, user, assistant 
+​
+messages.content
+
+string
+string
+required
+Text-only message content.
+
+​
+url
+string<uri>
+URL to image/audio/video.
+
+​
+base64
+string
+Base64-encoded image/audio/video.
+
+​
+question
+string
+Question (for QA tasks).
+
+​
+context
+string
+Context paragraph (for QA tasks).
+
+​
+candidate_labels
+string[]
+Candidate labels (for zero-shot).
+
+​
+stream
+boolean
+Enable/disable text streaming.
+
+​
+json
+boolean
+Stream media instead of JSON.
+
+​
+params
+object
+Model-specific parameters.
+
+Hide child attributes
+
+​
+params.min_length
+integer
+Minimum response length.
+
+​
+params.max_length
+integer
+Maximum response length.
+
+​
+params.temperature
+number
+Sampling temperature.
+
+Response
+200 - application/json
+Successful response from the model.
+
+​
+error
+string
+Null if everything is fine
+
+Example:
+null
+
+​
+output
+
+string
+string
+Model output
+
+
+cURL ->
+
+curl --request POST \
+  --url https://api.bytez.com/models/v2/google/{model} \
+  --header 'Authorization: <api-key>' \
+  --header 'Content-Type: application/json' \
+  --header 'provider-key: <api-key>' \
+  --data '
+{
+  "text": "<string>",
+  "messages": [
+    {
+      "role": "system",
+      "content": "<string>"
+    }
+  ],
+  "url": "<string>",
+  "base64": "<string>",
+  "question": "<string>",
+  "context": "<string>",
+  "candidate_labels": [
+    "<string>"
+  ],
+  "stream": true,
+  "json": true,
+  "params": {
+    "min_length": 123,
+    "max_length": 123,
+    "temperature": 123
+  }
+}
+'
+
+JAVASCRIPT ->
+
+const options = {
+  method: 'POST',
+  headers: {
+    Authorization: '<api-key>',
+    'provider-key': '<api-key>',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    text: '<string>',
+    messages: [{role: 'system', content: '<string>'}],
+    url: '<string>',
+    base64: '<string>',
+    question: '<string>',
+    context: '<string>',
+    candidate_labels: ['<string>'],
+    stream: true,
+    json: true,
+    params: {min_length: 123, max_length: 123, temperature: 123}
+  })
+};
+
+fetch('https://api.bytez.com/models/v2/google/{model}', options)
+  .then(res => res.json())
+  .then(res => console.log(res))
+  .catch(err => console.error(err));
+
+  

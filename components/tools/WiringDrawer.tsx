@@ -5,10 +5,14 @@ import ToolDrawer from './ToolDrawer'
 import { ZoomIn, ZoomOut, Download, RefreshCw, Loader2, AlertTriangle, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LottieLoader } from '@/components/ui/lottie-loader'
+import { DiagramDisplay } from '@/components/diagrams/DiagramDisplay'
 
 interface WiringDrawerProps {
     isOpen: boolean
     onClose: () => void
+    artifactId?: string
+    initialUrl?: string
+    initialStatus?: string
     wiringData?: {
         connections: Array<{
             from_component: string
@@ -39,7 +43,7 @@ interface WiringDrawerProps {
 
 type ViewMode = 'table' | 'svg' | 'breadboard'
 
-export default function WiringDrawer({ isOpen, onClose, wiringData, diagramSvg }: WiringDrawerProps) {
+export default function WiringDrawer({ isOpen, onClose, artifactId, initialUrl, initialStatus, wiringData, diagramSvg }: WiringDrawerProps) {
     const [view, setView] = useState<ViewMode>('table')
     const [zoom, setZoom] = useState(100)
 
@@ -191,6 +195,18 @@ export default function WiringDrawer({ isOpen, onClose, wiringData, diagramSvg }
                                 </div>
                             )}
 
+                            {/* Fritzing-style Breadboard Diagram */}
+                            {artifactId && (
+                                <div className="mt-6">
+                                    <h4 className="text-sm font-medium mb-3">📸 Breadboard Diagram</h4>
+                                    <DiagramDisplay
+                                        artifactId={artifactId}
+                                        initialUrl={initialUrl || wiringData?.ai_images?.breadboard?.url}
+                                        initialStatus={initialStatus || (wiringData?.ai_images?.status === 'completed' ? 'complete' : wiringData?.ai_images?.status === 'generating' ? 'generating' : 'pending')}
+                                    />
+                                </div>
+                            )}
+
                             {/* Warnings */}
                             {wiringData.warnings && wiringData.warnings.length > 0 && (
                                 <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
@@ -245,66 +261,76 @@ export default function WiringDrawer({ isOpen, onClose, wiringData, diagramSvg }
                     {/* BREADBOARD VIEW */}
                     {view === 'breadboard' && (
                         <div className="p-4">
-                            {isGenerating && (
-                                <div className="flex flex-col items-center justify-center py-12 gap-4 h-full">
-                                    <div className="flex-1 w-full flex items-center justify-center">
-                                        <LottieLoader />
-                                    </div>
-                                    <div className="w-full max-w-md">
-                                        <div className="w-full bg-gray-200 rounded-full h-2">
-                                            <div
-                                                className="bg-primary h-2 rounded-full transition-all duration-300"
-                                                style={{ width: `${progress}%` }}
-                                            />
-                                        </div>
-                                        <p className="text-xs text-muted-foreground mt-1 text-center">{progress}%</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {hasFailed && (
-                                <div className="flex flex-col items-center justify-center py-12 gap-4">
-                                    <AlertTriangle className="h-12 w-12 text-red-500" />
-                                    <div className="text-center">
-                                        <p className="font-medium text-red-500">Image generation failed</p>
-                                        <p className="text-sm text-muted-foreground mt-1">{errorMessage}</p>
-                                        <p className="text-xs text-muted-foreground mt-2">Check that BYTEZ_API_KEY is configured</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {imageUrl && !isGenerating && !hasFailed && (
+                            {artifactId ? (
+                                <DiagramDisplay
+                                    artifactId={artifactId}
+                                    initialUrl={initialUrl || wiringData?.ai_images?.breadboard?.url}
+                                    initialStatus={initialStatus || (wiringData?.ai_images?.status === 'completed' ? 'complete' : wiringData?.ai_images?.status === 'generating' ? 'generating' : 'pending')}
+                                />
+                            ) : (
                                 <>
-                                    <div className="flex justify-between mb-4">
-                                        <div className="flex gap-2">
-                                            <Button size="sm" onClick={() => setZoom(z => Math.min(z + 25, 200))}>
-                                                <ZoomIn className="h-4 w-4" />
-                                            </Button>
-                                            <Button size="sm" onClick={() => setZoom(z => Math.max(z - 25, 50))}>
-                                                <ZoomOut className="h-4 w-4" />
-                                            </Button>
+                                    {isGenerating && (
+                                        <div className="flex flex-col items-center justify-center py-12 gap-4 h-full">
+                                            <div className="flex-1 w-full flex items-center justify-center">
+                                                <LottieLoader />
+                                            </div>
+                                            <div className="w-full max-w-md">
+                                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                                    <div
+                                                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                                                        style={{ width: `${progress}%` }}
+                                                    />
+                                                </div>
+                                                <p className="text-xs text-muted-foreground mt-1 text-center">{progress}%</p>
+                                            </div>
                                         </div>
-                                        <Button size="sm" onClick={() => handleDownload(imageUrl, 'breadboard.png', 'png')}>
-                                            <Download className="h-4 w-4 mr-2" />
-                                            Download
-                                        </Button>
-                                    </div>
-                                    <div className="border rounded-lg overflow-hidden bg-white">
-                                        <img
-                                            src={imageUrl}
-                                            alt="Breadboard wiring diagram"
-                                            style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
-                                            className="w-full"
-                                        />
-                                    </div>
-                                </>
-                            )}
+                                    )}
 
-                            {!imageUrl && !isGenerating && !hasFailed && (
-                                <div className="text-center py-8 text-muted-foreground">
-                                    <p>AI breadboard image will appear here automatically</p>
-                                    <p className="text-xs mt-2">Typically takes 10-15 seconds</p>
-                                </div>
+                                    {hasFailed && (
+                                        <div className="flex flex-col items-center justify-center py-12 gap-4">
+                                            <AlertTriangle className="h-12 w-12 text-red-500" />
+                                            <div className="text-center">
+                                                <p className="font-medium text-red-500">Image generation failed</p>
+                                                <p className="text-sm text-muted-foreground mt-1">{errorMessage}</p>
+                                                <p className="text-xs text-muted-foreground mt-2">Check that BYTEZ_API_KEY is configured</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {imageUrl && !isGenerating && !hasFailed && (
+                                        <>
+                                            <div className="flex justify-between mb-4">
+                                                <div className="flex gap-2">
+                                                    <Button size="sm" onClick={() => setZoom(z => Math.min(z + 25, 200))}>
+                                                        <ZoomIn className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button size="sm" onClick={() => setZoom(z => Math.max(z - 25, 50))}>
+                                                        <ZoomOut className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                                <Button size="sm" onClick={() => handleDownload(imageUrl, 'breadboard.png', 'png')}>
+                                                    <Download className="h-4 w-4 mr-2" />
+                                                    Download
+                                                </Button>
+                                            </div>
+                                            <div className="border rounded-lg overflow-hidden bg-white">
+                                                <img
+                                                    src={imageUrl}
+                                                    alt="Breadboard wiring diagram"
+                                                    style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
+                                                    className="w-full"
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {!imageUrl && !isGenerating && !hasFailed && (
+                                        <div className="text-center py-8 text-muted-foreground">
+                                            <p>AI breadboard image will appear here automatically</p>
+                                            <p className="text-xs mt-2">Typically takes 10-15 seconds</p>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     )}

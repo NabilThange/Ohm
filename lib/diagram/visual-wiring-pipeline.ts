@@ -80,7 +80,7 @@ export class VisualWiringPipeline {
 
     try {
       // Step 1: Update status to 'generating'
-      await this.updateImageStatus(artifactId, wiringData, {
+      await this.updateImageStatus(chatId, artifactId, wiringData, {
         status: 'generating',
         progress: 10,
         current_step: 'Building prompt...'
@@ -98,7 +98,7 @@ export class VisualWiringPipeline {
         console.warn('[VisualWiringPipeline] Prompt quality issues:', feedback);
       }
 
-      await this.updateImageStatus(artifactId, wiringData, {
+      await this.updateImageStatus(chatId, artifactId, wiringData, {
         status: 'generating',
         progress: 30,
         current_step: 'Generating image...'
@@ -109,14 +109,14 @@ export class VisualWiringPipeline {
       const imageResult = await this.imageGenerator.generateBreadboardImage(prompt, chatId);
       console.log('[VisualWiringPipeline] ✅ Image generated successfully!');
 
-      await this.updateImageStatus(artifactId, wiringData, {
+      await this.updateImageStatus(chatId, artifactId, wiringData, {
         status: 'generating',
         progress: 90,
         current_step: 'Finalizing...'
       });
 
       // Step 4: Update artifact with completed image
-      await this.updateImageStatus(artifactId, wiringData, {
+      await this.updateImageStatus(chatId, artifactId, wiringData, {
         status: 'completed',
         progress: 100,
         breadboard: {
@@ -136,7 +136,7 @@ export class VisualWiringPipeline {
       console.error('[VisualWiringPipeline] Full error:', error);
 
       // Update artifact with failure status
-      await this.updateImageStatus(artifactId, wiringData, {
+      await this.updateImageStatus(chatId, artifactId, wiringData, {
         status: 'failed',
         progress: 0,
         error: error.message || 'Unknown error occurred',
@@ -155,6 +155,7 @@ export class VisualWiringPipeline {
    * Creates a new version with updated metadata
    */
   private async updateImageStatus(
+    chatId: string,
     artifactId: string,
     wiringData: WiringData,
     imageStatus: AIImageStatus
@@ -162,12 +163,12 @@ export class VisualWiringPipeline {
     try {
       // Get current artifact to get latest version number
       const { artifact, version: currentVersion } = await ArtifactService.getLatestArtifact(
-        artifactId.split('/')[0], // Extract chat ID if needed
+        chatId,
         'wiring'
       ) || { artifact: null, version: null };
 
       if (!artifact) {
-        console.error('[VisualWiringPipeline] Artifact not found:', artifactId);
+        console.error('[VisualWiringPipeline] Artifact not found for chat:', chatId);
         return;
       }
 

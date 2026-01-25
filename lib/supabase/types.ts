@@ -420,6 +420,10 @@ export type Database = {
                     file_path: string | null
                     diagram_svg: string | null
                     diagram_metadata: Json | null
+                    fritzing_url: string | null
+                    diagram_status: string | null
+                    generation_attempts: number | null
+                    error_message: string | null
                     change_summary: string | null
                     parent_version_id: string | null
                     created_by_message_id: string | null
@@ -436,6 +440,10 @@ export type Database = {
                     file_path?: string | null
                     diagram_svg?: string | null
                     diagram_metadata?: Json | null
+                    fritzing_url?: string | null
+                    diagram_status?: string | null
+                    generation_attempts?: number | null
+                    error_message?: string | null
                     change_summary?: string | null
                     parent_version_id?: string | null
                     created_by_message_id?: string | null
@@ -452,10 +460,74 @@ export type Database = {
                     file_path?: string | null
                     diagram_svg?: string | null
                     diagram_metadata?: Json | null
+                    fritzing_url?: string | null
+                    diagram_status?: string | null
+                    generation_attempts?: number | null
+                    error_message?: string | null
                     change_summary?: string | null
                     parent_version_id?: string | null
                     created_by_message_id?: string | null
                     created_at?: string
+                }
+                Relationships: []
+            }
+            diagram_queue: {
+                Row: {
+                    id: string
+                    circuit_json: Json
+                    artifact_id: string
+                    chat_id: string
+                    status: string | null
+                    created_at: string
+                    processed_at: string | null
+                    error_message: string | null
+                }
+                Insert: {
+                    id?: string
+                    circuit_json: Json
+                    artifact_id: string
+                    chat_id: string
+                    status?: string | null
+                    created_at?: string
+                    processed_at?: string | null
+                    error_message?: string | null
+                }
+                Update: {
+                    id?: string
+                    circuit_json?: Json
+                    artifact_id?: string
+                    chat_id?: string
+                    status?: string | null
+                    created_at?: string
+                    processed_at?: string | null
+                    error_message?: string | null
+                }
+                Relationships: []
+            }
+            diagram_cache: {
+                Row: {
+                    id: string
+                    circuit_hash: string
+                    fritzing_url: string
+                    created_at: string
+                    access_count: number | null
+                    last_accessed_at: string | null
+                }
+                Insert: {
+                    id?: string
+                    circuit_hash: string
+                    fritzing_url: string
+                    created_at?: string
+                    access_count?: number | null
+                    last_accessed_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    circuit_hash?: string
+                    fritzing_url?: string
+                    created_at?: string
+                    access_count?: number | null
+                    last_accessed_at?: string | null
                 }
                 Relationships: []
             }

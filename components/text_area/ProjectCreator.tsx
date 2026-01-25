@@ -131,8 +131,15 @@ export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
 
     return (
         <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4 md:p-6 relative overflow-hidden">
-            <div className="absolute inset-0 -z-10">
-                <FaultyTerminal />
+            <div className="absolute inset-0 -z-10 opacity-40 bg-black">
+                <FaultyTerminal
+                    scale={1.2}
+                    brightness={0.4}
+                    tint="#ffaa00"
+                    curvature={0.4}
+                    glitchAmount={0.4}
+                    flickerAmount={0.3}
+                />
             </div>
 
             <div className="w-full max-w-3xl mx-auto p-4 md:p-8 relative z-10">
@@ -168,8 +175,21 @@ export function ProjectCreator({ onSubmit }: ProjectCreatorProps) {
                 </div>
 
                 <div className="space-y-5 md:space-y-6 mt-8 md:mt-10 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
-                    {/* Spacer for persistent textarea */}
-                    <div className="h-64 mb-12" />
+                    <MorphingComposer
+                        value={prompt}
+                        onChange={setPrompt}
+                        onSubmit={handleSubmit}
+                        onKeyDown={handleKeyDown}
+                        variant="build"
+                        placeholderExamples={[
+                            "I want to build a smart weather station with ESP32 and e-ink display.",
+                            "Build a 4-legged robotic platform with inverse kinematics and ESP32 control.",
+                            "Design an IoT-based home greenhouse with soil moisture, temp, and CO2 sensors.",
+                            "Create a custom mechanical keyboard with RP2040 and per-key RGB lighting.",
+                            "Design a solar-powered weather station that sends data via LoRaWAN.",
+                            "Build a gesture-controlled motorized camera slider for time-lapse photography."
+                        ]}
+                    />
 
                     <p className="text-xs text-muted-foreground text-center font-light tracking-wide">Press ⌘+Enter to start</p>
                 </div>

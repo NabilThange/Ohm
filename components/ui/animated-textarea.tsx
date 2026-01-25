@@ -30,6 +30,19 @@ export const AnimatedTextarea = forwardRef<HTMLTextAreaElement, AnimatedTextarea
         const [charIndex, setCharIndex] = useState(0)
         const [isDeleting, setIsDeleting] = useState(false)
         const [isPaused, setIsPaused] = useState(false)
+        const [showCursor, setShowCursor] = useState(true)
+
+        // Cursor blinking effect when paused
+        useEffect(() => {
+            if (!isPaused) {
+                setShowCursor(true)
+                return
+            }
+            const timer = setInterval(() => {
+                setShowCursor((prev) => !prev)
+            }, 500)
+            return () => clearInterval(timer)
+        }, [isPaused])
 
         // Typing animation effect for placeholder
         useEffect(() => {
@@ -50,7 +63,7 @@ export const AnimatedTextarea = forwardRef<HTMLTextAreaElement, AnimatedTextarea
                 return
             }
 
-            const cursorChar = "│"
+            const cursorChar = showCursor ? "│" : ""
 
             const tick = () => {
                 if (isPaused) return
@@ -95,13 +108,13 @@ export const AnimatedTextarea = forwardRef<HTMLTextAreaElement, AnimatedTextarea
             typeSpeed,
             deleteSpeed,
             pauseDelay,
+            showCursor,
         ])
 
         return (
             <textarea
                 ref={ref}
                 value={value}
-                placeholder={animatedPlaceholder}
                 className={cn(
                     "w-full bg-transparent text-foreground placeholder:text-foreground/60 text-sm font-mono resize-none outline-none border-none focus:outline-none focus:ring-0",
                     className
@@ -110,10 +123,10 @@ export const AnimatedTextarea = forwardRef<HTMLTextAreaElement, AnimatedTextarea
                     ...((props.style || {}) as React.CSSProperties),
                 }}
                 {...props}
+                placeholder={value ? "" : animatedPlaceholder}
             />
         )
     }
 )
 
 AnimatedTextarea.displayName = "AnimatedTextarea"
- 

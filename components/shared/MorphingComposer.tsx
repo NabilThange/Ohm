@@ -66,7 +66,7 @@ export const MorphingComposer = forwardRef<HTMLTextAreaElement, MorphingComposer
         // Variant-specific styles
         const containerStyles = {
             landing: "bg-card border border-[#3e3e38] p-6 hover:border-primary",
-            build: "bg-card border border-border/50 p-6 hover:border-primary/50 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20",
+            build: "bg-black/40 backdrop-blur-sm border border-[#3e3e38] p-6 hover:border-primary/50 focus-within:border-primary transition-all duration-300 shadow-[0_0_20px_rgba(0,0,0,0.3)] focus-within:shadow-[0_0_25px_rgba(255,170,0,0.05)]",
             chat: "border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm rounded-3xl",
         }
 
